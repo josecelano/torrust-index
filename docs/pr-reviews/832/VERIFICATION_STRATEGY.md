@@ -53,8 +53,31 @@ own standard and cannot be merged. If they pass, we have a baseline to build on.
 
 ## Step 2 — Reference implementation comparator
 
-Write a naive O(N) structure that performs the same operations and compare
-results for a large number of random inputs.
+**Status:** ✅ 17 passed, 0 failed, 1 ignored (2026-03-17)
+
+A naive `VecAccumulator<u64>` that stores exact per-coordinate totals was
+written as an independent ground truth. Tests cover 8 invariants:
+
+| #   | Invariant                                                                      | Type  | Status |
+| --- | ------------------------------------------------------------------------------ | ----- | ------ |
+| 1   | `total_sum()` == naive total                                                   | exact | ✅     |
+| 2   | `range_sum(..)` == `total_sum()`                                               | exact | ✅     |
+| 3   | `range_sum(a..a)` == 0                                                         | exact | ✅     |
+| 4   | `range_sum(A)` ≤ `total_sum()`                                                 | exact | ✅     |
+| 5   | Monotone: positive obs never decrease range_sum                                | exact | ✅     |
+| 6   | Binary partition with f64: left + right ≈ total                                | float | ✅     |
+| 7   | Additive range split: `range_sum(a..m) + range_sum(m..b)` == `range_sum(a..b)` | float | ✅     |
+| 8   | Single-coord cluster: total_sum matches expected                               | exact | ✅     |
+
+File: `packages/mudlark/tests/reference_comparator.rs`
+
+**New bug found (Finding #9 in REVIEW_PR_832.md):** Writing f64 invariant tests
+revealed that `plateau_after_observe` in `graph_plateau.rs` uses `assert_eq!`
+(exact equality) to compare two f64 sums accumulated via different orders. After
+any G-node split, floating-point non-associativity causes ~1 ULP divergence and
+the assertion always fires in `debug_assertions` builds. A `#[ignore]`d
+regression test (`bug_f64_plateau_drift_after_split`) documents it. The f64
+invariant tests use a high-split-threshold config to work around the bug.
 
 ```rust
 // Naive: Vec<(u64, f64)> linear scan
@@ -193,10 +216,10 @@ This is an honest, defensible position for a 64k-line AI-assisted PR.
 
 ## Progress
 
-| Step | Description                         | Status         |
-| ---- | ----------------------------------- | -------------- |
-| 1    | Run author's tests                  | ✅ Passes      |
-| 2    | Reference implementation comparator | ⬜ Not written |
-| 3    | Use-case acceptance tests           | ⬜ Not written |
-| 4    | Mutation testing                    | ⬜ Not run     |
-| 5    | Static analysis                     | ⬜ Not run     |
+| Step | Description                         | Status                                 |
+| ---- | ----------------------------------- | -------------------------------------- |
+| 1    | Run author's tests                  | ✅ Passes                              |
+| 2    | Reference implementation comparator | ✅ 17 passed, 1 bug found (Finding #9) |
+| 3    | Use-case acceptance tests           | ⬜ Not written                         |
+| 4    | Mutation testing                    | ✅ 60.1% kill rate (413 missed)        |
+| 5    | Static analysis                     | ⬜ Not run                             |
