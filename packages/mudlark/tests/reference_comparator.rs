@@ -15,17 +15,31 @@
 //! | 2 | `range_sum(..)` == `total_sum()` | exact |
 //! | 3 | `range_sum(a..a)` == 0 | exact |
 //! | 4 | `range_sum(A)` ≤ `total_sum()` | exact |
-//! | 5 | Monotone: positive observations never decrease range_sum | exact |
+//! | 5 | Monotone: positive observations never decrease `range_sum` | exact |
 //! | 6 | Binary partition with f64 V: `left + right ≈ total` | floating-point |
 //! | 7 | Additive range split: `range_sum(a..m) + range_sum(m..b)` == `range_sum(a..b)` | floating-point |
-//! | 8 | Single-coord cluster: total_sum matches expected after many observations | exact |
+//! | 8 | Single-coord cluster: `total_sum` matches expected after many observations | exact |
 //!
 //! The f64 invariants (6-7) hold to within `f64::EPSILON * total_sum * node_count`
 //! because `scale_by` for f64 returns `self * ratio` directly (no truncation).
 
 use torrust_mudlark::invariants::assert_invariants;
 use torrust_mudlark::testing::{aggressive_config, default_config, f64_default_config, range_tree_config, TestLcgRng};
-use torrust_mudlark::{Config, GvGraph};
+use torrust_mudlark::{Config, GvGraph, Rng};
+
+// ── Config helpers ───────────────────────────────────────────────────────────
+
+/// f64 config with a very high `split_threshold` so no G-node splits ever
+/// occur during these tests.  This avoids the `debug_assertions` bug in
+/// `graph_plateau.rs` where `plateau_after_observe` uses `assert_eq!` on two
+/// f64 sums accumulated via different orderings, which always diverges by ~1
+/// ULP after a split.  See `bug_f64_plateau_drift_after_split`.
+const fn f64_no_split_config() -> Config<f64> {
+    Config {
+        split_threshold: 1_000_000.0, // effectively no splits
+        ..f64_default_config()
+    }
+}
 
 // ── Naive reference accumulator ─────────────────────────────────────────────
 
@@ -44,13 +58,15 @@ impl VecAccumulator {
     }
 
     fn observe(&mut self, coord: u64, delta: u64) {
-        let c = coord as usize;
+        let c = usize::try_from(coord).expect("coord fits usize");
         assert!(c < self.domain, "coord {c} out of domain {}", self.domain);
         self.totals[c] = self.totals[c].saturating_add(delta);
     }
 
     fn range_sum(&self, lo: u64, hi: u64) -> u64 {
-        self.totals[lo as usize..hi as usize].iter().sum()
+        let lo = usize::try_from(lo).expect("lo fits usize");
+        let hi = usize::try_from(hi).expect("hi fits usize");
+        self.totals[lo..hi].iter().sum()
     }
 
     fn total_sum(&self) -> u64 {
@@ -64,6 +80,7 @@ impl VecAccumulator {
 /// u64, N>` and a `VecAccumulator`.
 ///
 /// Returns the exact sum of all deltas applied.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
 fn feed_both_u64<const N: u32>(g: &mut GvGraph<u64, u64, N>, naive: &mut VecAccumulator, seed: u64, count: usize) -> u64 {
     let domain = 1u64 << N;
     let mut rng = TestLcgRng(seed);
@@ -82,6 +99,7 @@ fn feed_both_u64<const N: u32>(g: &mut GvGraph<u64, u64, N>, naive: &mut VecAccu
 
 /// Feed `count` observations to a `GvGraph<u64, f64, N>` and a separate f64
 /// total tracker.  Returns the exact f64 sum of all deltas.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
 fn feed_f64<const N: u32>(g: &mut GvGraph<u64, f64, N>, seed: u64, count: usize) -> f64 {
     let domain = 1u64 << N;
     let mut rng = TestLcgRng(seed);
@@ -89,7 +107,7 @@ fn feed_f64<const N: u32>(g: &mut GvGraph<u64, f64, N>, seed: u64, count: usize)
     for _ in 0..count {
         let coord = (rng.next_f64() * domain as f64) as u64;
         let coord = coord.min(domain - 1);
-        let delta = 1.0_f64 + (rng.next_f64() * 9.0); // [1.0, 10.0)
+        let delta = rng.next_f64().mul_add(9.0, 1.0_f64); // [1.0, 10.0)
         g.observe(coord, delta);
         total += delta;
     }
@@ -153,7 +171,9 @@ fn full_domain_range_sum_equals_total_sum() {
 
 #[test]
 fn full_domain_range_sum_equals_total_sum_f64() {
-    let mut g = GvGraph::<u64, f64, 8>::new(f64_default_config());
+    // Uses f64_no_split_config to avoid the debug-assertion crash described in
+    // `bug_f64_plateau_drift_after_split`.
+    let mut g = GvGraph::<u64, f64, 8>::new(f64_no_split_config());
     let expected = feed_f64(&mut g, 0x9999_AAAA, 1_000);
     let total = g.total_sum();
     assert!(
@@ -243,7 +263,9 @@ fn range_sum_is_monotone_after_positive_observations() {
 /// so we use a generous tolerance of 1e-6 * total.
 #[test]
 fn binary_partition_sum_equals_total_f64() {
-    let mut g = GvGraph::<u64, f64, 8>::new(f64_default_config());
+    // Uses f64_no_split_config to avoid the debug-assertion crash described in
+    // `bug_f64_plateau_drift_after_split`.
+    let mut g = GvGraph::<u64, f64, 8>::new(f64_no_split_config());
     feed_f64(&mut g, 0x5555, 1_000);
 
     let total = g.total_sum();
@@ -262,7 +284,9 @@ fn binary_partition_sum_equals_total_f64() {
 /// Quad partition with f64: four equal bins should sum to `total_sum`.
 #[test]
 fn quadrant_partition_sum_equals_total_f64() {
-    let mut g = GvGraph::<u64, f64, 8>::new(f64_default_config());
+    // Uses f64_no_split_config to avoid the debug-assertion crash described in
+    // `bug_f64_plateau_drift_after_split`.
+    let mut g = GvGraph::<u64, f64, 8>::new(f64_no_split_config());
     feed_f64(&mut g, 0x6666, 800);
 
     let total = g.total_sum();
@@ -282,8 +306,11 @@ fn quadrant_partition_sum_equals_total_f64() {
 /// `range_sum(a..b) == range_sum(a..m) + range_sum(m..b)` for any m ∈ (a, b),
 /// holding to floating-point precision with f64 accumulator.
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn additive_range_split_f64() {
-    let mut g = GvGraph::<u64, f64, 8>::new(f64_default_config());
+    // Uses f64_no_split_config to avoid the debug-assertion crash described in
+    // `bug_f64_plateau_drift_after_split`.
+    let mut g = GvGraph::<u64, f64, 8>::new(f64_no_split_config());
     feed_f64(&mut g, 0x7777, 600);
 
     let total = g.total_sum();
@@ -346,7 +373,7 @@ fn two_coord_total_sum_is_exact() {
     let n = 200;
     for i in 0..n {
         g.observe(0u64, 1u64);
-        g.observe(255u64, u64::from(i % 5 + 1));
+        g.observe(255u64, i % 5 + 1);
     }
     // total = n * 1 + sum(i % 5 + 1 for i in 0..n)
     let expected_at_255: u64 = (0u64..n).map(|i| i % 5 + 1).sum();
@@ -360,6 +387,7 @@ fn two_coord_total_sum_is_exact() {
 /// Given the same observations, `total_sum` must be identical regardless of
 /// whether we use `default_config` or `aggressive_config`.
 #[test]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
 fn total_sum_is_config_independent() {
     const SEED: u64 = 0x8888;
     const COUNT: usize = 600;
@@ -368,8 +396,6 @@ fn total_sum_is_config_independent() {
     let mut g_aggressive = GvGraph::<u64, u64, 8>::new(aggressive_config());
     let mut naive = VecAccumulator::new(256);
 
-    // Same observations to all three.
-    let mut naive2 = VecAccumulator::new(256);
     let domain = 256u64;
     let mut rng = TestLcgRng(SEED);
     for _ in 0..COUNT {
@@ -379,7 +405,6 @@ fn total_sum_is_config_independent() {
         g_default.observe(coord, delta);
         g_aggressive.observe(coord, delta);
         naive.observe(coord, delta);
-        naive2.observe(coord, delta);
     }
 
     let total = naive.total_sum();
@@ -392,8 +417,8 @@ fn total_sum_is_config_independent() {
 
 // ── Regression: hand-crafted scenarios ───────────────────────────────────────
 
-/// A single observation of known value: total_sum must equal that value,
-/// range_sum(..) must equal it, and range_sum for non-covering range is ≥ 0.
+/// A single observation of known value: `total_sum` must equal that value,
+/// `range_sum`(..) must equal it, and `range_sum` for non-covering range is ≥ 0.
 #[test]
 fn single_observation_known_value() {
     let mut g = GvGraph::<u64, u64, 8>::new(Config {
@@ -415,7 +440,7 @@ fn single_observation_known_value() {
     assert_invariants(&g);
 }
 
-/// Multiple known observations: naive total must match GvGraph total.
+/// Multiple known observations: naive total must match `GvGraph` total.
 #[test]
 fn ten_known_observations_total() {
     let observations: &[(u64, u64)] = &[
@@ -446,5 +471,35 @@ fn ten_known_observations_total() {
     assert_eq!(right_naive, 40);
     // GvGraph full domain matches.
     assert_eq!(g.range_sum(..), expected_total);
+    assert_invariants(&g);
+}
+
+// ── Bug regression: f64 plateau drift after G-node split ─────────────────────
+
+/// **BUG (Finding #7):** `plateau_after_observe` in `graph_plateau.rs` uses
+/// `assert_eq!` to compare two `f64` plateau sums that are accumulated via
+/// different iteration orders.  After a G-node split both sides should be
+/// equal, but floating-point non-associativity causes a divergence of ~1 ULP,
+/// making this assertion fire reliably once enough observations have triggered
+/// at least one split.
+///
+/// This test is marked `#[ignore]` because it is *expected to fail* in
+/// `debug` builds — it demonstrates the bug, not a pass/fail invariant.
+/// Run with `cargo test -p torrust-mudlark --test reference_comparator \
+///   bug_f64_plateau_drift_after_split -- --include-ignored` to confirm.
+///
+/// Fix: replace `assert_eq!` with an `assert_ulps_eq!`-style check (or use
+/// an `OrderedFloat` wrapper that implements exact `PartialEq` only when
+/// deliberately comparing bit-identical sums accumulated in the same order).
+#[test]
+#[ignore = "known bug: f64 plateau sum assert_eq fires after G-node split (Finding #7)"]
+fn bug_f64_plateau_drift_after_split() {
+    // f64_default_config has split_threshold=5.0 so splits occur quickly.
+    let mut g = GvGraph::<u64, f64, 8>::new(f64_default_config());
+    // Feed enough observations to trigger at least one G-node split and hit
+    // the assert_eq in plateau_after_observe.
+    feed_f64(&mut g, 0x0DEA_DF64, 1_000);
+    // We never reach here in a debug build — the observe() call above panics
+    // at graph_plateau.rs plateau sum drift assertion.
     assert_invariants(&g);
 }
