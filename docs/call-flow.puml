@@ -1,0 +1,128 @@
+@startuml call-flow
+title torrust-mudlark — Execution / Call Flow
+
+skinparam backgroundColor #FFFFFF
+skinparam sequence {
+    ParticipantBackgroundColor #DDEEFF
+    ParticipantBorderColor #336699
+    ArrowColor #555555
+    LifeLineBorderColor #AAAAAA
+    BoxBackgroundColor #F0F0F0
+    BoxBorderColor #CCCCCC
+}
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FFD700
+}
+
+actor "User code" as User
+
+box "⑦ Public API" #EEF4FF
+    participant "graph_traits" as api
+end box
+
+box "⑥ Algorithms" #FFF5EE
+    participant "observe" as obs
+    participant "split" as spl
+    participant "rebalance" as reb
+    participant "graph_budget" as bud
+    participant "evict" as evi
+    participant "decay" as dec
+    participant "graph_query" as gq
+    participant "graph_plateau" as gpl
+end box
+
+box "④ Tree Utilities" #EEFEE8
+    participant "gtree" as gtree
+    participant "vtree" as vtree
+end box
+
+' ─────────────────────────────────────────
+' observe path
+' ─────────────────────────────────────────
+User -> api : observe(coord, delta)
+activate api
+api -> obs : update G-node own value\npropagate sum up G-tree
+activate obs
+
+obs -> spl : if own >= split_threshold\nand depth < D_create
+activate spl
+spl -> reb : fix 2-3 V-tree violations\nafter node promotion
+activate reb
+reb --> spl
+deactivate reb
+spl --> obs
+deactivate spl
+
+obs -> bud : adjust D_create / D_evict\nbased on node_count vs soft_limit
+activate bud
+bud -> evi : evict tip G-nodes\nat depth >= D_evict
+activate evi
+evi --> bud
+deactivate evi
+bud --> obs
+deactivate bud
+
+obs -> gpl : repair plateau invariants\n(P-I1 .. P-I5)
+activate gpl
+gpl --> obs
+deactivate gpl
+
+obs --> api
+deactivate obs
+api --> User
+deactivate api
+
+' ─────────────────────────────────────────
+' get path
+' ─────────────────────────────────────────
+User -> api : get(coord)
+activate api
+api -> gq : route coord and\nreturn Cell
+activate gq
+gq -> gtree : descend G-tree\nto leaf covering coord
+activate gtree
+gtree --> gq : leaf G-node
+deactivate gtree
+gq --> api : Cell { start, end, intensity, depth }
+deactivate gq
+api --> User
+deactivate api
+
+' ─────────────────────────────────────────
+' sample path
+' ─────────────────────────────────────────
+User -> api : sample(rng)
+activate api
+api -> gq : weighted random\nleaf selection
+activate gq
+gq -> vtree : descend V-tree\nweighted by child intensities
+activate vtree
+vtree --> gq : Entry V-node → G-node
+deactivate vtree
+gq --> api : Cell
+deactivate gq
+api --> User
+deactivate api
+
+' ─────────────────────────────────────────
+' decay path
+' ─────────────────────────────────────────
+User -> api : decay(root, factor, q)
+activate api
+api -> dec : attenuate all G-node values\nby multiplicative factor
+activate dec
+dec -> reb : fix any new 2-3 violations\nfrom value changes
+activate reb
+reb --> dec
+deactivate reb
+dec -> bud : re-evaluate depth gates\nafter mass attenuation
+activate bud
+bud --> dec
+deactivate bud
+dec --> api
+deactivate dec
+api --> User
+deactivate api
+
+@enduml

@@ -1,0 +1,155 @@
+@startuml component-architecture
+title torrust-mudlark — Module Architecture (Component View)
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam component {
+    BackgroundColor #DDEEFF
+    BorderColor #336699
+    FontSize 11
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #999999
+    FontSize 12
+    FontStyle bold
+}
+skinparam arrow {
+    Color #555555
+    FontSize 10
+}
+skinparam linetype ortho
+
+' ─────────────────────────────────────────
+' ① Foundation — no internal dependencies
+' ─────────────────────────────────────────
+package "① Foundation" {
+    [arena\n<size:9>Memory pool (free-list)</size>] as arena
+    [handle\n<size:9>GNodeId · VNodeId</size>] as handle
+    [traits/\n<size:9>Coordinate · Accumulator\nSpatialRead/Write + 11 more</size>] as traits
+}
+
+' ─────────────────────────────────────────
+' ② Node Types
+' ─────────────────────────────────────────
+package "② Node Types" {
+    [gnode\n<size:9>GNode · GState\n(Terminal/SemiInternal/Internal)</size>] as gnode
+    [vnode\n<size:9>VNode · VKind\n(Entry / Structural)</size>] as vnode
+}
+
+' ─────────────────────────────────────────
+' ③ Spatial / Output Types
+' ─────────────────────────────────────────
+package "③ Spatial / Output Types" {
+    [view\n<size:9>Span · Cell · Node</size>] as view
+    [plateau\n<size:9>Plateau · BasisEdge\nPlateauBasis</size>] as plateau
+    [pewei\n<size:9>Pewei · Layer\nTransition · Terminal</size>] as pewei
+    [contour_range\n<size:9>ContourRange · BasisElement</size>] as contour_range
+}
+
+' ─────────────────────────────────────────
+' ④ Tree Utilities
+' ─────────────────────────────────────────
+package "④ Tree Utilities" {
+    [gtree\n<size:9>G-tree routing\ndepth · sum propagation</size>] as gtree
+    [vtree\n<size:9>V-tree propagation\nevictable-flag maintenance</size>] as vtree
+}
+
+' ─────────────────────────────────────────
+' ⑤ Core Data Structure
+' ─────────────────────────────────────────
+package "⑤ Core Data Structure" {
+    [graph\n<size:9>GvGraph<C,V,N> + Config\nnew() · accessors</size>] as graph
+}
+
+' ─────────────────────────────────────────
+' ⑥ Algorithms
+' ─────────────────────────────────────────
+package "⑥ Algorithms  (mutate GvGraph)" {
+    [observe\n<size:9>mutation orchestrator\nupdate→split→rebalance\n→budget→plateau</size>] as observe
+    [split\n<size:9>bootstrap split\ncatalytic split</size>] as split
+    [rebalance\n<size:9>2-3 tree violation\ndetection and repair</size>] as rebalance
+    [evict\n<size:9>tip eviction\nbounded eviction loop</size>] as evict
+    [decay\n<size:9>uniform and selective\ntemporal attenuation</size>] as decay
+    [graph_budget\n<size:9>depth-gate tuning\nD_create / D_evict</size>] as graph_budget
+    [graph_plateau\n<size:9>dynamic plateau\nmaintenance</size>] as graph_plateau
+    [graph_query\n<size:9>get(coord)\nsample(rng)</size>] as graph_query
+    [graph_extract\n<size:9>extract() to Pewei\nreconstruct()</size>] as graph_extract
+}
+
+' ─────────────────────────────────────────
+' ⑦ Public API
+' ─────────────────────────────────────────
+package "⑦ Public API" {
+    [graph_traits\n<size:9>SpatialWrite · SpatialRead\nWeightedSampler · TemporalDecay\nimplemented for GvGraph</size>] as graph_traits
+}
+
+' ─────────────────────────────────────────
+' ⑧ Diagnostics
+' ─────────────────────────────────────────
+package "⑧ Diagnostics  (read-only)" {
+    [invariants\n<size:9>check_all_invariants()\nG-I · V-I · D-I · P-I</size>] as invariants
+    [diagnostic\n<size:9>violation detection\naudit helpers</size>] as diagnostic
+}
+
+' ─────────────────────────────────────────
+' Dependencies
+' ─────────────────────────────────────────
+
+handle --> gnode
+handle --> vnode
+
+gnode --> view
+gnode --> plateau
+handle --> view
+handle --> plateau
+view --> pewei
+plateau --> contour_range
+
+arena --> gtree
+arena --> vtree
+gnode --> gtree
+gnode --> vtree
+vnode --> vtree
+
+arena --> graph
+gnode --> graph
+vnode --> graph
+plateau --> graph
+view --> graph
+
+graph --> observe
+graph --> split
+graph --> rebalance
+graph --> evict
+graph --> decay
+graph --> graph_budget
+graph --> graph_plateau
+graph --> graph_query
+graph --> graph_extract
+
+gtree --> split
+gtree --> rebalance
+gtree --> graph_query
+vtree --> split
+vtree --> rebalance
+contour_range --> graph_query
+plateau --> graph_query
+plateau --> graph_plateau
+pewei --> graph_extract
+
+rebalance ..> split : called by
+split ..> observe : called by
+evict ..> graph_budget : called by
+graph_budget ..> observe : called by
+graph_plateau ..> observe : called by
+
+graph --> graph_traits
+graph --> invariants
+graph --> diagnostic
+rebalance --> invariants
+rebalance --> diagnostic
+gtree --> invariants
+
+@enduml
