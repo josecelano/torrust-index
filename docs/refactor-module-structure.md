@@ -66,12 +66,12 @@ src/
 
 ## Key Benefits
 
-| Before | After |
-|--------|-------|
-| `graph_budget` | `graph::algorithm::budget` — prefix is the module path |
-| `graph_traits` | `graph::traits` |
-| 20 files at root depth | 5 top-level entries, depth signals abstraction level |
-| No obvious entry point | `graph/mod.rs` is clearly the centre |
+| Before                 | After                                                  |
+| ---------------------- | ------------------------------------------------------ |
+| `graph_budget`         | `graph::algorithm::budget` — prefix is the module path |
+| `graph_traits`         | `graph::traits`                                        |
+| 20 files at root depth | 5 top-level entries, depth signals abstraction level   |
+| No obvious entry point | `graph/mod.rs` is clearly the centre                   |
 
 ---
 
