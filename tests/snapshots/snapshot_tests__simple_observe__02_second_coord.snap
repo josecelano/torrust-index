@@ -1,0 +1,15 @@
+---
+source: tests/snapshot_tests.rs
+expression: snapshot_of(&graph)
+---
+total_sum: 15
+
+G-tree:
+[d0] 0..65536  own=10  sum=15  I
+├── [d1] 0..32768  own=5  sum=5  T
+└── [d1] 32768..65536  own=0  sum=0  T
+
+V-tree (active nodes):
+[d0] 0..65536  own=10  sum=15  I
+├── [d1] 0..32768  own=5  sum=5  T
+└── [d1] 32768..65536  own=0  sum=0  T

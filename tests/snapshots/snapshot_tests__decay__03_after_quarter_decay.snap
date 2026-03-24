@@ -1,0 +1,27 @@
+---
+source: tests/snapshot_tests.rs
+expression: snapshot_of(&graph)
+---
+total_sum: 3
+
+G-tree:
+[d0] 0..65536  own=1  sum=3  I
+├── [d1] 0..32768  own=1  sum=2  I
+│   ├── [d2] 0..16384  own=1  sum=1  I
+│   │   ├── [d3] 0..8192  own=0  sum=0  I
+│   │   │   ├── [d4] 0..4096  own=0  sum=0  T
+│   │   │   └── [d4] 4096..8192  own=0  sum=0  T
+│   │   └── [d3] 8192..16384  own=0  sum=0  T
+│   └── [d2] 16384..32768  own=0  sum=0  T
+└── [d1] 32768..65536  own=0  sum=0  T
+
+V-tree (active nodes):
+[d0] 0..65536  own=1  sum=3  I
+├── [d1] 0..32768  own=1  sum=2  I
+│   ├── [d2] 0..16384  own=1  sum=1  I
+│   │   ├── [d3] 0..8192  own=0  sum=0  I
+│   │   │   ├── [d4] 0..4096  own=0  sum=0  T
+│   │   │   └── [d4] 4096..8192  own=0  sum=0  T
+│   │   └── [d3] 8192..16384  own=0  sum=0  T
+│   └── [d2] 16384..32768  own=0  sum=0  T
+└── [d1] 32768..65536  own=0  sum=0  T

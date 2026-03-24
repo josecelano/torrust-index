@@ -1,0 +1,11 @@
+---
+source: tests/snapshot_tests.rs
+expression: snapshot_of(&graph)
+---
+total_sum: 5
+
+G-tree:
+[d0] 0..65536  own=5  sum=5  T
+
+V-tree (active nodes):
+[d0] 0..65536  own=5  sum=5  T
