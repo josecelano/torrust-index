@@ -1,3 +1,5 @@
+pub(crate) mod traits;
+
 #[cfg(feature = "dynamic-contour-tracking")]
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicU32;
