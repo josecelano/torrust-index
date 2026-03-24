@@ -47,7 +47,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         split::attempt_split(self, g_id);
 
         if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-SPLIT");
+            crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-SPLIT");
         }
 
         #[cfg(feature = "dynamic-contour-tracking")]
@@ -94,7 +94,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             let remaining =
-                crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-OBSERVE");
+                crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-OBSERVE");
             debug_assert!(
                 remaining.is_empty(),
                 "POST-OBSERVE: residual violations: {remaining:?}"

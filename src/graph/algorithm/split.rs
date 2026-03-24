@@ -139,7 +139,7 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostic::audit_plateau_consistency(graph, "POST-BOOTSTRAP-SPLIT", None);
+        crate::diagnostics::diagnostic::audit_plateau_consistency(graph, "POST-BOOTSTRAP-SPLIT", None);
     }
 }
 
@@ -238,7 +238,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
+        crate::diagnostics::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
     }
 }
 

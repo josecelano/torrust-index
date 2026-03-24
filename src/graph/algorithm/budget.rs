@@ -116,7 +116,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             evicted += 1;
 
             if tracing::enabled!(tracing::Level::DEBUG) {
-                crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-EVICT");
+                crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-EVICT");
             }
 
             #[cfg(feature = "dynamic-contour-tracking")]

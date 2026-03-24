@@ -201,7 +201,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     }
 
     if tracing::enabled!(tracing::Level::ERROR) {
-        let ctx = crate::diagnostic::EvictionContext {
+        let ctx = crate::diagnostics::diagnostic::EvictionContext {
             evicted_parent: v_parent,
             evicted_parent_child_count: child_count,
             collapse_sibling,
@@ -211,7 +211,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             graph.violations.iter().map(|v| v.index()).collect();
         for v in all_violated {
             if !queued.contains(&v.index()) {
-                crate::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
+                crate::diagnostics::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
             }
         }
     }
@@ -243,10 +243,10 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         );
 
         if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostic::audit_plateau_consistency(
+            crate::diagnostics::diagnostic::audit_plateau_consistency(
                 graph,
                 "POST-EVICT",
-                Some(&crate::diagnostic::PlateauAuditContext {
+                Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
                     parent_id,
                     parent_state: parent_state_after,
                 }),

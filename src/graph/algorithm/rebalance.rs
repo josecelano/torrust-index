@@ -1084,7 +1084,7 @@ pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
     let _span = tracing::debug_span!("rebalance", queue = violations.len()).entered();
 
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostic::audit_violations(vnodes, violations, "PRE-REBALANCE");
+        crate::diagnostics::diagnostic::audit_violations(vnodes, violations, "PRE-REBALANCE");
     }
 
     while let Some(c) = violations.pop() {
@@ -1155,14 +1155,14 @@ pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
         }
 
         if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostic::audit_violations(vnodes, violations, "POST-RESOLVE");
+            crate::diagnostics::diagnostic::audit_violations(vnodes, violations, "POST-RESOLVE");
         }
     }
 
     tracing::debug!(iterations, resolved, "rebalance complete");
 
     if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
-        let remaining = crate::diagnostic::audit_violations(vnodes, violations, "RESIDUAL");
+        let remaining = crate::diagnostics::diagnostic::audit_violations(vnodes, violations, "RESIDUAL");
         assert!(
             remaining.is_empty(),
             "rebalance finished with residual violations: {remaining:?}"

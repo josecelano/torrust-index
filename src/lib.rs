@@ -8,11 +8,11 @@ pub(crate) mod graph;
 pub(crate) mod traits;
 
 pub(crate) mod arena;
-pub(crate) mod diagnostic;
+pub mod diagnostics;
 pub(crate) mod tree;
 
 #[doc(hidden)]
-pub mod invariants;
+pub use diagnostics::invariants;
 
 #[doc(hidden)]
 pub use graph::GNodeChildren;

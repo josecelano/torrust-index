@@ -122,7 +122,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 }
             }
 
-            tracing::error!(dump = %crate::invariants::dump_gtree::<C, V, N>(self), "G-TREE DUMP");
+            tracing::error!(dump = %crate::diagnostics::invariants::dump_gtree::<C, V, N>(self), "G-TREE DUMP");
 
             panic!(
                 "{label}: dynamic-contour-tracking mirror diverged from static rebuild\n\
