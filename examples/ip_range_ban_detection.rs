@@ -48,7 +48,101 @@ impl torrust_mudlark::Rng for Lcg {
     }
 }
 
-/// Print a snapshot of every live node in the graph, ordered by BFS depth.
+/// Print an ASCII heat map of all 256 /24 subnets inside `a.b.0.0/16`.
+///
+/// 64 columns × 4 subnets per column cover the whole /16.
+/// ANSI colours show relative density (requires a colour-capable terminal):
+///
+/// ```text
+///   ·   dark dot  — zero / near-zero activity
+///   ░   blue      — low activity
+///   ▒   cyan      — moderate activity
+///   ▓   yellow    — high activity
+///   █   red+bold  — hottest bucket (normalised peak = 100 %)
+/// ```
+///
+/// A caret `^` printed below the strip marks the hottest column.
+fn print_heatmap(label: &str, graph: &BadRequestMap, a: u8, b: u8) {
+    const COLS: usize = 64;
+    const SUBNETS_PER_COL: usize = 4; // /24 subnets per display column
+
+    // Query the per-/24 score for all 256 subnets in a.b.0.0/16.
+    let buckets: Vec<u64> = (0_u8..=255)
+        .map(|c| {
+            let lo = u32::from(Ipv4Addr::new(a, b, c, 0));
+            let hi = u32::from(Ipv4Addr::new(a, b, c, 255));
+            graph.range_sum(lo..=hi)
+        })
+        .collect();
+
+    // Aggregate into columns; find the peak for normalisation.
+    let cols: Vec<u64> = (0..COLS)
+        .map(|col| {
+            (0..SUBNETS_PER_COL)
+                .map(|i| buckets[col * SUBNETS_PER_COL + i])
+                .sum()
+        })
+        .collect();
+    let actual_max = cols.iter().copied().max().unwrap_or(0);
+    let peak = actual_max.max(1);
+
+    // Find the hottest column for the caret annotation (only meaningful when
+    // the range has any activity at all).
+    let hot_col = cols
+        .iter()
+        .enumerate()
+        .max_by_key(|&(_, &v)| v)
+        .map_or(0, |(i, _)| i);
+    let hot_third = hot_col * SUBNETS_PER_COL;
+
+    println!(
+        "\n── {label}: heat map of {a}.{b}.0.0/16  (total_sum={}) ──",
+        graph.total_sum()
+    );
+    println!(
+        "   {} /24 subnets per column · {} columns · colour = relative density",
+        SUBNETS_PER_COL, COLS
+    );
+    println!("   {a}.{b}.0          {a}.{b}.64         {a}.{b}.128        {a}.{b}.192");
+    println!("   |              |              |              |              |");
+
+    // ── density strip ──────────────────────────────────────────────────────
+    print!("   ");
+    for &col_sum in &cols {
+        let frac = col_sum as f64 / peak as f64;
+        // Map 0.0–1.0 to one of five visual levels + ANSI colour.
+        let (colour, ch) = match (frac * 5.0) as u8 {
+            0 => ("\x1b[90m", '·'),   // dark grey — empty
+            1 => ("\x1b[34m", '░'),   // blue      — low
+            2 => ("\x1b[36m", '▒'),   // cyan      — medium
+            3 => ("\x1b[33m", '▓'),   // yellow    — high
+            _ => ("\x1b[1;31m", '█'), // bright red — very hot
+        };
+        print!("{colour}{ch}\x1b[0m");
+    }
+    println!();
+
+    // ── caret under the hottest column ─────────────────────────────────────
+    print!("   ");
+    if actual_max == 0 {
+        println!("  (all quiet in this /16)");
+    } else {
+        for i in 0..COLS {
+            print!(
+                "{}",
+                if i == hot_col {
+                    "\x1b[1;31m^\x1b[0m"
+                } else {
+                    " "
+                }
+            );
+        }
+        println!(
+            "  ← hottest: {a}.{b}.{hot_third}–{a}.{b}.{}.x",
+            hot_third + SUBNETS_PER_COL - 1
+        );
+    }
+}
 ///
 /// Each line shows:
 ///   `[depth] <start_ip ... end_ip>  own=N  sum=N  (state)`
@@ -118,6 +212,7 @@ fn main() {
     println!("After noise:  total bad requests = {}", graph.total_sum());
     // → 3
     print_tree("After noise", &graph);
+    print_heatmap("After noise", &graph, 203, 0);
     // Expect: 3 nodes — one coarse node per observed IP, everything else silent.
 
     // -- 2. Coordinated attack: every host in 203.0.113.0/24 -----------------
@@ -134,6 +229,7 @@ fn main() {
     println!("After attack: total bad requests = {}", graph.total_sum());
     // → 5123  (3 noise + 5120 attack)
     print_tree("After attack", &graph);
+    print_heatmap("After attack", &graph, 203, 0);
     // Expect: the 203.0.113.0/24 block is split into many fine-grained nodes
     // (high depth, small ranges), while the three noise IPs remain coarse.
     // Nodes that straddle the /24 boundary are visible here — they explain
@@ -167,6 +263,7 @@ fn main() {
     println!("After decay:  total bad requests = {}", graph.total_sum());
     // → ~2487  (all counts halved; a new burst will still spike visibly)
     print_tree("After decay", &graph);
+    print_heatmap("After decay", &graph, 203, 0);
     // Expect: same tree shape — decay does not restructure the tree, only
     // scales all `own` and `sum` values down proportionally.
 }
