@@ -61,8 +61,10 @@ fn minimal_config() -> torrust_mudlark::Config<u64> {
 ## Tests to write (ordered by priority)
 
 ### 1. `new_graph_satisfies_invariants`
+
 **Why:** Verifies the initial state (single root GNode, empty VTree) is structurally valid.  
 **How:**
+
 ```rust
 let graph = TestGraph::new(minimal_config());
 let violations = torrust_mudlark::invariants::check_all_invariants(&graph);
@@ -72,8 +74,10 @@ assert!(violations.is_empty(), "{violations:?}");
 ---
 
 ### 2. `single_observe_satisfies_invariants`
+
 **Why:** The very first `observe()` call allocates the first VNode. Exercises bootstrap path.  
 **How:**
+
 ```rust
 let mut graph = TestGraph::new(minimal_config());
 graph.observe(1000_u32, 5_u64);
@@ -84,9 +88,11 @@ assert!(violations.is_empty(), "{violations:?}");
 ---
 
 ### 3. `repeated_observe_same_coord_satisfies_invariants`
+
 **Why:** Repeated hits on the same coordinate should accumulate weight and eventually
 trigger a split. Exercises `split`, `rebalance`, and `graph_budget`.  
 **How:**
+
 ```rust
 let mut graph = TestGraph::new(minimal_config());
 for _ in 0..50 {
@@ -99,9 +105,11 @@ assert!(violations.is_empty(), "{violations:?}");
 ---
 
 ### 4. `observe_many_coords_satisfies_invariants`
+
 **Why:** Observations spread across the coordinate space exercise the full G-tree routing,
 multiple splits, and plateau tracking.  
 **How:**
+
 ```rust
 let mut graph = TestGraph::new(minimal_config());
 for i in 0_u32..200 {
@@ -114,8 +122,10 @@ assert!(violations.is_empty(), "{violations:?}");
 ---
 
 ### 5. `get_returns_zero_for_unobserved_coord`
+
 **Why:** `get()` on a fresh graph should return a cell with zero accumulated value.  
 **How:**
+
 ```rust
 let graph = TestGraph::new(minimal_config());
 let cell = graph.get(1000_u32);
@@ -124,19 +134,24 @@ assert_eq!(cell.value, 0_u64);
 
 ---
 
-### 6. `get_returns_accumulated_value_after_observe`
-**Why:** Verifies the read path reflects what was written.  
+### 6. `total_sum_nonzero_after_observe`
+
+**Why:** Verifies the graph has recorded the observation. Note: `get().intensity`
+returns the G-node's `own` field which is only non-zero on _terminal_ G-nodes after a
+split — it is 0 immediately after a single observation. `total_sum()` is the correct
+read-after-write check.  
 **How:**
+
 ```rust
 let mut graph = TestGraph::new(minimal_config());
 graph.observe(1000_u32, 42_u64);
-let cell = graph.get(1000_u32);
-assert!(cell.value > 0, "expected non-zero value after observe");
+assert!(graph.total_sum() > 0, "expected non-zero total_sum after observe");
 ```
 
 ---
 
 ### 7. `observe_then_decay_satisfies_invariants`
+
 **Why:** `decay()` is the only other mutating operation. Exercises temporal attenuation
 and verifies invariants hold after weight reduction.  
 **Requires:** `V: Attenuatable` — use `f64` accumulator for this test.
@@ -165,9 +180,11 @@ assert!(violations.is_empty(), "{violations:?}");
 ---
 
 ### 8. `bounded_budget_does_not_exceed_limit`
+
 **Why:** When `budget` is set, eviction should keep the node count bounded. If this breaks
 during restructuring, the graph will grow unboundedly.  
 **How:**
+
 ```rust
 let config = torrust_mudlark::Config {
     split_threshold: 1,
@@ -190,16 +207,16 @@ assert!(violations.is_empty(), "{violations:?}");
 
 ## Coverage summary
 
-| Operation | Tests |
-|-----------|-------|
-| `GvGraph::new` | 1, 5 |
-| `observe` (single) | 2, 6 |
-| `observe` (repeated, same coord → splits) | 3 |
-| `observe` (many coords → full tree) | 4 |
-| `get` | 5, 6 |
-| `decay` | 7 |
-| bounded eviction | 8 |
-| `check_all_invariants` oracle | 1, 2, 3, 4, 7, 8 |
+| Operation                                 | Tests            |
+| ----------------------------------------- | ---------------- |
+| `GvGraph::new`                            | 1, 5             |
+| `observe` (single)                        | 2, 6             |
+| `observe` (repeated, same coord → splits) | 3                |
+| `observe` (many coords → full tree)       | 4                |
+| `get`                                     | 5, 6             |
+| `decay`                                   | 7                |
+| bounded eviction                          | 8                |
+| `check_all_invariants` oracle             | 1, 2, 3, 4, 7, 8 |
 
 ---
 
@@ -210,6 +227,7 @@ assert!(violations.is_empty(), "{violations:?}");
 - [ ] The tests are in `tests/integration.rs`, using only public API
 
 Once this gate is green, the restructure can proceed because:
+
 - Any broken `use crate::` path will produce a **compile error** (immediate feedback)
 - Any accidentally broken logic will produce a **test failure** (invariant violation)
 - The test file itself requires **zero changes** during the restructure
