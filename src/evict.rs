@@ -296,7 +296,7 @@ fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32
 
         let parent_key = {
             let pg = graph.gnodes.get(parent_id.index());
-            crate::plateau::basis_edge_of(pg)
+            crate::spatial::plateau::basis_edge_of(pg)
         };
 
         while let Some(anc) = cur {
@@ -377,12 +377,12 @@ fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32
         }
     };
 
-    let parent_be = crate::plateau::BasisEdge(parent_lo);
+    let parent_be = crate::spatial::plateau::BasisEdge(parent_lo);
 
     {
-        let right_keys: Vec<crate::plateau::BasisEdge<C>> = graph
+        let right_keys: Vec<crate::spatial::plateau::BasisEdge<C>> = graph
             .plateaus
-            .range(crate::plateau::BasisEdge(parent_hi)..)
+            .range(crate::spatial::plateau::BasisEdge(parent_hi)..)
             .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
             .filter(|(_, p)| p.depth == parent_depth)
             .map(|(&k, _)| k)
@@ -411,7 +411,7 @@ fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32
             }
         }
 
-        let left_keys: Vec<crate::plateau::BasisEdge<C>> = graph
+        let left_keys: Vec<crate::spatial::plateau::BasisEdge<C>> = graph
             .plateaus
             .range(..parent_be)
             .rev()

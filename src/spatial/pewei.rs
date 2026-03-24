@@ -1,5 +1,5 @@
 use crate::traits::{Accumulator, Coordinate, Proratable, Weighable};
-use crate::view::Span;
+use crate::spatial::view::Span;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

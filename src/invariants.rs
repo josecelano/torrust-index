@@ -5,7 +5,7 @@ use crate::graph::uniform_contour_depth_of;
 use crate::gtree::gnode_depth_from_interval;
 use crate::handle::{GNodeId, VNodeId};
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::plateau::BasisEdge;
+use crate::spatial::plateau::BasisEdge;
 use crate::rebalance::is_violated;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::nodes::vnode::VKind;
@@ -163,7 +163,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
         let next_key = plateaus
             .range(std::ops::RangeFrom {
-                start: crate::plateau::BasisEdge(plateau.end),
+                start: crate::spatial::plateau::BasisEdge(plateau.end),
             })
             .find(|&(k, _)| *k != *key)
             .map(|(k, _)| k.0.to_f64());

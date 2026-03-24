@@ -11,8 +11,8 @@ pub trait SpatialRead {
         &self,
     ) -> std::borrow::Cow<
         '_,
-        std::collections::BTreeMap<crate::plateau::BasisEdge<Self::Coord>, crate::plateau::Plateau<Self::Coord, Self::Accum>>,
+        std::collections::BTreeMap<crate::spatial::plateau::BasisEdge<Self::Coord>, crate::spatial::plateau::Plateau<Self::Coord, Self::Accum>>,
     >;
 
-    fn get(&self, coord: Self::Coord) -> crate::view::Cell<Self::Coord, Self::Accum>;
+    fn get(&self, coord: Self::Coord) -> crate::spatial::view::Cell<Self::Coord, Self::Accum>;
 }

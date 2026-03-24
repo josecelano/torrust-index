@@ -7,11 +7,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::S
 
     fn plateaus(
         &self,
-    ) -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> {
+    ) -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::spatial::plateau::BasisEdge<C>, crate::spatial::plateau::Plateau<C, V>>> {
         self.plateaus()
     }
 
-    fn get(&self, coord: C) -> crate::view::Cell<C, V> {
+    fn get(&self, coord: C) -> crate::spatial::view::Cell<C, V> {
         self.get(coord)
     }
 }
@@ -33,7 +33,7 @@ impl<C: Coordinate, V: Accumulator + crate::traits::Attenuatable + Inspectable, 
 impl<C: Coordinate, V: Accumulator + Inspectable + crate::traits::Weighable, const N: u32> crate::traits::WeightedSampler
     for GvGraph<C, V, N>
 {
-    fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::view::Cell<C, V>> {
+    fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::spatial::view::Cell<C, V>> {
         self.sample(rng)
     }
 }

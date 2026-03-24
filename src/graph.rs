@@ -6,9 +6,9 @@ use crate::arena::Arena;
 use crate::nodes::gnode::GNode;
 use crate::handle::{GNodeId, VNodeId};
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::plateau::{BasisEdge, Plateau, PlateauBasis};
+use crate::spatial::plateau::{BasisEdge, Plateau, PlateauBasis};
 use crate::traits::{Accumulator, Coordinate};
-use crate::view::Node;
+use crate::spatial::view::Node;
 use crate::nodes::vnode::VNode;
 
 #[doc(hidden)]

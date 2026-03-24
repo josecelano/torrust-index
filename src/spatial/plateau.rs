@@ -8,7 +8,7 @@ use crate::nodes::gnode::{GNode, GState};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate};
-use crate::view::Span;
+use crate::spatial::view::Span;
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

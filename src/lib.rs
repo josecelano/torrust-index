@@ -1,11 +1,8 @@
 #![forbid(unsafe_code)]
 
-pub(crate) mod contour_range;
 pub(crate) mod handle;
 pub(crate) mod nodes;
-pub(crate) mod pewei;
-pub(crate) mod plateau;
-pub(crate) mod view;
+pub(crate) mod spatial;
 
 pub(crate) mod graph;
 pub(crate) mod traits;
@@ -28,16 +25,16 @@ pub(crate) mod vtree;
 #[doc(hidden)]
 pub mod invariants;
 
-pub use contour_range::{BasisElement, ContourRange, ContourRangeEnergy};
 #[doc(hidden)]
 pub use graph::GNodeChildren;
 pub use graph::{Config, GvGraph};
 pub use handle::GNodeId;
 pub use nodes::gnode::GState;
-pub use pewei::{Layer, Pewei, Terminal, Transition};
-pub use plateau::{BasisEdge, Plateau};
+pub use spatial::contour_range::{BasisElement, ContourRange, ContourRangeEnergy};
+pub use spatial::pewei::{Layer, Pewei, Terminal, Transition};
+pub use spatial::plateau::{BasisEdge, Plateau};
+pub use spatial::view::{Cell, Node, Span};
 pub use traits::{
     Accumulator, Attenuatable, Coordinate, Inspectable, Observation, Proratable, Rng,
     ScalableObservation, SpatialRead, SpatialWrite, TemporalDecay, Weighable, WeightedSampler,
 };
-pub use view::{Cell, Node, Span};

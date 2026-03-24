@@ -5,11 +5,11 @@ use crate::traits::{Accumulator, Coordinate, Inspectable};
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
 
     #[must_use]
-    pub fn extract(&self) -> crate::pewei::Pewei<C, V> {
+    pub fn extract(&self) -> crate::spatial::pewei::Pewei<C, V> {
         use std::collections::VecDeque;
 
         use crate::nodes::gnode::GState;
-        use crate::pewei::{Layer, Pewei, Terminal, Transition};
+        use crate::spatial::pewei::{Layer, Pewei, Terminal, Transition};
         use crate::nodes::vnode::VKind;
 
         let domain_start = C::zero();
@@ -83,7 +83,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    pub fn layers(&self) -> impl Iterator<Item = (usize, crate::view::Node<C, V>)> + '_ {
+    pub fn layers(&self) -> impl Iterator<Item = (usize, crate::spatial::view::Node<C, V>)> + '_ {
         let mut queue = std::collections::VecDeque::new();
         if let Some(v_root) = self.v_root {
             queue.push_back((v_root, 0usize));
@@ -122,7 +122,7 @@ struct Layers<'a, C: Coordinate, V: Accumulator, const N: u32> {
 }
 
 impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, N> {
-    type Item = (usize, crate::view::Node<C, V>);
+    type Item = (usize, crate::spatial::view::Node<C, V>);
 
     fn next(&mut self) -> Option<Self::Item> {
         use crate::nodes::vnode::VKind;
@@ -142,7 +142,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
                 VKind::Entry { gnode, .. } => {
                     let g = self.graph.gnodes.get(gnode.index());
                     let g_depth = self.graph.gnode_depth(*gnode);
-                    let node = crate::view::Node {
+                    let node = crate::spatial::view::Node {
                         start: g.lo,
                         end: g.hi,
                         own: g.own,

@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use crate::graph::{GvGraph, uniform_contour_depth_of};
 use crate::handle::GNodeId;
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::plateau::PlateauBasis;
-use crate::plateau::{BasisEdge, Plateau};
+use crate::spatial::plateau::PlateauBasis;
+use crate::spatial::plateau::{BasisEdge, Plateau};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
@@ -138,7 +138,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub fn build_plateaus(&self) -> BTreeMap<BasisEdge<C>, Plateau<C, V>> {
         use crate::nodes::gnode::GState;
         use crate::gtree::gnode_depth_from_interval;
-        use crate::plateau::basis_edge_of;
+        use crate::spatial::plateau::basis_edge_of;
 
         let mut basis: Vec<(BasisEdge<C>, u32, C, C, V)> = Vec::new();
         let mut stack = vec![self.g_root];
@@ -291,7 +291,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
-        use crate::plateau::{BasisEdge, Plateau, basis_edge_of};
+        use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 
         let g = self.gnodes.get(gnode.index());
         let key = basis_edge_of(g);
@@ -419,7 +419,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn place_sorted(&mut self, elements: &mut [(GNodeId, u32)]) {
-        use crate::plateau::basis_edge_of;
+        use crate::spatial::plateau::basis_edge_of;
         elements.sort_by(|a, b| {
             let a_key = basis_edge_of(self.gnodes.get(a.0.index()));
             let b_key = basis_edge_of(self.gnodes.get(b.0.index()));
@@ -579,7 +579,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn normalize_plateaus(&mut self) {
         use crate::nodes::gnode::GState;
         use crate::gtree::gnode_depth_from_interval;
-        use crate::plateau::{BasisEdge, Plateau, basis_edge_of};
+        use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 
         if !self.plateaus_dirty {
             return;
@@ -800,8 +800,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     #[cfg(feature = "dynamic-contour-tracking")]
-    pub(crate) fn fixup_plateau(&mut self, old_key: crate::plateau::BasisEdge<C>) {
-        use crate::plateau::{BasisEdge, Plateau, basis_edge_of};
+    pub(crate) fn fixup_plateau(&mut self, old_key: crate::spatial::plateau::BasisEdge<C>) {
+        use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 
         let element_ids: Vec<GNodeId> = self.plateau_basis.basis_elements(&old_key).iter().copied().collect();
 
@@ -883,7 +883,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn repair_p_i4(&mut self) {
         use crate::nodes::gnode::GState;
-        use crate::plateau::BasisEdge;
+        use crate::spatial::plateau::BasisEdge;
 
         let span = tracing::debug_span!(
             "repair_p_i4",
@@ -934,9 +934,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn repair_p_i4(&mut self) {}
 
     #[cfg(feature = "dynamic-contour-tracking")]
-    fn split_for_p_i4(&mut self, parent_pk: crate::plateau::BasisEdge<C>, child_id: GNodeId) {
+    fn split_for_p_i4(&mut self, parent_pk: crate::spatial::plateau::BasisEdge<C>, child_id: GNodeId) {
         use crate::nodes::gnode::GState;
-        use crate::plateau::{Plateau, basis_edge_of};
+        use crate::spatial::plateau::{Plateau, basis_edge_of};
 
         let boundary_id = self.find_boundary_node(child_id, parent_pk);
         let Some(boundary_id) = boundary_id else { return };
@@ -969,8 +969,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     #[cfg(feature = "dynamic-contour-tracking")]
-    fn find_boundary_node(&self, gid: GNodeId, parent_pk: crate::plateau::BasisEdge<C>) -> Option<GNodeId> {
-        use crate::plateau::basis_edge_of;
+    fn find_boundary_node(&self, gid: GNodeId, parent_pk: crate::spatial::plateau::BasisEdge<C>) -> Option<GNodeId> {
+        use crate::spatial::plateau::basis_edge_of;
 
         let g = self.gnodes.get(gid.index());
         let key = basis_edge_of(g);

@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::handle::GNodeId;
-use crate::plateau::{BasisEdge, Plateau};
+use crate::spatial::plateau::{BasisEdge, Plateau};
 use crate::traits::{Accumulator, Coordinate};
 #[cfg(debug_assertions)]
 use crate::traits::{Inspectable, Proratable};

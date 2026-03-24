@@ -1,18 +1,18 @@
 #[cfg(debug_assertions)]
-use crate::contour_range::debug_assert_contour_range_invariants;
-use crate::contour_range::{BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints};
+use crate::spatial::contour_range::debug_assert_contour_range_invariants;
+use crate::spatial::contour_range::{BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints};
 use crate::nodes::gnode::GNode;
 use crate::graph::GvGraph;
 use crate::gtree::gnode_depth_from_interval;
 use crate::handle::{GNodeId, VNodeId};
-use crate::plateau::BasisEdge;
+use crate::spatial::plateau::BasisEdge;
 use crate::traits::{Accumulator, Coordinate, Inspectable, Proratable, Weighable};
 
 impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
 
     #[must_use]
     #[allow(clippy::doc_markdown)]
-    pub fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::view::Cell<C, V>> {
+    pub fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::spatial::view::Cell<C, V>> {
         use crate::nodes::vnode::VKind;
 
         let v_root = self.v_root?;
@@ -28,7 +28,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
                 VKind::Entry { gnode, .. } => {
                     let g = self.gnodes.get(gnode.index());
                     let (start, end) = Self::uncovered_interval(g);
-                    return Some(crate::view::Cell {
+                    return Some(crate::spatial::view::Cell {
                         start,
                         end,
                         intensity: g.own,
@@ -63,7 +63,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
     #[must_use]
-    pub fn get(&self, coord: C) -> crate::view::Cell<C, V> {
+    pub fn get(&self, coord: C) -> crate::spatial::view::Cell<C, V> {
 
         assert!(!coord.is_nan(), "get(): coordinate is NaN");
 
@@ -84,7 +84,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             );
         }
 
-        crate::view::Cell {
+        crate::spatial::view::Cell {
             start,
             end,
             intensity: g.own,
