@@ -33,64 +33,64 @@ package "① Foundation" {
 ' ─────────────────────────────────────────
 ' ② Node Types
 ' ─────────────────────────────────────────
-package "② Node Types" {
-    [gnode\n<size:9>GNode · GState\n(Terminal/SemiInternal/Internal)</size>] as gnode
-    [vnode\n<size:9>VNode · VKind\n(Entry / Structural)</size>] as vnode
+package "② Node Types  (nodes/)" {
+    [nodes/gnode\n<size:9>GNode · GState\n(Terminal/SemiInternal/Internal)</size>] as gnode
+    [nodes/vnode\n<size:9>VNode · VKind\n(Entry / Structural)</size>] as vnode
 }
 
 ' ─────────────────────────────────────────
 ' ③ Spatial / Output Types
 ' ─────────────────────────────────────────
-package "③ Spatial / Output Types" {
-    [view\n<size:9>Span · Cell · Node</size>] as view
-    [plateau\n<size:9>Plateau · BasisEdge\nPlateauBasis</size>] as plateau
-    [pewei\n<size:9>Pewei · Layer\nTransition · Terminal</size>] as pewei
-    [contour_range\n<size:9>ContourRange · BasisElement</size>] as contour_range
+package "③ Spatial / Output Types  (spatial/)" {
+    [spatial/view\n<size:9>Span · Cell · Node</size>] as view
+    [spatial/plateau\n<size:9>Plateau · BasisEdge\nPlateauBasis</size>] as plateau
+    [spatial/pewei\n<size:9>Pewei · Layer\nTransition · Terminal</size>] as pewei
+    [spatial/contour_range\n<size:9>ContourRange · BasisElement</size>] as contour_range
 }
 
 ' ─────────────────────────────────────────
 ' ④ Tree Utilities
 ' ─────────────────────────────────────────
-package "④ Tree Utilities" {
-    [gtree\n<size:9>G-tree routing\ndepth · sum propagation</size>] as gtree
-    [vtree\n<size:9>V-tree propagation\nevictable-flag maintenance</size>] as vtree
+package "④ Tree Utilities  (tree/)" {
+    [tree/gtree\n<size:9>G-tree routing\ndepth · sum propagation</size>] as gtree
+    [tree/vtree\n<size:9>V-tree propagation\nevictable-flag maintenance</size>] as vtree
 }
 
 ' ─────────────────────────────────────────
 ' ⑤ Core Data Structure
 ' ─────────────────────────────────────────
-package "⑤ Core Data Structure" {
-    [graph\n<size:9>GvGraph<C,V,N> + Config\nnew() · accessors</size>] as graph
+package "⑤ Core Data Structure  (graph/)" {
+    [graph/mod\n<size:9>GvGraph<C,V,N> + Config\nnew() · accessors</size>] as graph
 }
 
 ' ─────────────────────────────────────────
 ' ⑥ Algorithms
 ' ─────────────────────────────────────────
-package "⑥ Algorithms  (mutate GvGraph)" {
-    [observe\n<size:9>mutation orchestrator\nupdate→split→rebalance\n→budget→plateau</size>] as observe
-    [split\n<size:9>bootstrap split\ncatalytic split</size>] as split
-    [rebalance\n<size:9>2-3 tree violation\ndetection and repair</size>] as rebalance
-    [evict\n<size:9>tip eviction\nbounded eviction loop</size>] as evict
-    [decay\n<size:9>uniform and selective\ntemporal attenuation</size>] as decay
-    [graph_budget\n<size:9>depth-gate tuning\nD_create / D_evict</size>] as graph_budget
-    [graph_plateau\n<size:9>dynamic plateau\nmaintenance</size>] as graph_plateau
-    [graph_query\n<size:9>get(coord)\nsample(rng)</size>] as graph_query
-    [graph_extract\n<size:9>extract() to Pewei\nreconstruct()</size>] as graph_extract
+package "⑥ Algorithms  (graph/algorithm/)" {
+    [algorithm/observe\n<size:9>mutation orchestrator\nupdate→split→rebalance\n→budget→plateau</size>] as observe
+    [algorithm/split\n<size:9>bootstrap split\ncatalytic split</size>] as split
+    [algorithm/rebalance\n<size:9>2-3 tree violation\ndetection and repair</size>] as rebalance
+    [algorithm/evict\n<size:9>tip eviction\nbounded eviction loop</size>] as evict
+    [algorithm/decay\n<size:9>uniform and selective\ntemporal attenuation</size>] as decay
+    [algorithm/budget\n<size:9>depth-gate tuning\nD_create / D_evict</size>] as graph_budget
+    [algorithm/plateau\n<size:9>dynamic plateau\nmaintenance</size>] as graph_plateau
+    [algorithm/query\n<size:9>get(coord)\nsample(rng)</size>] as graph_query
+    [algorithm/extract\n<size:9>extract() to Pewei\nreconstruct()</size>] as graph_extract
 }
 
 ' ─────────────────────────────────────────
 ' ⑦ Public API
 ' ─────────────────────────────────────────
-package "⑦ Public API" {
-    [graph_traits\n<size:9>SpatialWrite · SpatialRead\nWeightedSampler · TemporalDecay\nimplemented for GvGraph</size>] as graph_traits
+package "⑦ Public API  (graph/traits.rs)" {
+    [graph/traits\n<size:9>SpatialWrite · SpatialRead\nWeightedSampler · TemporalDecay\nimplemented for GvGraph</size>] as graph_traits
 }
 
 ' ─────────────────────────────────────────
 ' ⑧ Diagnostics
 ' ─────────────────────────────────────────
-package "⑧ Diagnostics  (read-only)" {
-    [invariants\n<size:9>check_all_invariants()\nG-I · V-I · D-I · P-I</size>] as invariants
-    [diagnostic\n<size:9>violation detection\naudit helpers</size>] as diagnostic
+package "⑧ Diagnostics  (diagnostics/)" {
+    [diagnostics/invariants\n<size:9>check_all_invariants()\nG-I · V-I · D-I · P-I</size>] as invariants
+    [diagnostics/diagnostic\n<size:9>violation detection\naudit helpers</size>] as diagnostic
 }
 
 ' ─────────────────────────────────────────
