@@ -302,3 +302,94 @@ _Pending_
 9. **[BUG] f64 plateau sum drift after G-node split** — `plateau_after_observe` in `graph_plateau.rs` uses `assert_eq!` (exact equality) to verify that a plateau's incrementally-accumulated `f64` sum equals the sum freshly recomputed by folding over basis elements. Due to floating-point non-associativity the two sums diverge by ~1 ULP whenever a G-node split changes the accumulation order. This fires unconditionally under `debug_assertions` after ≥ ~50 f64 observations with the default config. It is not caught by the author's own test suite because those tests either use too few observations or a domain type that avoids splits. Discovered by `reference_comparator.rs::bug_f64_plateau_drift_after_split`.
    - **Severity:** Crash (debug build) / silent wrong data (release build — the drift, though tiny, means the plateau cache diverges from reality).
    - **Fix:** Replace `assert_eq!(a, b, ...)` with an approximate equality check (e.g. `assert_ulps_eq!(a, b, max_ulps = 8)` via `approx`), **or** accumulate the plateau sum only by fresh recompute (remove the incremental path), **or** use `OrderedFloat` only in contexts where bit-identical re-accumulation is guaranteed.
+   - ⚠️ **Status:** Cameron fixed a related panic (decay factor table sized for depth ≤ N, doesn't hold for f64 — ADR-M-038). That is a **different bug** in `decay.rs`. Our `assert_eq!` issue is in `graph_plateau.rs`. Verify whether `reference_comparator.rs::bug_f64_plateau_drift_after_split` still fires after rebasing.
+
+---
+
+## Author Responses
+
+### Finding Status After Cameron's Replies
+
+| #   | Finding                              | Status                                                                                  |
+| --- | ------------------------------------ | --------------------------------------------------------------------------------------- |
+| 1   | MSRV bump (workspace-wide)           | ✅ PR description now says "MSRV 1.85, inherited from workspace" — addressed in PR #833 |
+| 2   | `src/ui/proxy.rs` regression         | ✅ **Fixed in PR #833** (merged) — `render-text-as-image` now internal                  |
+| 3   | `torrust-sentinel` in machete ignore | ⬜ Not mentioned — still needs explanation or comment                                   |
+| 4   | `docs/api.md` out of date            | ✅ **Full API audit done** — three-test procedure; API redesigned                       |
+| 5   | `debug_plateau_basis()` visibility   | ✅ Likely addressed in API audit (Primary test: diagnostics-only → hidden)              |
+| 6   | `AGENTS.md` scope                    | ⬜ Not mentioned — mudlark-specific conventions still in root AGENTS.md                 |
+| 7   | Methods missing from api.md          | ✅ **API redesigned** — some removed from public surface, others documented             |
+| 8   | `GNodeInfo` not in docs              | ✅ **Merged into `Node`** — `gnode_info()` now returns `Node`                           |
+| 9   | [BUG] f64 plateau drift              | ⚠️ **Related decay panic fixed (ADR-M-038); plateau assert_eq needs verification**      |
+| —   | Mutation kill rate 60.1%             | ✅ Test count 868→1,311 (+443) — re-run needed to measure new kill rate                 |
+
+### Comment — da2ce7, 5 days ago (#issuecomment-4096212408)
+
+**Source:** https://github.com/torrust/torrust-index/pull/832#issuecomment-4096212408
+
+- Non-mudlark issues (proxy.rs regression, MSRV) addressed in **PR #833**, now merged. PR #832 rebased on top.
+- Next: fix non-substantive issues (test counts out of sync, api.md incomplete).
+- Then: tackle mutation testing gaps.
+
+### Comment — da2ce7, 4 days ago (#issuecomment-4102788921) — API audit
+
+**Source:** https://github.com/torrust/torrust-index/pull/832#issuecomment-4102788921
+
+Triggered by Finding #4 (api.md out of date). Cameron found ADR-032 was a classification scheme, not a decision procedure. He developed three concrete tests that make each API question mechanical:
+
+**Three-test API decision procedure:**
+
+- **Primary test:** Does the symbol serve one of the six core operations (three projections, three mutations, or construction)? Diagnostics/serialisation/testing-only → `#[doc(hidden)]` or feature-gated.
+- **Handle test:** Does a handle type have both a public producer and a public consumer? One-ended handle is a dead-end.
+- **Snapshot test:** Does a Print field capture something fixed at creation, or track live topology? Immutable provenance → Surface 1; mutable topology → Surface 3.
+
+**API changes applied:**
+
+| Symbol                         | Decision                                                               | Result                                     |
+| ------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------ |
+| `Node.parent`                  | passes snapshot test (set once at split, immune to eviction)           | added to stable Surface 1                  |
+| `VNodeId`                      | fails handle test (`v_root()` produces it, nothing public consumes it) | both become `pub(crate)`                   |
+| `GNodeInfo`                    | duplicate of `Node`; no separate justification                         | merged, `gnode_info()` returns `Node`      |
+| `Observation::scale()`         | panicking default on types where scaling is meaningless                | split into `ScalableObservation` sub-trait |
+| Child linkage (`left`/`right`) | fails snapshot test (mutable topology)                                 | `#[doc(hidden)] gnode_children()`          |
+
+**Analogy fidelity tags added:** Every mapping in the analogy section now carries an explicit tag (load-bearing / illustrative / decorative / breaks), so future API decisions can rely on the load-bearing parts.
+
+**Separate finding — decay depth panic (ADR-M-038):**
+
+Found during the API pass: the decay factor table was sized assuming tree depth ≤ N, which doesn't hold for `f64` coordinates. That's a real panic. Fixed in ADR-M-038. ~770 new integration tests lock it down, including IEEE 754 edge cases (`0 * ∞`, `ln(0) * 0`, `∞ - ∞` → NaN in various decay code paths).
+
+> **Note:** This is a **different bug** from our Finding #9. Cameron's fix is in `decay.rs` (factor table overflow). Our Finding #9 is in `graph_plateau.rs` (incremental `f64` sum vs. fresh recompute divergence under `assert_eq!`). We should run `reference_comparator.rs::bug_f64_plateau_drift_after_split` against the rebased code to check.
+
+### Comment — da2ce7, 3 days ago — mutation testing overhaul
+
+Responded to the 60.1% mutation kill rate by overhauling the test suite. Classified surviving mutants into four categories:
+
+| Category                           | Description                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| Value-correctness                  | Wrong numeric output not caught by assertions using only shape/sign checks |
+| Boundary-precision                 | Off-by-one / boundary mutations (operator flips) slipping through          |
+| Type-coverage                      | Type-specific edge cases (f64 NaN/Inf, u64 overflow) untested              |
+| Invariant checker self-consistency | Invariant checker itself had gaps — mutants in checker went undetected     |
+
+Written up as **ADR-M-039** (mutation-testing gap analysis).
+
+**Outcome — test count 868 → 1,311 (+443 across all three surfaces):**
+
+- `pedagogy.rs` — Walks through §IDEA M-16 worked example step by step: bootstrap split, catalytic split, competitive promotion, uncle shield, PEWEI extraction, proportional sampling, targeted subtree decay, post-decay rebalancing. Every assertion maps to a spec claim; every step prints a narrative.
+- `pedagogy_advanced.rs` — 18 steps on a shared graph covering the full read surface: construction alternatives, G-node introspection, range sum pro-ration, contour-range pipeline, plateau selection, progressive PEWEI reconstruction, budget-limited eviction.
+
+Both use `harness = false`. Running `cargo test -p torrust-mudlark --test pedagogy -- --nocapture` produces a readable walkthrough.
+
+**README rewritten** — Quick Start and Advanced Usage sections are now runnable doc-tests (`include_str!` in `lib.rs`). If the prose drifts from reality, CI catches it.
+
+Cameron has asked to see the new mutation kill rate. **Action:** re-run `cargo mutants -p torrust-mudlark` and record the result.
+
+### Remaining Open Items
+
+After Cameron's three responses, the following are still unresolved:
+
+1. **`torrust-sentinel` in machete ignore** — Intent undocumented. Low priority but a stale forward reference.
+2. **`AGENTS.md` scope** — Mudlark-specific cross-reference conventions still in root `AGENTS.md`. Low priority.
+3. **Finding #9 (`graph_plateau.rs` `assert_eq!`)** — Needs verification: does `reference_comparator.rs::bug_f64_plateau_drift_after_split` still fire against the rebased code? Run `cargo test -p torrust-mudlark --test reference_comparator bug_f64_plateau_drift_after_split` (without `--release`).
+4. **New mutation kill rate** — Re-run `cargo mutants -p torrust-mudlark` to measure improvement from Cameron's +443 tests.
