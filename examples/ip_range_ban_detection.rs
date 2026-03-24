@@ -12,7 +12,7 @@
 
 use std::net::Ipv4Addr;
 
-use torrust_mudlark::{Config, GvGraph};
+use torrust_mudlark::{Config, GState, GvGraph};
 
 // ---------------------------------------------------------------------------
 // Graph type
@@ -48,6 +48,45 @@ impl torrust_mudlark::Rng for Lcg {
     }
 }
 
+/// Print a snapshot of every live node in the graph, ordered by BFS depth.
+///
+/// Each line shows:
+///   `[depth] <start_ip ... end_ip>  own=N  sum=N  (state)`
+///
+/// - `own`   — value accumulated directly at this node (non-zero on terminal
+///             nodes once the tree has split fine enough).
+/// - `sum`   — total value in the subtree rooted here; equals `own` for leaves.
+/// - `state` — `Terminal` (leaf), `Internal` (both children split),
+///             or `SemiInternal` (one child split).
+///
+/// Nodes that straddle a query boundary but haven't been split yet are visible
+/// here — that is the reason `range_sum` can undercount slightly.
+fn print_tree(label: &str, graph: &BadRequestMap) {
+    println!("\n── {label} (total_sum={}) ──", graph.total_sum());
+    println!(
+        "{:>5}  {:<45}  {:>10}  {:>10}  {}",
+        "depth", "range [start_ip … end_ip]", "own", "sum", "state"
+    );
+    for (depth, node) in graph.layers() {
+        let start_ip = Ipv4Addr::from(node.start);
+        let end_ip = Ipv4Addr::from(node.end);
+        let state = match node.state {
+            GState::Terminal => "Terminal",
+            GState::Internal => "Internal",
+            GState::SemiInternal => "SemiInternal",
+        };
+        println!(
+            "{:>5}  {:<21} … {:<21}  {:>10}  {:>10}  {}",
+            depth,
+            start_ip.to_string(),
+            end_ip.to_string(),
+            node.own,
+            node.sum,
+            state
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -78,6 +117,8 @@ fn main() {
     }
     println!("After noise:  total bad requests = {}", graph.total_sum());
     // → 3
+    print_tree("After noise", &graph);
+    // Expect: 3 nodes — one coarse node per observed IP, everything else silent.
 
     // -- 2. Coordinated attack: every host in 203.0.113.0/24 -----------------
     //
@@ -92,6 +133,11 @@ fn main() {
     }
     println!("After attack: total bad requests = {}", graph.total_sum());
     // → 5123  (3 noise + 5120 attack)
+    print_tree("After attack", &graph);
+    // Expect: the 203.0.113.0/24 block is split into many fine-grained nodes
+    // (high depth, small ranges), while the three noise IPs remain coarse.
+    // Nodes that straddle the /24 boundary are visible here — they explain
+    // why range_sum returns ~4929 rather than the exact 5120.
 
     // -- 3. Range query: score the suspected /24 without enumerating hosts ----
     let subnet_lo = ipv4(203, 0, 113, 0);
@@ -120,4 +166,7 @@ fn main() {
     graph.decay(root, 0.5, 0.001);
     println!("After decay:  total bad requests = {}", graph.total_sum());
     // → ~2487  (all counts halved; a new burst will still spike visibly)
+    print_tree("After decay", &graph);
+    // Expect: same tree shape — decay does not restructure the tree, only
+    // scales all `own` and `sum` values down proportionally.
 }
