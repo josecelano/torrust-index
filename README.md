@@ -43,6 +43,22 @@ Splits occur when a node accumulates enough value relative to its siblings, and 
 
 ---
 
+## Examples
+
+See the [`examples/`](examples/) folder for runnable code and [`docs/use-cases/`](docs/use-cases/) for the design rationale behind each one.
+
+| Example                                                        | Use case doc                                                       | What it shows                                                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| [`ip_range_ban_detection`](examples/ip_range_ban_detection.rs) | [ip-range-ban-detection](docs/use-cases/ip-range-ban-detection.md) | Detect coordinated attacks across an IP subnet in a UDP tracker; `observe`, `range_sum`, `sample`, `decay` |
+
+Run an example:
+
+```bash
+cargo run --example ip_range_ban_detection
+```
+
+---
+
 ## Use cases
 
 The structure is domain-agnostic. Likely applications:
@@ -68,6 +84,7 @@ The structure is domain-agnostic. Likely applications:
 ## Documentation
 
 - [docs/architecture.md](docs/architecture.md) — component and call-flow diagrams
+- [docs/use-cases/](docs/use-cases/) — design rationale for each example
 - [docs/refactor-module-structure.md](docs/refactor-module-structure.md) — proposed module restructure
 - [docs/test-plan-pre-refactor.md](docs/test-plan-pre-refactor.md) — test safety net plan
 - [docs/coverage-baseline.md](docs/coverage-baseline.md) — test coverage baseline (~60% lines)
