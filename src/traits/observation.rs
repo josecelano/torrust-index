@@ -3,12 +3,10 @@ use std::fmt::Debug;
 use super::Accumulator;
 
 pub trait Observation<V: Accumulator>: Copy + Debug + Send + Sync {
-
     fn accumulate(current: V, delta: Self) -> V;
 }
 
 pub trait ScalableObservation<V: Accumulator>: Observation<V> {
-
     fn scale(current: V, factor: Self) -> V;
 }
 
@@ -78,4 +76,3 @@ macro_rules! impl_observation_f32_to_uint {
 }
 
 impl_observation_f32_to_uint!(u8, u16, u32);
-

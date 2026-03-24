@@ -1,10 +1,10 @@
-#[cfg(feature = "dynamic-contour-tracking")]
-use crate::nodes::gnode::GState;
 use crate::graph::GvGraph;
 use crate::handle::VNodeId;
-use crate::traits::{Accumulator, Coordinate, Inspectable};
+#[cfg(feature = "dynamic-contour-tracking")]
+use crate::nodes::gnode::GState;
 use crate::nodes::vnode::VKind;
-use crate::{rebalance, vtree};
+use crate::traits::{Accumulator, Coordinate, Inspectable};
+use crate::{rebalance, tree::vtree};
 
 #[allow(clippy::too_many_lines)]
 pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
@@ -370,7 +370,7 @@ fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32
 
     let parent_depth = match parent_state_after {
         GState::Terminal | GState::SemiInternal => {
-            crate::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
+            crate::tree::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
         }
         GState::Internal => {
             unreachable!("evict_tip: parent cannot remain Internal after eviction")

@@ -1,7 +1,6 @@
 use super::Accumulator;
 
 pub trait Attenuatable: Accumulator {
-
     #[must_use]
     fn attenuate(self, factor: f64) -> Self;
 }

@@ -3,18 +3,17 @@ use std::collections::BTreeMap;
 use std::sync::atomic::AtomicU32;
 
 use crate::arena::Arena;
-use crate::nodes::gnode::GNode;
 use crate::handle::{GNodeId, VNodeId};
+use crate::nodes::gnode::GNode;
+use crate::nodes::vnode::VNode;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau::{BasisEdge, Plateau, PlateauBasis};
-use crate::traits::{Accumulator, Coordinate};
 use crate::spatial::view::Node;
-use crate::nodes::vnode::VNode;
+use crate::traits::{Accumulator, Coordinate};
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GNodeChildren {
-
     pub left: Option<GNodeId>,
 
     pub right: Option<GNodeId>,
@@ -22,7 +21,6 @@ pub struct GNodeChildren {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Config<V: Accumulator> {
-
     pub split_threshold: V,
 
     pub depth_create: u32,
@@ -37,7 +35,6 @@ pub struct Config<V: Accumulator> {
 }
 
 impl<V: Accumulator> Config<V> {
-
     fn validate(&self) {
         assert!(
             self.depth_create < self.depth_evict,
@@ -77,7 +74,7 @@ pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(
     n: u32,
 ) -> Option<u32> {
     use crate::nodes::gnode::GState;
-    use crate::gtree::gnode_depth_from_interval;
+    use crate::tree::gtree::gnode_depth_from_interval;
     let g = gnodes.get(gid.index());
     match g.state() {
         GState::Terminal => Some(gnode_depth_from_interval(g.lo, g.hi, n)),
@@ -96,7 +93,6 @@ pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(
 
 #[derive(Debug, Clone)]
 pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
-
     pub(crate) gnodes: Arena<GNode<C, V>>,
 
     pub(crate) vnodes: Arena<VNode<V>>,
@@ -137,10 +133,8 @@ pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
 }
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
     pub fn new(config: Config<V>) -> Self {
-
         const { assert!(N <= C::BITS, "N must be <= C::BITS") };
 
         config.validate();
@@ -190,7 +184,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
         #[cfg(feature = "dynamic-contour-tracking")]
         let (plateaus, plateau_basis) = {
-            use crate::gtree::gnode_depth_from_interval;
+            use crate::tree::gtree::gnode_depth_from_interval;
             let root_key = BasisEdge(C::zero());
             let root_depth = gnode_depth_from_interval(C::zero(), C::domain_max(N), N);
             let mut pb = PlateauBasis::new();
@@ -321,7 +315,6 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     }
 
     #[allow(clippy::doc_markdown)]
-
     #[must_use]
     #[inline]
     pub const fn soft_limit(&self) -> Option<usize> {
@@ -333,7 +326,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[allow(dead_code)]
     pub(crate) fn gnode_depth(&self, gid: GNodeId) -> u32 {
         let g = self.gnodes.get(gid.index());
-        crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
+        crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
     }
 
     #[must_use]
@@ -347,7 +340,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             end: g.hi,
             own: g.own,
             sum: g.sum,
-            depth: crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N),
+            depth: crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N),
             state: g.state(),
             gnode_id: id,
             parent: g.parent,
@@ -379,4 +372,3 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         a.lo <= d.lo && a.hi >= d.hi && (a.lo != d.lo || a.hi != d.hi)
     }
 }
-

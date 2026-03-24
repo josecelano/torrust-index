@@ -1,18 +1,22 @@
+use crate::graph::GvGraph;
+use crate::handle::{GNodeId, VNodeId};
+use crate::nodes::gnode::GNode;
 #[cfg(debug_assertions)]
 use crate::spatial::contour_range::debug_assert_contour_range_invariants;
-use crate::spatial::contour_range::{BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints};
-use crate::nodes::gnode::GNode;
-use crate::graph::GvGraph;
-use crate::gtree::gnode_depth_from_interval;
-use crate::handle::{GNodeId, VNodeId};
+use crate::spatial::contour_range::{
+    BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints,
+};
 use crate::spatial::plateau::BasisEdge;
 use crate::traits::{Accumulator, Coordinate, Inspectable, Proratable, Weighable};
+use crate::tree::gtree::gnode_depth_from_interval;
 
 impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
     #[allow(clippy::doc_markdown)]
-    pub fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::spatial::view::Cell<C, V>> {
+    pub fn sample(
+        &self,
+        rng: &mut impl crate::traits::Rng,
+    ) -> Option<crate::spatial::view::Cell<C, V>> {
         use crate::nodes::vnode::VKind;
 
         let v_root = self.v_root?;
@@ -32,7 +36,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
                         start,
                         end,
                         intensity: g.own,
-                        depth: crate::gtree::gnode_depth_from_interval(start, end, N),
+                        depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
                     });
                 }
                 VKind::Structural { children, .. } => {
@@ -42,8 +46,14 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
         }
     }
 
-    fn sample_child(children: &crate::nodes::vnode::PackedChildren<V>, rng: &mut impl crate::traits::Rng) -> VNodeId {
-        let total: f64 = children.intensities[..children.len()].iter().map(|v| v.weight()).sum();
+    fn sample_child(
+        children: &crate::nodes::vnode::PackedChildren<V>,
+        rng: &mut impl crate::traits::Rng,
+    ) -> VNodeId {
+        let total: f64 = children.intensities[..children.len()]
+            .iter()
+            .map(|v| v.weight())
+            .sum();
         debug_assert!(total > 0.0, "sample_child: zero-total children");
 
         let threshold = rng.next_f64() * total;
@@ -57,26 +67,22 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
 
         children.ids[children.len() - 1].expect("last child ID")
     }
-
 }
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
     pub fn get(&self, coord: C) -> crate::spatial::view::Cell<C, V> {
-
         assert!(!coord.is_nan(), "get(): coordinate is NaN");
 
         let clamped = Self::clamp_to_domain(coord);
 
-        let g_id = crate::gtree::route_to_receiver(&self.gnodes, self.g_root, clamped);
+        let g_id = crate::tree::gtree::route_to_receiver(&self.gnodes, self.g_root, clamped);
         let g = self.gnodes.get(g_id.index());
 
         let (start, end) = Self::trimmed_interval(g, clamped);
 
         #[cfg(debug_assertions)]
         {
-
             debug_assert!(
                 start <= clamped && clamped < end || (clamped == C::domain_max(N) && start < end),
                 "get(): returned cell [{start:?}, {end:?}) does not \
@@ -88,7 +94,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             start,
             end,
             intensity: g.own,
-            depth: crate::gtree::gnode_depth_from_interval(start, end, N),
+            depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
         }
     }
 
@@ -112,7 +118,11 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             GState::Terminal | GState::Internal => (g.lo, g.hi),
             GState::SemiInternal => {
                 let mid = C::midpoint(g.lo, g.hi);
-                if g.left.is_some() { (mid, g.hi) } else { (g.lo, mid) }
+                if g.left.is_some() {
+                    (mid, g.hi)
+                } else {
+                    (g.lo, mid)
+                }
             }
         }
     }
@@ -125,7 +135,6 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             GState::SemiInternal => {
                 let mid = C::midpoint(g.lo, g.hi);
                 if g.left.is_some() {
-
                     debug_assert!(
                         coord >= mid,
                         "get(): coord {coord:?} in covered half \
@@ -134,7 +143,6 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
                     );
                     (mid, g.hi)
                 } else {
-
                     debug_assert!(
                         coord < mid,
                         "get(): coord {coord:?} in covered half \
@@ -146,11 +154,9 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             }
         }
     }
-
 }
 
 impl<C: Coordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
     pub fn range_sum<R: std::ops::RangeBounds<C>>(&self, range: R) -> V {
         use std::ops::Bound;
@@ -204,29 +210,39 @@ impl<C: Coordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> 
             return g.sum;
         }
 
-        let overlap_lo = if query_lo > node_lo { query_lo } else { node_lo };
-        let overlap_hi = if query_hi < node_hi { query_hi } else { node_hi };
+        let overlap_lo = if query_lo > node_lo {
+            query_lo
+        } else {
+            node_lo
+        };
+        let overlap_hi = if query_hi < node_hi {
+            query_hi
+        } else {
+            node_hi
+        };
 
         let node_width = C::width(node_lo, node_hi).to_f64();
         let overlap_width = C::width(overlap_lo, overlap_hi).to_f64();
         let own_prorated = g.own.scale_by(overlap_width / node_width);
 
-        let left_sum = g
-            .left
-            .map_or_else(V::zero, |left_id| self.range_sum_inner(left_id, query_lo, query_hi));
-        let right_sum = g
-            .right
-            .map_or_else(V::zero, |right_id| self.range_sum_inner(right_id, query_lo, query_hi));
+        let left_sum = g.left.map_or_else(V::zero, |left_id| {
+            self.range_sum_inner(left_id, query_lo, query_hi)
+        });
+        let right_sum = g.right.map_or_else(V::zero, |right_id| {
+            self.range_sum_inner(right_id, query_lo, query_hi)
+        });
 
         V::add(own_prorated, V::add(left_sum, right_sum))
     }
 }
 
 impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
-    pub fn contour_range(&self, start: BasisEdge<C>, end: BasisEdge<C>) -> Option<ContourRange<C, V>> {
-
+    pub fn contour_range(
+        &self,
+        start: BasisEdge<C>,
+        end: BasisEdge<C>,
+    ) -> Option<ContourRange<C, V>> {
         let plateaus = self.plateaus();
 
         validate_endpoints(&plateaus, start, end, C::domain_max(N))?;
@@ -260,7 +276,11 @@ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvG
     }
 
     #[must_use]
-    pub fn contour_range_energy(&self, start: BasisEdge<C>, end: BasisEdge<C>) -> Option<ContourRangeEnergy<V>> {
+    pub fn contour_range_energy(
+        &self,
+        start: BasisEdge<C>,
+        end: BasisEdge<C>,
+    ) -> Option<ContourRangeEnergy<V>> {
         let cr = self.contour_range(start, end)?;
         Some(ContourRangeEnergy {
             energy: cr.energy,
@@ -271,7 +291,13 @@ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvG
         })
     }
 
-    fn decompose_basis(&self, gid: GNodeId, query_lo: C, query_hi: C, basis: &mut Vec<BasisElement<C, V>>) {
+    fn decompose_basis(
+        &self,
+        gid: GNodeId,
+        query_lo: C,
+        query_hi: C,
+        basis: &mut Vec<BasisElement<C, V>>,
+    ) {
         let g = self.gnodes.get(gid.index());
 
         if query_lo >= g.hi || query_hi <= g.lo {
@@ -296,13 +322,11 @@ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvG
         let left_absent = g.left.is_none();
         let right_absent = g.right.is_none();
         if left_absent != right_absent {
-
             let l_lo = if query_lo > g.lo { query_lo } else { g.lo };
             let l_hi = if query_hi < mid { query_hi } else { mid };
             let r_lo = if query_lo > mid { query_lo } else { mid };
             let r_hi = if query_hi < g.hi { query_hi } else { g.hi };
             if l_lo < l_hi && r_lo < r_hi {
-
                 basis.push(BasisElement {
                     gnode_id: gid,
                     start: l_lo,
@@ -319,7 +343,6 @@ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvG
         if let Some(left_id) = g.left {
             self.decompose_basis(left_id, query_lo, query_hi, basis);
         } else {
-
             let tile_lo = if query_lo > g.lo { query_lo } else { g.lo };
             let tile_hi = if query_hi < mid { query_hi } else { mid };
             if tile_lo < tile_hi {
@@ -339,11 +362,9 @@ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvG
         if let Some(right_id) = g.right {
             self.decompose_basis(right_id, query_lo, query_hi, basis);
         } else {
-
             let tile_lo = if query_lo > mid { query_lo } else { mid };
             let tile_hi = if query_hi < g.hi { query_hi } else { g.hi };
             if tile_lo < tile_hi {
-
                 debug_assert!(
                     basis.last().is_none_or(|b| b.gnode_id != gid),
                     "double push for gnode {gid:?}",

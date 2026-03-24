@@ -1,13 +1,13 @@
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::arena::Arena;
-use crate::nodes::gnode::GNode;
 use crate::graph::GvGraph;
 use crate::handle::{GNodeId, VNodeId};
+use crate::nodes::gnode::GNode;
+use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
 use crate::rebalance::{Nd, contract, push_promoted_violations, push_side_effect_violations};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
-use crate::vtree::{propagate_evictable_flags, v_depth};
+use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 
 pub fn attempt_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &mut GvGraph<C, V, N>,

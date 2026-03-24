@@ -1,5 +1,5 @@
-use crate::nodes::gnode::GState;
 use crate::handle::GNodeId;
+use crate::nodes::gnode::GState;
 use crate::traits::{Accumulator, Coordinate};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

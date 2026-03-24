@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
 pub trait Accumulator: Copy + PartialOrd + Debug + Default + Send + Sync + 'static {
-
     fn zero() -> Self;
 
     #[must_use]

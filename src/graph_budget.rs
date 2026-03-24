@@ -1,10 +1,9 @@
 use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::{evict, rebalance, vtree};
+use crate::{evict, rebalance, tree::vtree};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
-
     pub(crate) fn handle_legacy_promotes(&mut self, new_gnodes: &[GNodeId]) {
         for &_new_gid in new_gnodes {
             self.node_count += 1;
@@ -33,7 +32,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.soft_limit = Some(soft_limit);
 
         if count > soft_limit {
-
             let floor = self.depth_buffer + 1;
             if self.live_depth_evict > floor {
                 self.live_depth_evict -= 1;
@@ -52,7 +50,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             #[allow(clippy::cast_precision_loss)]
             let count_f = count as f64;
             if count_f < threshold {
-
                 self.live_depth_evict += 1;
                 self.live_depth_create = self.live_depth_evict - self.depth_buffer;
                 tracing::debug!(
@@ -67,7 +64,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     pub fn check_evictions(&mut self) -> u32 {
-        let _span = tracing::debug_span!("check_evictions", d_evict = self.live_depth_evict).entered();
+        let _span =
+            tracing::debug_span!("check_evictions", d_evict = self.live_depth_evict).entered();
         self.evict_candidates(None)
     }
 
@@ -78,11 +76,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[allow(clippy::too_many_lines)]
     fn evict_candidates(&mut self, stop_at: Option<usize>) -> u32 {
         let candidates = evict::scan_for_candidates(self);
-        let _span = tracing::debug_span!("evict_batch", candidate_count = candidates.len(),).entered();
+        let _span =
+            tracing::debug_span!("evict_batch", candidate_count = candidates.len(),).entered();
         let mut evicted: u32 = 0;
 
         for v_id in candidates {
-
             if let Some(limit) = stop_at {
                 if evicted as usize >= limit {
                     break;
@@ -93,7 +91,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 continue;
             }
             match &self.vnodes.get(v_id.index()).kind {
-                crate::nodes::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+                crate::nodes::vnode::VKind::Entry {
+                    gnode,
+                    is_evictable,
+                    ..
+                } => {
                     if !is_evictable {
                         continue;
                     }
@@ -118,7 +120,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
             #[cfg(feature = "dynamic-contour-tracking")]
             if cfg!(debug_assertions) {
-                self.debug_assert_plateau_mirror_consistency(&format!("POST-EVICT-SINGLE-{evicted}"));
+                self.debug_assert_plateau_mirror_consistency(&format!(
+                    "POST-EVICT-SINGLE-{evicted}"
+                ));
             }
         }
 

@@ -16,11 +16,10 @@ pub(crate) mod graph_extract;
 pub(crate) mod graph_plateau;
 pub(crate) mod graph_query;
 pub(crate) mod graph_traits;
-pub(crate) mod gtree;
 pub(crate) mod observe;
 pub(crate) mod rebalance;
 pub(crate) mod split;
-pub(crate) mod vtree;
+pub(crate) mod tree;
 
 #[doc(hidden)]
 pub mod invariants;

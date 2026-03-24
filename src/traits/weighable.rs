@@ -1,7 +1,6 @@
 use super::Accumulator;
 
 pub trait Weighable: Accumulator {
-
     fn weight(self) -> f64;
 }
 

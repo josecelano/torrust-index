@@ -1,6 +1,6 @@
 use crate::arena::Arena;
-use crate::nodes::gnode::GNode;
 use crate::handle::GNodeId;
+use crate::nodes::gnode::GNode;
 use crate::traits::{Accumulator, Coordinate};
 
 #[must_use]

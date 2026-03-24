@@ -1,7 +1,6 @@
 use super::Accumulator;
 
 pub trait Inspectable: Accumulator {
-
     fn to_f64_approx(self) -> f64;
 
     fn from_f64(v: f64) -> Self;

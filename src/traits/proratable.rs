@@ -1,7 +1,6 @@
 use super::Accumulator;
 
 pub trait Proratable: Accumulator {
-
     #[must_use]
     fn prorate(self, portion: u64, total: u64) -> Self;
 

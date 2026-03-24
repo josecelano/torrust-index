@@ -1,14 +1,14 @@
-use crate::nodes::gnode::GState;
 use crate::graph::GvGraph;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::graph::uniform_contour_depth_of;
-use crate::gtree::gnode_depth_from_interval;
 use crate::handle::{GNodeId, VNodeId};
+use crate::nodes::gnode::GState;
+use crate::nodes::vnode::VKind;
+use crate::rebalance::is_violated;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau::BasisEdge;
-use crate::rebalance::is_violated;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::nodes::vnode::VKind;
+use crate::tree::gtree::gnode_depth_from_interval;
 
 const fn state_label(s: GState) -> &'static str {
     match s {
@@ -31,7 +31,9 @@ fn ancestor_name(depth: usize) -> String {
     }
 }
 
-pub fn assert_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) {
+pub fn assert_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+) {
     let errors = check_all_invariants(graph);
     if !errors.is_empty() {
         let msg = errors.join("\n");
@@ -105,7 +107,9 @@ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u
 }
 
 #[allow(dead_code)]
-pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> String {
+pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+) -> String {
     use std::fmt::Write;
     let mut out = String::new();
     writeln!(
@@ -142,7 +146,9 @@ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(gra
 
 #[cfg(feature = "dynamic-contour-tracking")]
 #[allow(dead_code)]
-pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> String {
+pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+) -> String {
     use std::fmt::Write;
     let mut out = String::new();
 
@@ -160,7 +166,6 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     .unwrap();
 
     for (key, plateau) in plateaus {
-
         let next_key = plateaus
             .range(std::ops::RangeFrom {
                 start: crate::spatial::plateau::BasisEdge(plateau.end),
@@ -186,7 +191,12 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
         for &gid in elements {
             if !graph.gnodes().is_occupied(gid.index()) {
-                writeln!(out, "    !! DANGLING GNodeId({}) — slot deallocated !!", gid.index()).unwrap();
+                writeln!(
+                    out,
+                    "    !! DANGLING GNodeId({}) — slot deallocated !!",
+                    gid.index()
+                )
+                .unwrap();
                 continue;
             }
             let g = graph.gnodes().get(gid.index());
@@ -196,9 +206,15 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => g_depth + 1,
             };
-            let parent_str = g.parent.map_or_else(|| "None".to_string(), |p| format!("G({})", p.index()));
-            let left_str = g.left.map_or_else(|| "_".to_string(), |l| format!("G({})", l.index()));
-            let right_str = g.right.map_or_else(|| "_".to_string(), |r| format!("G({})", r.index()));
+            let parent_str = g
+                .parent
+                .map_or_else(|| "None".to_string(), |p| format!("G({})", p.index()));
+            let left_str = g
+                .left
+                .map_or_else(|| "_".to_string(), |l| format!("G({})", l.index()));
+            let right_str = g
+                .right
+                .map_or_else(|| "_".to_string(), |r| format!("G({})", r.index()));
             let lineage = semi_internal_lineage(graph, gid);
 
             writeln!(out,
@@ -208,7 +224,12 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         }
     }
 
-    writeln!(out, "  ─── Back map ({} entries) ───", graph.plateau_basis().back_map().len()).unwrap();
+    writeln!(
+        out,
+        "  ─── Back map ({} entries) ───",
+        graph.plateau_basis().back_map().len()
+    )
+    .unwrap();
     let mut back_entries: Vec<_> = graph
         .plateau_basis()
         .back_map()
@@ -242,7 +263,9 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 }
 
 #[allow(dead_code)]
-pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<String> {
+pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+) -> Vec<String> {
     let mut errors: Vec<String> = Vec::new();
 
     check_g_i1_summation(graph, &mut errors);
@@ -286,8 +309,12 @@ fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u3
     errors: &mut Vec<String>,
 ) {
     for (idx, g) in graph.gnodes().iter_occupied() {
-        let left_sum = g.left.map_or(0.0, |l| graph.gnodes().get(l.index()).sum.to_f64_approx());
-        let right_sum = g.right.map_or(0.0, |r| graph.gnodes().get(r.index()).sum.to_f64_approx());
+        let left_sum = g
+            .left
+            .map_or(0.0, |l| graph.gnodes().get(l.index()).sum.to_f64_approx());
+        let right_sum = g
+            .right
+            .map_or(0.0, |r| graph.gnodes().get(r.index()).sum.to_f64_approx());
         let expected = g.own.to_f64_approx() + left_sum + right_sum;
         let actual = g.sum.to_f64_approx();
         if expected != actual && (expected - actual).abs() > 1e-9 {
@@ -307,7 +334,9 @@ fn check_g_i2_variable_fanout<C: Coordinate, V: Accumulator + Inspectable, const
     for (idx, g) in graph.gnodes().iter_occupied() {
         let count = usize::from(g.left.is_some()) + usize::from(g.right.is_some());
         if count > 2 {
-            errors.push(format!("G-I2 violated at G-node {idx}: {count} children (max 2)"));
+            errors.push(format!(
+                "G-I2 violated at G-node {idx}: {count} children (max 2)"
+            ));
         }
     }
 }
@@ -362,7 +391,6 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
         if let VKind::Structural { children, .. } = &v.kind {
-
             let mut sum = 0.0_f64;
             for i in 0..children.len() {
                 let (child_id, cached_int) = children.get(i);
@@ -407,7 +435,9 @@ fn check_v_i2_branching_factor<C: Coordinate, V: Accumulator + Inspectable, cons
         if let VKind::Structural { children, .. } = &v.kind {
             let len = children.len();
             if len != 2 && len != 3 {
-                errors.push(format!("V-I2 violated at V-node {idx}: {len} children (must be 2 or 3)"));
+                errors.push(format!(
+                    "V-I2 violated at V-node {idx}: {len} children (must be 2 or 3)"
+                ));
             }
         }
     }
@@ -421,8 +451,11 @@ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u3
         let v_id = VNodeId::from_index(idx);
         if is_violated(graph.vnodes(), v_id) {
             let int = v.intensity.to_f64_approx();
-            let uncle = crate::rebalance::max_uncle_intensity(graph.vnodes(), v_id).map_or(f64::NAN, Inspectable::to_f64_approx);
-            errors.push(format!("V-I3 violated at V-node {idx}: intensity={int}, max_uncle={uncle}"));
+            let uncle = crate::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
+                .map_or(f64::NAN, Inspectable::to_f64_approx);
+            errors.push(format!(
+                "V-I3 violated at V-node {idx}: intensity={int}, max_uncle={uncle}"
+            ));
         }
     }
 }
@@ -431,7 +464,6 @@ fn check_v_i5_entry_leaf<C: Coordinate, V: Accumulator + Inspectable, const N: u
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-
     for (idx, v) in graph.vnodes().iter_occupied() {
         if let VKind::Structural { children, .. } = &v.kind {
             for i in 0..children.len() {
@@ -452,7 +484,10 @@ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N:
     errors: &mut Vec<String>,
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
-        if let VKind::Entry { gnode, is_exposed, .. } = &v.kind {
+        if let VKind::Entry {
+            gnode, is_exposed, ..
+        } = &v.kind
+        {
             if !graph.gnodes().is_occupied(gnode.index()) {
                 errors.push(format!(
                     "V-I6 violated at V-node {idx}: backing G-node {} is not occupied",
@@ -512,7 +547,11 @@ fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const
     errors: &mut Vec<String>,
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
-        if let VKind::Structural { children, has_evictable } = &v.kind {
+        if let VKind::Structural {
+            children,
+            has_evictable,
+        } = &v.kind
+        {
             let expected = (0..children.len()).any(|i| {
                 let (child_id, _) = children.get(i);
                 if !graph.vnodes().is_occupied(child_id.index()) {
@@ -545,7 +584,11 @@ fn check_clean_accounting<C: Coordinate, V: Accumulator + Inspectable, const N: 
             total_v += v.intensity.to_f64_approx();
         }
     }
-    let g_root_sum = graph.gnodes().get(graph.g_root().index()).sum.to_f64_approx();
+    let g_root_sum = graph
+        .gnodes()
+        .get(graph.g_root().index())
+        .sum
+        .to_f64_approx();
     if total_v != g_root_sum && (total_v - g_root_sum).abs() > 1e-9 {
         errors.push(format!(
             "Clean accounting violated: V-entry sum={total_v}, G-root sum={g_root_sum}"
@@ -557,7 +600,6 @@ fn check_parent_link_consistency<C: Coordinate, V: Accumulator + Inspectable, co
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-
     for (idx, g) in graph.gnodes().iter_occupied() {
         let g_id = GNodeId::from_index(idx);
         if let Some(left) = g.left {
@@ -631,7 +673,10 @@ fn check_v_root_consistency<C: Coordinate, V: Accumulator + Inspectable, const N
 ) {
     if let Some(root_id) = graph.v_root() {
         if !graph.vnodes().is_occupied(root_id.index()) {
-            errors.push(format!("V-root consistency: v_root {} is not occupied", root_id.index()));
+            errors.push(format!(
+                "V-root consistency: v_root {} is not occupied",
+                root_id.index()
+            ));
             return;
         }
         let root = graph.vnodes().get(root_id.index());
@@ -652,7 +697,9 @@ fn check_node_count_consistency<C: Coordinate, V: Accumulator + Inspectable, con
     let actual = graph.gnodes().count();
     let expected = graph.node_count();
     if actual != expected {
-        errors.push(format!("Node count: graph.node_count()={expected}, arena count={actual}"));
+        errors.push(format!(
+            "Node count: graph.node_count()={expected}, arena count={actual}"
+        ));
     }
 }
 
@@ -661,7 +708,11 @@ fn check_terminal_count_consistency<C: Coordinate, V: Accumulator + Inspectable,
     errors: &mut Vec<String>,
 ) {
     #[allow(clippy::cast_possible_truncation)]
-    let actual = graph.gnodes().iter_occupied().filter(|(_, g)| g.is_terminal()).count() as u32;
+    let actual = graph
+        .gnodes()
+        .iter_occupied()
+        .filter(|(_, g)| g.is_terminal())
+        .count() as u32;
     let expected = graph.terminal_count();
     if actual != expected {
         errors.push(format!(
@@ -713,7 +764,11 @@ fn check_depth_gate_invariants<C: Coordinate, V: Accumulator + Inspectable, cons
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-fn check_plateau_btreemap_key_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+fn check_plateau_btreemap_key_consistency<
+    C: Coordinate,
+    V: Accumulator + Inspectable,
+    const N: u32,
+>(
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
@@ -736,7 +791,6 @@ fn check_plateau_basis_consistency<C: Coordinate, V: Accumulator + Inspectable, 
 
     for (&key, gnodes) in pb.iter() {
         for &gid in gnodes {
-
             if !graph.gnodes().is_occupied(gid.index()) {
                 errors.push(format!(
                     "Plateau basis: basis element {gid:?} in plateau {key:?} is not a live arena slot"
@@ -819,7 +873,8 @@ fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, 
             let expected_depth = match g.state() {
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => {
-                    let Some(d) = crate::graph::uniform_contour_depth_of(graph.gnodes(), gid, N) else {
+                    let Some(d) = crate::graph::uniform_contour_depth_of(graph.gnodes(), gid, N)
+                    else {
                         errors.push(format!(
                             "Plateau depth: key {key:?}, basis element {gid:?} (Internal): \
                              uniform_contour_depth_of returned None — internal basis \
@@ -846,13 +901,17 @@ fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, 
 fn tile_of<C: Coordinate, V: Accumulator>(g: &crate::nodes::gnode::GNode<C, V>) -> (C, C) {
     match g.state() {
         GState::Terminal | GState::Internal => (g.lo, g.hi),
-        GState::SemiInternal => g.uncovered_range().expect("semi-internal must have uncovered range"),
+        GState::SemiInternal => g
+            .uncovered_range()
+            .expect("semi-internal must have uncovered range"),
     }
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<(C, u32)> {
-    use crate::gtree::gnode_depth_from_interval;
+fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+) -> Vec<(C, u32)> {
+    use crate::tree::gtree::gnode_depth_from_interval;
 
     let mut cells: Vec<(C, u32)> = Vec::new();
     let mut stack = vec![graph.g_root()];
@@ -864,7 +923,6 @@ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(grap
                 cells.push((g.lo, d));
             }
             GState::SemiInternal => {
-
                 let (ulo, _uhi) = g.uncovered_range().unwrap();
                 let d = gnode_depth_from_interval(g.lo, g.hi, N);
                 cells.push((ulo, d));
@@ -898,7 +956,11 @@ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(grap
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-fn check_p_i1_i_keys_are_contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+fn check_p_i1_i_keys_are_contour_steps<
+    C: Coordinate,
+    V: Accumulator + Inspectable,
+    const N: u32,
+>(
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
@@ -940,7 +1002,6 @@ fn check_p_i1_i_keys_are_contour_steps<C: Coordinate, V: Accumulator + Inspectab
     let depths: Vec<u32> = plateaus.values().map(|p| p.depth).collect();
     for w in depths.windows(2) {
         if w[0] == w[1] {
-
             let keys: Vec<_> = plateaus.keys().collect();
             let idx = depths.windows(2).position(|d| d[0] == d[1]).unwrap();
             errors.push(format!(
@@ -964,7 +1025,11 @@ fn check_p_i1_ii_tile_contiguity<C: Coordinate, V: Accumulator + Inspectable, co
     let domain_max = C::domain_max(N);
 
     for (i, &key) in keys.iter().enumerate() {
-        let next_start = if i + 1 < keys.len() { keys[i + 1].0 } else { domain_max };
+        let next_start = if i + 1 < keys.len() {
+            keys[i + 1].0
+        } else {
+            domain_max
+        };
 
         let elements = pb.basis_elements(&key);
         if elements.is_empty() {
@@ -1028,7 +1093,11 @@ fn check_p_i1_iii_run_contains_tile<C: Coordinate, V: Accumulator + Inspectable,
 
     for (i, &key) in keys.iter().enumerate() {
         let plateau = &plateaus[&key];
-        let next_start = if i + 1 < keys.len() { keys[i + 1].0 } else { domain_max };
+        let next_start = if i + 1 < keys.len() {
+            keys[i + 1].0
+        } else {
+            domain_max
+        };
 
         let elements = pb.basis_elements(&key);
         if elements.is_empty() {
@@ -1073,7 +1142,9 @@ fn check_p_i1_iii_run_contains_tile<C: Coordinate, V: Accumulator + Inspectable,
             ));
         }
         if tile_hi - p_end > 1e-12 {
-            errors.push(format!("P-I1(iii): plateau {key:?}: run end {p_end} < tile end {tile_hi}"));
+            errors.push(format!(
+                "P-I1(iii): plateau {key:?}: run end {p_end} < tile end {tile_hi}"
+            ));
         }
     }
 }
@@ -1085,7 +1156,9 @@ fn check_p_i2_basis_minimality<C: Coordinate, V: Accumulator + Inspectable, cons
 ) {
     let pb = graph.plateau_basis();
     for (&key, gnodes_list) in pb.iter() {
-        let Some(plateau) = graph.plateaus.get(&key) else { continue };
+        let Some(plateau) = graph.plateaus.get(&key) else {
+            continue;
+        };
         let expected_depth = plateau.depth;
 
         for &gid in gnodes_list {
@@ -1121,7 +1194,6 @@ fn check_p_i3_basis_disjointness<C: Coordinate, V: Accumulator + Inspectable, co
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-
     let pb = graph.plateau_basis();
     let mut tiles: Vec<(f64, f64, BasisEdge<C>)> = Vec::new();
     for (&key, gnodes) in pb.iter() {
@@ -1166,14 +1238,20 @@ fn check_p_i4_thatch_one_hop<C: Coordinate, V: Accumulator + Inspectable, const 
 
             let child = g.left.or(g.right);
             let Some(child_id) = child else {
-                errors.push(format!("P-I4: semi-internal {gid:?} in plateau {key:?} has no children"));
+                errors.push(format!(
+                    "P-I4: semi-internal {gid:?} in plateau {key:?} has no children"
+                ));
                 continue;
             };
 
             let child_g = graph.gnodes().get(child_id.index());
             let child_lo = child_g.lo;
 
-            let child_plateau_key = graph.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);
+            let child_plateau_key = graph
+                .plateaus
+                .range(..=BasisEdge(child_lo))
+                .next_back()
+                .map(|(&k, _)| k);
 
             match child_plateau_key {
                 Some(ck) if ck == key => {
@@ -1213,7 +1291,6 @@ fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N:
     samples.dedup_by(|a, b| a.total_cmp(b) == std::cmp::Ordering::Equal);
 
     for x in &samples {
-
         let mut thatch_count = 0u32;
         for (&_key, gnodes) in pb.iter() {
             let covers = gnodes.iter().any(|&gid| {
@@ -1221,7 +1298,8 @@ fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N:
                     return false;
                 }
                 let g = graph.gnodes().get(gid.index());
-                g.lo.total_cmp(x) != std::cmp::Ordering::Greater && x.total_cmp(&g.hi) == std::cmp::Ordering::Less
+                g.lo.total_cmp(x) != std::cmp::Ordering::Greater
+                    && x.total_cmp(&g.hi) == std::cmp::Ordering::Less
             });
             if covers {
                 thatch_count += 1;
@@ -1239,7 +1317,10 @@ fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N:
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>, x: C) -> u32 {
+fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    x: C,
+) -> u32 {
     let mut cur = graph.g_root();
     for _ in 0..=N + 1 {
         let g = graph.gnodes().get(cur.index());

@@ -3,14 +3,13 @@ use crate::handle::VNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
-
     #[must_use]
     pub fn extract(&self) -> crate::spatial::pewei::Pewei<C, V> {
         use std::collections::VecDeque;
 
         use crate::nodes::gnode::GState;
-        use crate::spatial::pewei::{Layer, Pewei, Terminal, Transition};
         use crate::nodes::vnode::VKind;
+        use crate::spatial::pewei::{Layer, Pewei, Terminal, Transition};
 
         let domain_start = C::zero();
         let domain_end = C::domain_max(N);
@@ -137,7 +136,6 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
                         let (child_id, _) = children.get(i);
                         self.queue.push_back((child_id, bfs_depth + 1));
                     }
-
                 }
                 VKind::Entry { gnode, .. } => {
                     let g = self.graph.gnodes.get(gnode.index());

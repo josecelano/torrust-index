@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
 pub trait Coordinate: Copy + PartialOrd + Debug + Default + Send + Sync + 'static {
-
     const BITS: u32;
 
     fn zero() -> Self;
@@ -127,7 +126,9 @@ impl Coordinate for f32 {
 
     #[inline]
     fn next_value(self) -> Self {
-        panic!("next_value is not supported for f32 coordinates; use Excluded/Included bounds directly")
+        panic!(
+            "next_value is not supported for f32 coordinates; use Excluded/Included bounds directly"
+        )
     }
 
     #[inline]
@@ -183,7 +184,9 @@ impl Coordinate for f64 {
 
     #[inline]
     fn next_value(self) -> Self {
-        panic!("next_value is not supported for f64 coordinates; use Excluded/Included bounds directly")
+        panic!(
+            "next_value is not supported for f64 coordinates; use Excluded/Included bounds directly"
+        )
     }
 
     #[inline]

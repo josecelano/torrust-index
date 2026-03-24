@@ -9,7 +9,6 @@ use crate::traits::{Inspectable, Proratable};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BasisElement<C: Coordinate, V: Accumulator> {
-
     pub gnode_id: GNodeId,
 
     pub start: C,
@@ -28,7 +27,6 @@ pub struct BasisElement<C: Coordinate, V: Accumulator> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ContourRange<C: Coordinate, V: Accumulator> {
-
     pub start: C,
 
     pub end: C,
@@ -49,7 +47,6 @@ pub struct ContourRange<C: Coordinate, V: Accumulator> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ContourRangeEnergy<V: Accumulator> {
-
     pub energy: V,
 
     pub exact_energy: V,
@@ -67,7 +64,6 @@ pub fn validate_endpoints<C: Coordinate, V: Accumulator>(
     end: BasisEdge<C>,
     domain_end: C,
 ) -> Option<()> {
-
     if !plateaus.contains_key(&start) {
         return None;
     }
@@ -103,7 +99,6 @@ where
     C: Coordinate,
     V: Accumulator + Proratable + Inspectable,
 {
-
     let thatch_count = cr.basis.iter().filter(|b| b.is_boundary_thatch).count();
     debug_assert!(
         thatch_count <= 2,
@@ -114,7 +109,11 @@ where
     );
 
     let mut sorted: Vec<_> = cr.basis.iter().collect();
-    sorted.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(|a, b| {
+        a.start
+            .partial_cmp(&b.start)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     for pair in sorted.windows(2) {
         debug_assert!(
             pair[0].end <= pair[1].start,

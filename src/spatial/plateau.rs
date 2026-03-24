@@ -4,11 +4,11 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 #[cfg(feature = "dynamic-contour-tracking")]
 use std::sync::OnceLock;
 
-use crate::nodes::gnode::{GNode, GState};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::handle::GNodeId;
-use crate::traits::{Accumulator, Coordinate};
+use crate::nodes::gnode::{GNode, GState};
 use crate::spatial::view::Span;
+use crate::traits::{Accumulator, Coordinate};
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
