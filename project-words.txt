@@ -122,7 +122,10 @@ memset
 metainfo
 Mgmt
 microbursts
+migth
+minimise
 mockall
+monoid
 monomorphization
 MSRV
 mult
