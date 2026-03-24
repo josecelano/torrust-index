@@ -1,7 +1,8 @@
 use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
-use crate::{rebalance, tree::gtree, tree::vtree};
+use crate::graph::algorithm::rebalance;
+use crate::tree::{gtree, vtree};
 
 impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn decay(&mut self, root: GNodeId, attenuation: f64, q: f64) {

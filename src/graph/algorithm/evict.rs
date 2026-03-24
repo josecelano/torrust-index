@@ -1,10 +1,11 @@
 use crate::graph::GvGraph;
+use crate::graph::algorithm::rebalance;
 use crate::handle::VNodeId;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::VKind;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::{rebalance, tree::vtree};
+use crate::tree::vtree;
 
 #[allow(clippy::too_many_lines)]
 pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(

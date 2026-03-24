@@ -1,7 +1,8 @@
 use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::{evict, rebalance, tree::vtree};
+use crate::graph::algorithm::{evict, rebalance};
+use crate::tree::vtree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub(crate) fn handle_legacy_promotes(&mut self, new_gnodes: &[GNodeId]) {

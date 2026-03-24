@@ -4,7 +4,7 @@ use crate::graph::uniform_contour_depth_of;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::VKind;
-use crate::rebalance::is_violated;
+use crate::graph::algorithm::rebalance::is_violated;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau::BasisEdge;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
@@ -451,7 +451,7 @@ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u3
         let v_id = VNodeId::from_index(idx);
         if is_violated(graph.vnodes(), v_id) {
             let int = v.intensity.to_f64_approx();
-            let uncle = crate::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
+            let uncle = crate::graph::algorithm::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
                 .map_or(f64::NAN, Inspectable::to_f64_approx);
             errors.push(format!(
                 "V-I3 violated at V-node {idx}: intensity={int}, max_uncle={uncle}"

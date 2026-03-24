@@ -1,3 +1,4 @@
+pub(crate) mod algorithm;
 pub(crate) mod traits;
 
 #[cfg(feature = "dynamic-contour-tracking")]

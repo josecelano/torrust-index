@@ -6,7 +6,7 @@ use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{VKind, VNode};
-use crate::rebalance::{self, Ctx};
+use crate::graph::algorithm::rebalance::{self, Ctx};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::{graph::GvGraph, nodes::gnode::GState};

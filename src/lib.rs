@@ -8,16 +8,7 @@ pub(crate) mod graph;
 pub(crate) mod traits;
 
 pub(crate) mod arena;
-pub(crate) mod decay;
 pub(crate) mod diagnostic;
-pub(crate) mod evict;
-pub(crate) mod graph_budget;
-pub(crate) mod graph_extract;
-pub(crate) mod graph_plateau;
-pub(crate) mod graph_query;
-pub(crate) mod observe;
-pub(crate) mod rebalance;
-pub(crate) mod split;
 pub(crate) mod tree;
 
 #[doc(hidden)]

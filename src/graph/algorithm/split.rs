@@ -5,7 +5,7 @@ use crate::graph::GvGraph;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
-use crate::rebalance::{Nd, contract, push_promoted_violations, push_side_effect_violations};
+use crate::graph::algorithm::rebalance::{Nd, contract, push_promoted_violations, push_side_effect_violations};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 

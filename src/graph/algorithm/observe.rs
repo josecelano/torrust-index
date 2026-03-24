@@ -1,6 +1,7 @@
 use crate::graph::GvGraph;
+use crate::graph::algorithm::{rebalance, split};
 use crate::traits::{Accumulator, Coordinate, Inspectable, Observation};
-use crate::{rebalance, split, tree::gtree, tree::vtree};
+use crate::tree::{gtree, vtree};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
