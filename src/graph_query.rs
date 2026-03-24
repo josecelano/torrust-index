@@ -1,7 +1,7 @@
 #[cfg(debug_assertions)]
 use crate::contour_range::debug_assert_contour_range_invariants;
 use crate::contour_range::{BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints};
-use crate::gnode::GNode;
+use crate::nodes::gnode::GNode;
 use crate::graph::GvGraph;
 use crate::gtree::gnode_depth_from_interval;
 use crate::handle::{GNodeId, VNodeId};
@@ -13,7 +13,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     #[allow(clippy::doc_markdown)]
     pub fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::view::Cell<C, V>> {
-        use crate::vnode::VKind;
+        use crate::nodes::vnode::VKind;
 
         let v_root = self.v_root?;
         let root_node = self.vnodes.get(v_root.index());
@@ -42,7 +42,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
         }
     }
 
-    fn sample_child(children: &crate::vnode::PackedChildren<V>, rng: &mut impl crate::traits::Rng) -> VNodeId {
+    fn sample_child(children: &crate::nodes::vnode::PackedChildren<V>, rng: &mut impl crate::traits::Rng) -> VNodeId {
         let total: f64 = children.intensities[..children.len()].iter().map(|v| v.weight()).sum();
         debug_assert!(total > 0.0, "sample_child: zero-total children");
 
@@ -107,7 +107,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
     #[inline]
     fn uncovered_interval(g: &GNode<C, V>) -> (C, C) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         match g.state() {
             GState::Terminal | GState::Internal => (g.lo, g.hi),
             GState::SemiInternal => {
@@ -119,7 +119,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
     #[inline]
     fn trimmed_interval(g: &GNode<C, V>, coord: C) -> (C, C) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         match g.state() {
             GState::Terminal | GState::Internal => (g.lo, g.hi),
             GState::SemiInternal => {

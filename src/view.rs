@@ -1,4 +1,4 @@
-use crate::gnode::GState;
+use crate::nodes::gnode::GState;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate};
 

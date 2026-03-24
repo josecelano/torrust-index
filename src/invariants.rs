@@ -1,4 +1,4 @@
-use crate::gnode::GState;
+use crate::nodes::gnode::GState;
 use crate::graph::GvGraph;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::graph::uniform_contour_depth_of;
@@ -8,7 +8,7 @@ use crate::handle::{GNodeId, VNodeId};
 use crate::plateau::BasisEdge;
 use crate::rebalance::is_violated;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::vnode::VKind;
+use crate::nodes::vnode::VKind;
 
 const fn state_label(s: GState) -> &'static str {
     match s {
@@ -843,7 +843,7 @@ fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, 
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-fn tile_of<C: Coordinate, V: Accumulator>(g: &crate::gnode::GNode<C, V>) -> (C, C) {
+fn tile_of<C: Coordinate, V: Accumulator>(g: &crate::nodes::gnode::GNode<C, V>) -> (C, C) {
     match g.state() {
         GState::Terminal | GState::Internal => (g.lo, g.hi),
         GState::SemiInternal => g.uncovered_range().expect("semi-internal must have uncovered range"),

@@ -93,7 +93,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 continue;
             }
             match &self.vnodes.get(v_id.index()).kind {
-                crate::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+                crate::nodes::vnode::VKind::Entry { gnode, is_evictable, .. } => {
                     if !is_evictable {
                         continue;
                     }
@@ -106,7 +106,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         continue;
                     }
                 }
-                crate::vnode::VKind::Structural { .. } => continue,
+                crate::nodes::vnode::VKind::Structural { .. } => continue,
             }
 
             evict::evict_tip(self, v_id);

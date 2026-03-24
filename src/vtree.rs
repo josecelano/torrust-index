@@ -1,10 +1,10 @@
 use std::sync::atomic::Ordering;
 
 use crate::arena::Arena;
-use crate::gnode::GNode;
+use crate::nodes::gnode::GNode;
 use crate::handle::VNodeId;
 use crate::traits::{Accumulator, Coordinate};
-use crate::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
 
 pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     vnodes: &mut Arena<VNode<V>>,

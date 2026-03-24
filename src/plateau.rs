@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 #[cfg(feature = "dynamic-contour-tracking")]
 use std::sync::OnceLock;
 
-use crate::gnode::{GNode, GState};
+use crate::nodes::gnode::{GNode, GState};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate};

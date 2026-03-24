@@ -1,5 +1,5 @@
 use crate::arena::Arena;
-use crate::gnode::GNode;
+use crate::nodes::gnode::GNode;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate};
 

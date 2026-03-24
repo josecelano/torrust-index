@@ -3,13 +3,13 @@
 use std::fmt;
 
 use crate::arena::Arena;
-use crate::gnode::GNode;
 use crate::handle::{GNodeId, VNodeId};
+use crate::nodes::gnode::GNode;
+use crate::nodes::vnode::{VKind, VNode};
 use crate::rebalance::{self, Ctx};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::vnode::{VKind, VNode};
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::{gnode::GState, graph::GvGraph};
+use crate::{graph::GvGraph, nodes::gnode::GState};
 
 pub fn audit_violations<V: Accumulator + Inspectable>(
     vnodes: &Arena<VNode<V>>,
@@ -44,12 +44,17 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
     checkpoint: &str,
     context: Option<&PlateauAuditContext>,
 ) {
-
     for &key in graph.plateaus.keys() {
         for &r in graph.plateau_basis.basis_elements(&key) {
             let back = graph.plateau_basis.plateau_key(r);
             if back != Some(key) {
-                tracing::error!(checkpoint, ?key, gnode = r.index(), ?back, "basis back-pointer inconsistency");
+                tracing::error!(
+                    checkpoint,
+                    ?key,
+                    gnode = r.index(),
+                    ?back,
+                    "basis back-pointer inconsistency"
+                );
             }
         }
     }
@@ -125,11 +130,16 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
 
     let grandparent = vnodes.get(grandparent_id.index());
     let uncles: Vec<(VNodeId, V)> = match &grandparent.kind {
-        VKind::Structural { children, .. } => children.iter().filter(|(id, _)| *id != parent_id).collect(),
+        VKind::Structural { children, .. } => {
+            children.iter().filter(|(id, _)| *id != parent_id).collect()
+        }
         VKind::Entry { .. } => vec![],
     };
 
-    let max_uncle_intensity = uncles.iter().map(|(_, int)| int.to_f64_approx()).fold(0.0_f64, f64::max);
+    let max_uncle_intensity = uncles
+        .iter()
+        .map(|(_, int)| int.to_f64_approx())
+        .fold(0.0_f64, f64::max);
 
     let uncle_desc: Vec<String> = uncles
         .iter()
@@ -165,7 +175,9 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
             );
 
             let sole_children: Vec<usize> = match &vnodes.get(sole.index()).kind {
-                VKind::Structural { children, .. } => (0..children.len()).map(|i| children.get(i).0.index()).collect(),
+                VKind::Structural { children, .. } => (0..children.len())
+                    .map(|i| children.get(i).0.index())
+                    .collect(),
                 VKind::Entry { .. } => vec![],
             };
             if sole_children.contains(&violated.index()) {
@@ -199,7 +211,8 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
         }
     }
 
-    let _ancestry_span = tracing::error_span!("vtree_path_to_violated", node = violated.index()).entered();
+    let _ancestry_span =
+        tracing::error_span!("vtree_path_to_violated", node = violated.index()).entered();
     let mut current = violated;
     let mut depth = 0_usize;
     loop {
@@ -229,7 +242,11 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     }
 }
 
-fn is_ancestor<V: Accumulator>(vnodes: &Arena<VNode<V>>, ancestor: VNodeId, mut descendant: VNodeId) -> bool {
+fn is_ancestor<V: Accumulator>(
+    vnodes: &Arena<VNode<V>>,
+    ancestor: VNodeId,
+    mut descendant: VNodeId,
+) -> bool {
     while let Some(p) = vnodes.get(descendant.index()).parent {
         if p == ancestor {
             return true;
@@ -239,7 +256,10 @@ fn is_ancestor<V: Accumulator>(vnodes: &Arena<VNode<V>>, ancestor: VNodeId, mut 
     false
 }
 
-pub struct Gn<'a, C: Coordinate, V: Accumulator + Inspectable>(pub &'a Arena<GNode<C, V>>, pub GNodeId);
+pub struct Gn<'a, C: Coordinate, V: Accumulator + Inspectable>(
+    pub &'a Arena<GNode<C, V>>,
+    pub GNodeId,
+);
 
 impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -249,9 +269,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> 
         }
         let g = self.0.get(idx);
         let state = match g.state() {
-            crate::gnode::GState::Terminal => "T",
-            crate::gnode::GState::SemiInternal => "S",
-            crate::gnode::GState::Internal => "I",
+            crate::nodes::gnode::GState::Terminal => "T",
+            crate::nodes::gnode::GState::SemiInternal => "S",
+            crate::nodes::gnode::GState::Internal => "I",
         };
         write!(
             f,
@@ -264,7 +284,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> 
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(pub &'a GvGraph<C, V, N>, pub GNodeId);
+pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    pub &'a GvGraph<C, V, N>,
+    pub GNodeId,
+);
 
 #[cfg(feature = "dynamic-contour-tracking")]
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> fmt::Display for Pl<'_, C, V, N> {

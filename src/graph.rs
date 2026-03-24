@@ -3,13 +3,13 @@ use std::collections::BTreeMap;
 use std::sync::atomic::AtomicU32;
 
 use crate::arena::Arena;
-use crate::gnode::GNode;
+use crate::nodes::gnode::GNode;
 use crate::handle::{GNodeId, VNodeId};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::plateau::{BasisEdge, Plateau, PlateauBasis};
 use crate::traits::{Accumulator, Coordinate};
 use crate::view::Node;
-use crate::vnode::VNode;
+use crate::nodes::vnode::VNode;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -76,7 +76,7 @@ pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(
     gid: GNodeId,
     n: u32,
 ) -> Option<u32> {
-    use crate::gnode::GState;
+    use crate::nodes::gnode::GState;
     use crate::gtree::gnode_depth_from_interval;
     let g = gnodes.get(gid.index());
     match g.state() {
@@ -164,7 +164,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             intensity: V::zero(),
             parent: None,
             cached_depth: AtomicU32::new(0),
-            kind: crate::vnode::VKind::Entry {
+            kind: crate::nodes::vnode::VKind::Entry {
                 gnode: g_root,
                 is_exposed: true,
                 is_evictable: true,

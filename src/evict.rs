@@ -1,9 +1,9 @@
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::gnode::GState;
+use crate::nodes::gnode::GState;
 use crate::graph::GvGraph;
 use crate::handle::VNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::vnode::VKind;
+use crate::nodes::vnode::VKind;
 use crate::{rebalance, vtree};
 
 #[allow(clippy::too_many_lines)]

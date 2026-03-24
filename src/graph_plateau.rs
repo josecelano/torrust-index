@@ -136,7 +136,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[doc(hidden)]
     #[must_use]
     pub fn build_plateaus(&self) -> BTreeMap<BasisEdge<C>, Plateau<C, V>> {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         use crate::gtree::gnode_depth_from_interval;
         use crate::plateau::basis_edge_of;
 
@@ -235,9 +235,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 .map(|&gid| {
                     let g = self.gnodes.get(gid.index());
                     let state_str = match g.state() {
-                        crate::gnode::GState::Terminal => "Terminal",
-                        crate::gnode::GState::Internal => "Internal",
-                        crate::gnode::GState::SemiInternal => "SemiInternal",
+                        crate::nodes::gnode::GState::Terminal => "Terminal",
+                        crate::nodes::gnode::GState::Internal => "Internal",
+                        crate::nodes::gnode::GState::SemiInternal => "SemiInternal",
                     };
                     let g_depth = crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N);
                     (gid.index(), g.lo, g.hi, state_str, g_depth)
@@ -272,10 +272,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             sum = V::add(sum, g.sum);
 
             let d = match g.state() {
-                crate::gnode::GState::Terminal | crate::gnode::GState::SemiInternal => {
+                crate::nodes::gnode::GState::Terminal | crate::nodes::gnode::GState::SemiInternal => {
                     crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
                 }
-                crate::gnode::GState::Internal => uniform_contour_depth_of(&self.gnodes, gid, N)
+                crate::nodes::gnode::GState::Internal => uniform_contour_depth_of(&self.gnodes, gid, N)
                     .unwrap_or_else(|| crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N) + 1),
             };
             depth = depth.max(d);
@@ -387,7 +387,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         self.consolidate_basis_up(gnode);
 
-        if self.gnodes.get(gnode.index()).state() == crate::gnode::GState::SemiInternal {
+        if self.gnodes.get(gnode.index()).state() == crate::nodes::gnode::GState::SemiInternal {
             let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
             self.pending_p_i4.push((gnode, final_key));
         }
@@ -395,7 +395,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn collect_subtree_basis_elements(&self, gid: GNodeId, out: &mut Vec<(GNodeId, u32)>) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         let g = self.gnodes.get(gid.index());
         match g.state() {
             GState::Terminal | GState::SemiInternal => {
@@ -433,7 +433,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(dead_code)]
     pub(crate) fn place_subtree_basis_elements(&mut self, gid: GNodeId) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
 
         let g = self.gnodes.get(gid.index());
         match g.state() {
@@ -471,7 +471,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(clippy::too_many_lines)]
     fn consolidate_basis_up(&mut self, mut gid: GNodeId) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
 
         loop {
             let Some(parent_id) = self.gnodes.get(gid.index()).parent else {
@@ -577,7 +577,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(clippy::too_many_lines, clippy::float_cmp)]
     pub(crate) fn normalize_plateaus(&mut self) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         use crate::gtree::gnode_depth_from_interval;
         use crate::plateau::{BasisEdge, Plateau, basis_edge_of};
 
@@ -835,10 +835,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     self.plateau_basis.remove(gid);
                     let g = self.gnodes.get(gid.index());
                     let d = match g.state() {
-                        crate::gnode::GState::Terminal | crate::gnode::GState::SemiInternal => {
+                        crate::nodes::gnode::GState::Terminal | crate::nodes::gnode::GState::SemiInternal => {
                             crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
                         }
-                        crate::gnode::GState::Internal => crate::graph::uniform_contour_depth_of(&self.gnodes, gid, N)
+                        crate::nodes::gnode::GState::Internal => crate::graph::uniform_contour_depth_of(&self.gnodes, gid, N)
                             .unwrap_or_else(|| crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N) + 1),
                     };
                     displaced.push((gid, d));
@@ -882,7 +882,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn repair_p_i4(&mut self) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         use crate::plateau::BasisEdge;
 
         let span = tracing::debug_span!(
@@ -935,7 +935,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     fn split_for_p_i4(&mut self, parent_pk: crate::plateau::BasisEdge<C>, child_id: GNodeId) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
         use crate::plateau::{Plateau, basis_edge_of};
 
         let boundary_id = self.find_boundary_node(child_id, parent_pk);
@@ -1180,7 +1180,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(dead_code)]
     pub(crate) fn plateau_after_legacy_promote(&mut self, new_gid: GNodeId) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
 
         let ng = self.gnodes.get(new_gid.index());
         let parent_id = ng.parent.expect("legacy_promote child must have a parent");
@@ -1212,7 +1212,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, new_gnodes: &[GNodeId]) {
-        use crate::gnode::GState;
+        use crate::nodes::gnode::GState;
 
         if new_gnodes.is_empty() {
             return;

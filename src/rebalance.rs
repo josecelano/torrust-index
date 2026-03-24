@@ -2,10 +2,10 @@ use std::fmt;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::arena::Arena;
-use crate::gnode::GNode;
+use crate::nodes::gnode::GNode;
 use crate::handle::{GNodeId, VNodeId};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
 use crate::vtree::{
     invalidate_depth_subtree, propagate_evictable_flags, recompute_structural_intensity,
     replace_child_in_parent, update_parent_cached_intensity, v_depth,
