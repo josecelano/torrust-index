@@ -1,0 +1,50 @@
+[package]
+categories = ["algorithms", "data-structures"]
+description = "φ-Bounded Geometric-Value Graph"
+keywords = ["adaptive", "data-structure", "dual-tree", "sampling", "spatial-index"]
+name = "torrust-mudlark"
+readme = "README.md"
+version = "1.0.0"
+authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
+documentation = "https://docs.rs/crate/torrust-tracker/"
+edition = "2024"
+homepage = "https://torrust.com/"
+license = "AGPL-3.0-only"
+publish = true
+repository = "https://github.com/torrust/torrust-tracker"
+rust-version = "1.85"
+
+[lints.rust]
+deprecated-safe = { level = "deny", priority = -1 }
+future-incompatible = { level = "deny", priority = -1 }
+let-underscore = { level = "deny", priority = -1 }
+nonstandard-style = { level = "deny", priority = -1 }
+rust-2018-compatibility = { level = "deny", priority = -1 }
+rust-2018-idioms = { level = "deny", priority = -1 }
+rust-2021-compatibility = { level = "deny", priority = -1 }
+rust-2024-compatibility = { level = "deny", priority = -1 }
+unsafe-code = "warn"
+unused = { level = "deny", priority = -2 }
+warnings = { level = "deny", priority = -1 }
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+needless_return = "allow"
+
+[features]
+default = ["dynamic-contour-tracking", "rand"]
+dynamic-contour-tracking = []
+rand = ["dep:rand_core"]
+serde = ["dep:serde"]
+
+[dependencies]
+rand_core = { version = "0.10", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+tracing = "0"
