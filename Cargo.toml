@@ -1,17 +1,23 @@
 [package]
 categories = ["algorithms", "data-structures"]
 description = "φ-Bounded Geometric-Value Graph"
-keywords = ["adaptive", "data-structure", "dual-tree", "sampling", "spatial-index"]
+keywords = [
+    "adaptive",
+    "data-structure",
+    "dual-tree",
+    "sampling",
+    "spatial-index",
+]
 name = "torrust-mudlark"
 readme = "README.md"
 version = "1.0.0"
-authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
-documentation = "https://docs.rs/crate/torrust-tracker/"
+authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>"]
+documentation = "https://docs.rs/crate/torrust-mudlark/"
 edition = "2024"
-homepage = "https://torrust.com/"
+homepage = "https://torrust.com"
 license = "AGPL-3.0-only"
 publish = true
-repository = "https://github.com/torrust/torrust-tracker"
+repository = "https://github.com/torrust/torrust-mudlark"
 rust-version = "1.85"
 
 [lints.rust]
