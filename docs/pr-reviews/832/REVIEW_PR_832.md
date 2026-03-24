@@ -320,7 +320,7 @@ _Pending_
 | 6   | `AGENTS.md` scope                    | ⬜ Not mentioned — mudlark-specific conventions still in root AGENTS.md                 |
 | 7   | Methods missing from api.md          | ✅ **API redesigned** — some removed from public surface, others documented             |
 | 8   | `GNodeInfo` not in docs              | ✅ **Merged into `Node`** — `gnode_info()` now returns `Node`                           |
-| 9   | [BUG] f64 plateau drift              | ⚠️ **Related decay panic fixed (ADR-M-038); plateau assert_eq needs verification**      |
+| 9   | [BUG] f64 plateau drift              | ❗ **OPEN — confirmed still fires on rebased code** (`graph_plateau.rs:1387`)           |
 | —   | Mutation kill rate 60.1%             | ✅ Test count 868→1,311 (+443) — re-run needed to measure new kill rate                 |
 
 ### Comment — da2ce7, 5 days ago (#issuecomment-4096212408)
@@ -359,7 +359,7 @@ Triggered by Finding #4 (api.md out of date). Cameron found ADR-032 was a classi
 
 Found during the API pass: the decay factor table was sized assuming tree depth ≤ N, which doesn't hold for `f64` coordinates. That's a real panic. Fixed in ADR-M-038. ~770 new integration tests lock it down, including IEEE 754 edge cases (`0 * ∞`, `ln(0) * 0`, `∞ - ∞` → NaN in various decay code paths).
 
-> **Note:** This is a **different bug** from our Finding #9. Cameron's fix is in `decay.rs` (factor table overflow). Our Finding #9 is in `graph_plateau.rs` (incremental `f64` sum vs. fresh recompute divergence under `assert_eq!`). We should run `reference_comparator.rs::bug_f64_plateau_drift_after_split` against the rebased code to check.
+> **Note:** This is a **different bug** from our Finding #9. Cameron's fix is in `decay.rs` (factor table overflow). Our Finding #9 is in `graph_plateau.rs` (incremental `f64` sum vs. fresh recompute divergence under `assert_eq!`). Verified 2026-03-24: `reference_comparator.rs::bug_f64_plateau_drift_after_split` **still panics** on the rebased code at `graph_plateau.rs:1387`. The panic message confirms the delta (~7.8e-15, a ~1 ULP difference), identical in character to the original finding. Cameron's ADR-M-038 fix did **not** resolve this.
 
 ### Comment — da2ce7, 3 days ago — mutation testing overhaul
 
@@ -391,5 +391,5 @@ After Cameron's three responses, the following are still unresolved:
 
 1. **`torrust-sentinel` in machete ignore** — Intent undocumented. Low priority but a stale forward reference.
 2. **`AGENTS.md` scope** — Mudlark-specific cross-reference conventions still in root `AGENTS.md`. Low priority.
-3. **Finding #9 (`graph_plateau.rs` `assert_eq!`)** — Needs verification: does `reference_comparator.rs::bug_f64_plateau_drift_after_split` still fire against the rebased code? Run `cargo test -p torrust-mudlark --test reference_comparator bug_f64_plateau_drift_after_split` (without `--release`).
+3. **Finding #9 (`graph_plateau.rs` `assert_eq!`) — CONFIRMED OPEN.** Verified 2026-03-24: `bug_f64_plateau_drift_after_split` panics at `graph_plateau.rs:1387` on the rebased code. Delta ≈ 7.8e-15 (~1 ULP). Cameron's ADR-M-038 fix (decay depth panic) did not resolve this. **This needs to be reported to Cameron.** The fix options from the original finding still apply: approximate equality check, accumulate by fresh recompute, or guarantee bit-identical accumulation order.
 4. **New mutation kill rate** — Re-run `cargo mutants -p torrust-mudlark` to measure improvement from Cameron's +443 tests.
