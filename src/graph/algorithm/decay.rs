@@ -1,7 +1,7 @@
 use crate::graph::GvGraph;
+use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
-use crate::graph::algorithm::rebalance;
 use crate::tree::{gtree, vtree};
 
 impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> GvGraph<C, V, N> {
@@ -230,6 +230,187 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
         #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-DECAY-SELECTIVE");
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn observed_graph() -> G {
+        let mut g = GvGraph::new(make_config());
+        g.observe(0u8, 100u32);
+        g
+    }
+
+    // ── decay (uniform, q = 0) ───────────────────────────────────────────
+    mod decay_uniform {
+        use super::*;
+
+        #[test]
+        fn attenuation_of_one_is_no_op() {
+            let mut g = observed_graph();
+            let before = g.total_sum();
+            let root = g.g_root();
+            g.decay(root, 1.0, 0.0);
+            assert_eq!(g.total_sum(), before);
+        }
+
+        #[test]
+        fn attenuation_reduces_total_sum() {
+            let mut g = observed_graph();
+            let before = g.total_sum();
+            let root = g.g_root();
+            g.decay(root, 0.5, 0.0);
+            assert!(g.total_sum() <= before);
+        }
+
+        #[test]
+        fn zero_attenuation_drives_sum_to_zero() {
+            let mut g = observed_graph();
+            let root = g.g_root();
+            g.decay(root, 0.0, 0.0);
+            assert_eq!(g.total_sum(), 0u32);
+        }
+    }
+
+    // ── decay (selective, q > 0) ─────────────────────────────────────────
+    mod decay_selective {
+        use super::*;
+
+        #[test]
+        fn attenuation_of_one_is_no_op() {
+            let mut g = observed_graph();
+            let before = g.total_sum();
+            let root = g.g_root();
+            g.decay(root, 1.0, 0.5);
+            assert_eq!(g.total_sum(), before);
+        }
+
+        #[test]
+        fn attenuation_reduces_total_sum() {
+            let mut g = observed_graph();
+            let before = g.total_sum();
+            let root = g.g_root();
+            g.decay(root, 0.5, 0.5);
+            assert!(g.total_sum() <= before);
+        }
+
+        #[test]
+        fn zero_attenuation_selective_drives_sum_to_zero() {
+            let mut g = observed_graph();
+            let root = g.g_root();
+            g.decay(root, 0.0, 0.5);
+            assert_eq!(g.total_sum(), 0u32);
+        }
+
+        #[test]
+        fn infinite_attenuation_selective_does_not_panic() {
+            let mut g = observed_graph();
+            let root = g.g_root();
+            // inf attenuation zeroes the sum (positive exponents → factor=∞ → own.attenuate(∞) = 0)
+            g.decay(root, f64::INFINITY, 0.5);
+        }
+
+        #[test]
+        fn multi_depth_selective_decay_covers_t_computation() {
+            // Need depth_range > 0; trigger a split so the subtree has two levels.
+            let mut g: G = GvGraph::new(make_config());
+            for _ in 0..3 {
+                g.observe(64u8, 5u32); // bootstrap split
+            }
+            for _ in 0..3 {
+                g.observe(32u8, 5u32); // second split
+            }
+            let root = g.g_root();
+            g.decay(root, 0.5, 0.5);
+        }
+
+        #[test]
+        fn zero_att_depth_range_zero_covers_if_depth_range_zero_branch() {
+            // depth_range == 0 with att == 0.0: exercises the `if depth_range == 0
+            // { 1.0 }` branch in the att==0.0 arm (line 140).
+            // Fresh graph has one Terminal gnode → depth_range = 0.
+            let mut g: G = GvGraph::new(make_config());
+            let root = g.g_root();
+            g.decay(root, 0.0, 0.5);
+            assert_eq!(g.total_sum(), 0u32);
+        }
+
+        #[test]
+        fn infinite_att_depth_range_zero_covers_if_depth_range_zero_branch() {
+            // depth_range == 0 with att == INFINITY: exercises the `if depth_range
+            // == 0 { 1.0 }` branch in the att.is_infinite() arm (line 152).
+            let mut g: G = GvGraph::new(make_config());
+            let root = g.g_root();
+            g.decay(root, f64::INFINITY, 0.5);
+        }
+
+        #[test]
+        fn infinite_att_q_one_zero_exponent_branch() {
+            // att == INFINITY, q == 1.0, depth_range > 0: at d_local=0
+            // t = -1.0, exponent = q * t + 1 = 0.0 → exercises the
+            // `if exponent == 0.0 { 1.0 }` branch (line 158).
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // bootstrap split → depth_range = 1
+            let root = g.g_root();
+            g.decay(root, f64::INFINITY, 1.0);
+        }
+
+        #[test]
+        fn normal_att_depth_range_zero_covers_if_depth_range_zero_branch() {
+            // depth_range == 0 with a regular att: exercises the `if depth_range
+            // == 0 { 0.0 }` branch in the standard ln-based arm (line 171).
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(0u8, 1u32); // sum=1 but no split (1 <= threshold=2)
+            let root = g.g_root();
+            g.decay(root, 0.5, 0.5);
+        }
+    }
+
+    // ── sub-root decay (is_global = false) ───────────────────────────────
+    mod decay_non_global {
+        use super::*;
+
+        fn split_graph() -> G {
+            let mut g: G = GvGraph::new(make_config());
+            for _ in 0..3 {
+                g.observe(64u8, 5u32);
+            }
+            g
+        }
+
+        #[test]
+        fn sub_root_uniform_decay_does_not_panic() {
+            let mut g = split_graph();
+            let children = g.gnode_children(g.g_root()).unwrap();
+            // Decay a child subtree (non-global) to exercise the is_global=false path
+            if let Some(sub_root) = children.left.or(children.right) {
+                g.decay(sub_root, 0.5, 0.0);
+            }
+        }
+
+        #[test]
+        fn sub_root_selective_decay_does_not_panic() {
+            let mut g = split_graph();
+            let children = g.gnode_children(g.g_root()).unwrap();
+            if let Some(sub_root) = children.left.or(children.right) {
+                g.decay(sub_root, 0.5, 0.5);
+            }
         }
     }
 }

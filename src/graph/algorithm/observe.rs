@@ -47,7 +47,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         split::attempt_split(self, g_id);
 
         if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-SPLIT");
+            crate::diagnostics::diagnostic::audit_violations(
+                &self.vnodes,
+                &self.violations,
+                "POST-SPLIT",
+            );
         }
 
         #[cfg(feature = "dynamic-contour-tracking")]
@@ -93,8 +97,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.repair_p_i4();
 
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
-            let remaining =
-                crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-OBSERVE");
+            let remaining = crate::diagnostics::diagnostic::audit_violations(
+                &self.vnodes,
+                &self.violations,
+                "POST-OBSERVE",
+            );
             debug_assert!(
                 remaining.is_empty(),
                 "POST-OBSERVE: residual violations: {remaining:?}"
@@ -104,6 +111,113 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-OBSERVE");
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn fresh_graph() -> G {
+        GvGraph::new(make_config())
+    }
+
+    // ── observe ──────────────────────────────────────────────────────────
+    mod observe {
+        use super::*;
+
+        #[test]
+        fn single_observation_increases_total_sum() {
+            let mut g = fresh_graph();
+            g.observe(0u8, 10u32);
+            assert_eq!(g.total_sum(), 10u32);
+        }
+
+        #[test]
+        fn multiple_observations_accumulate() {
+            let mut g = fresh_graph();
+            g.observe(0u8, 10u32);
+            g.observe(128u8, 20u32);
+            assert_eq!(g.total_sum(), 30u32);
+        }
+
+        #[test]
+        fn repeated_observations_at_same_coord_accumulate() {
+            let mut g = fresh_graph();
+            for _ in 0..3 {
+                g.observe(0u8, 5u32);
+            }
+            assert_eq!(g.total_sum(), 15u32);
+        }
+
+        #[test]
+        fn enough_observations_trigger_split() {
+            // split_threshold = 2, so 3 observations at same coord should split
+            let mut g = fresh_graph();
+            let initial_nodes = g.node_count();
+            for _ in 0..3 {
+                g.observe(64u8, 10u32);
+            }
+            // After a split the node_count should have grown
+            assert!(g.node_count() > initial_nodes);
+        }
+
+        #[test]
+        fn observation_does_not_violate_invariants() {
+            let mut g = fresh_graph();
+            g.observe(0u8, 1u32);
+            g.observe(128u8, 1u32);
+            g.observe(64u8, 1u32);
+            // No panic = invariants respected
+        }
+
+        #[test]
+        fn observe_with_bounded_eviction_does_not_panic() {
+            // bounded_eviction=true exercises the check_evictions_bounded path.
+            // budget=28: depth_buffer=2, headroom=3^3=27, soft_limit=28-27=1.
+            // After first split node_count=3 > soft_limit=1 → check_evictions_bounded
+            // is called, but nodes are at depth 1-2 << depth_evict=4 → 0 evictions.
+            let cfg = Config {
+                split_threshold: 2,
+                depth_create: 2,
+                depth_evict: 4,
+                budget: Some(28),
+                alpha_relax: 0.5,
+                bounded_eviction: true,
+            };
+            let mut g: G = GvGraph::new(cfg);
+            g.observe(64u8, 3u32); // bootstrap split → node_count=3 > soft_limit=1
+            g.observe(32u8, 3u32);
+        }
+
+        #[test]
+        fn observe_with_budget_and_unbounded_eviction() {
+            // check_evictions (unbounded) path when node_count > soft_limit.
+            let cfg = Config {
+                split_threshold: 2,
+                depth_create: 2,
+                depth_evict: 4,
+                budget: Some(28),
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            };
+            let mut g: G = GvGraph::new(cfg);
+            g.observe(64u8, 3u32); // bootstrap split → node_count=3 > soft_limit=1
+            g.observe(32u8, 3u32);
         }
     }
 }

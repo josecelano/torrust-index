@@ -1,10 +1,10 @@
 use crate::graph::GvGraph;
+use crate::graph::algorithm::rebalance::is_violated;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::graph::uniform_contour_depth_of;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::VKind;
-use crate::graph::algorithm::rebalance::is_violated;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau::BasisEdge;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
@@ -451,8 +451,9 @@ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u3
         let v_id = VNodeId::from_index(idx);
         if is_violated(graph.vnodes(), v_id) {
             let int = v.intensity.to_f64_approx();
-            let uncle = crate::graph::algorithm::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
-                .map_or(f64::NAN, Inspectable::to_f64_approx);
+            let uncle =
+                crate::graph::algorithm::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
+                    .map_or(f64::NAN, Inspectable::to_f64_approx);
             errors.push(format!(
                 "V-I3 violated at V-node {idx}: intensity={int}, max_uncle={uncle}"
             ));
@@ -1340,4 +1341,214 @@ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     }
     let g = graph.gnodes().get(cur.index());
     gnode_depth_from_interval(g.lo, g.hi, N)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::diagnostics::invariants::{assert_invariants, check_all_invariants, dump_gtree};
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn fresh() -> G {
+        GvGraph::new(make_config())
+    }
+
+    // ── assert_invariants / check_all_invariants ──────────────────────
+    mod assert_invariants_fn {
+        use super::*;
+
+        #[test]
+        fn does_not_panic_for_fresh_graph() {
+            assert_invariants(&fresh());
+        }
+
+        #[test]
+        fn does_not_panic_after_single_observation() {
+            let mut g = fresh();
+            g.observe(64u8, 2u32);
+            assert_invariants(&g);
+        }
+
+        #[test]
+        fn does_not_panic_after_bootstrap_split() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            assert_invariants(&g);
+        }
+
+        #[test]
+        fn does_not_panic_after_multiple_observations() {
+            let mut g = fresh();
+            for coord in [0u8, 64, 128, 192, 32, 96, 160, 224] {
+                g.observe(coord, 3u32);
+            }
+            assert_invariants(&g);
+        }
+    }
+
+    mod check_all_invariants_fn {
+        use super::*;
+
+        #[test]
+        fn returns_empty_errors_for_fresh_graph() {
+            let errors = check_all_invariants(&fresh());
+            assert!(errors.is_empty(), "unexpected errors: {:?}", errors);
+        }
+
+        #[test]
+        fn returns_empty_errors_after_observations() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            g.observe(32u8, 3u32);
+            let errors = check_all_invariants(&g);
+            assert!(errors.is_empty(), "unexpected errors: {:?}", errors);
+        }
+    }
+
+    // ── dump_gtree ────────────────────────────────────────────────────
+    mod dump_gtree_fn {
+        use super::*;
+
+        #[test]
+        fn returns_non_empty_string_for_fresh_graph() {
+            let g = fresh();
+            let s = dump_gtree(&g);
+            assert!(!s.is_empty());
+        }
+
+        #[test]
+        fn output_contains_g_tree_header() {
+            let g = fresh();
+            let s = dump_gtree(&g);
+            assert!(s.contains("G-Tree dump"), "header not found in: {s}");
+        }
+    }
+
+    // ── dump_plateaus ─────────────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod dump_plateaus_fn {
+        use super::*;
+        use crate::diagnostics::invariants::dump_plateaus;
+
+        #[test]
+        fn returns_non_empty_string_for_fresh_graph() {
+            let g = fresh();
+            let s = dump_plateaus(&g);
+            assert!(!s.is_empty());
+        }
+
+        #[test]
+        fn output_contains_plateau_dump_header_after_bootstrap() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            let s = dump_plateaus(&g);
+            assert!(s.contains("Plateau dump"), "header not found in: {s}");
+        }
+
+        #[test]
+        fn works_after_multiple_splits() {
+            let mut g = fresh();
+            for coord in [32u8, 96, 160, 224] {
+                g.observe(coord, 3u32);
+            }
+            let s = dump_plateaus(&g);
+            assert!(!s.is_empty());
+        }
+    }
+
+    // ── check_plateau_only ────────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod check_plateau_only_fn {
+        use super::*;
+        use crate::diagnostics::invariants::check_plateau_only;
+
+        #[test]
+        fn no_errors_for_fresh_graph() {
+            let g = fresh();
+            let mut errors = Vec::new();
+            check_plateau_only(&g, &mut errors);
+            assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        }
+
+        #[test]
+        fn no_errors_after_bootstrap_split() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            let mut errors = Vec::new();
+            check_plateau_only(&g, &mut errors);
+            assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        }
+
+        #[test]
+        fn no_errors_after_multiple_splits() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            g.observe(64u8, 3u32);
+            let mut errors = Vec::new();
+            check_plateau_only(&g, &mut errors);
+            assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        }
+    }
+
+    // ── check_p_i3_only ───────────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod check_p_i3_only_fn {
+        use super::*;
+        use crate::diagnostics::invariants::check_p_i3_only;
+
+        #[test]
+        fn no_errors_for_fresh_graph() {
+            let g = fresh();
+            let mut errors = Vec::new();
+            check_p_i3_only(&g, &mut errors);
+            assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        }
+
+        #[test]
+        fn no_errors_after_multiple_splits() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            g.observe(64u8, 3u32);
+            let mut errors = Vec::new();
+            check_p_i3_only(&g, &mut errors);
+            assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        }
+    }
+
+    // ── ancestor_name (private fn) ────────────────────────────────────
+    mod ancestor_name_fn {
+        #[test]
+        fn depth_1_is_parent() {
+            assert_eq!(super::super::ancestor_name(1), "parent");
+        }
+
+        #[test]
+        fn depth_2_is_grandparent() {
+            assert_eq!(super::super::ancestor_name(2), "grandparent");
+        }
+
+        #[test]
+        fn depth_3_is_great_grandparent() {
+            assert_eq!(super::super::ancestor_name(3), "great-grandparent");
+        }
+
+        #[test]
+        fn depth_4_uses_format_path() {
+            // n=4: "2x-great-grandparent"
+            let s = super::super::ancestor_name(4);
+            assert!(s.contains("great-grandparent"), "got: {s}");
+        }
+    }
 }

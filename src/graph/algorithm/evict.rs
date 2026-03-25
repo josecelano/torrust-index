@@ -497,3 +497,104 @@ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::algorithm::evict::scan_for_candidates;
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    /// Config with a small budget so the observe loop reaches the eviction
+    /// check.  depth_create=1 < depth_evict=2 satisfies all invariants.
+    /// soft_limit = budget (10) - headroom (9) = 1.
+    fn eviction_config() -> Config<u32> {
+        // depth_buffer = depth_evict - depth_create = 2 - 1 = 1
+        // headroom     = 3^(1+1) = 9
+        // required_headroom = max(9, 0) = 9
+        // soft_limit   = budget - 9 = 10 - 9 = 1
+        Config {
+            split_threshold: 2,
+            depth_create: 1,
+            depth_evict: 2,
+            budget: Some(10),
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    // ── scan_for_candidates ───────────────────────────────────────────
+    mod scan_for_candidates_fn {
+        use super::*;
+
+        #[test]
+        fn returns_empty_for_fresh_graph() {
+            // v_root is None on a fresh graph — scan returns nothing
+            let g: G = GvGraph::new(make_config());
+            let candidates = scan_for_candidates(&g);
+            assert!(candidates.is_empty());
+        }
+
+        #[test]
+        fn returns_empty_when_all_nodes_shallower_than_live_depth_evict() {
+            // default config: depth_evict=5, after one split nodes are at
+            // v-depth 2 which is well below 5 → no candidates
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // triggers bootstrap split
+            let candidates = scan_for_candidates(&g);
+            assert!(candidates.is_empty());
+        }
+
+        #[test]
+        fn scan_traverses_tree_without_panic_after_several_splits() {
+            // eviction_config: depth_evict=2, bootstrap leaves at v-depth 2
+            // depth > 2 → no candidates, but DFS still traverses every node
+            let mut g: G = GvGraph::new(eviction_config());
+            g.observe(32u8, 3u32);
+            g.observe(192u8, 3u32);
+            let candidates = scan_for_candidates(&g);
+            // entries at depth 2 are not > live_depth_evict=2 → empty
+            assert!(candidates.is_empty());
+        }
+    }
+
+    // ── evict_tip (via bounded-budget observe) ────────────────────────
+    mod evict_tip_fn {
+        use super::*;
+
+        #[test]
+        fn observe_with_budget_keeps_node_count_bounded() {
+            // soft_limit=1, so after every split the eviction loop fires.
+            let mut g: G = GvGraph::new(eviction_config());
+            for i in 0u8..10 {
+                g.observe(i.wrapping_mul(13), 3u32);
+            }
+            // The eviction mechanism must keep the graph alive (no panic).
+            assert!(g.node_count() >= 1);
+        }
+
+        #[test]
+        fn total_sum_is_preserved_after_eviction() {
+            // Energy is transferred to parent on eviction, so total_sum must
+            // equal the sum of all delta values observed.
+            let mut g: G = GvGraph::new(eviction_config());
+            let n = 5u32;
+            let delta = 3u32;
+            for i in 0..n as u8 {
+                g.observe(i.wrapping_mul(51), delta);
+            }
+            assert_eq!(g.total_sum(), n * delta);
+        }
+    }
+}

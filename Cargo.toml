@@ -1,24 +1,18 @@
 [package]
+authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>"]
 categories = ["algorithms", "data-structures"]
 description = "φ-Bounded Geometric-Value Graph"
-keywords = [
-    "adaptive",
-    "data-structure",
-    "dual-tree",
-    "sampling",
-    "spatial-index",
-]
-name = "torrust-mudlark"
-readme = "README.md"
-version = "1.0.0"
-authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>"]
 documentation = "https://docs.rs/crate/torrust-mudlark/"
 edition = "2024"
 homepage = "https://torrust.com"
+keywords = ["adaptive", "data-structure", "dual-tree", "sampling", "spatial-index"]
 license = "AGPL-3.0-only"
+name = "torrust-mudlark"
 publish = true
+readme = "README.md"
 repository = "https://github.com/torrust/torrust-mudlark"
 rust-version = "1.85"
+version = "1.0.0"
 
 [lints.rust]
 deprecated-safe = { level = "deny", priority = -1 }
@@ -37,12 +31,12 @@ warnings = { level = "deny", priority = -1 }
 all = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
 correctness = { level = "deny", priority = -1 }
+needless_return = "allow"
 nursery = { level = "warn", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
 perf = { level = "deny", priority = -1 }
 style = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
-needless_return = "allow"
 
 [features]
 default = ["dynamic-contour-tracking", "rand"]
@@ -59,3 +53,4 @@ tracing = "0"
 crossterm = "0.29"
 insta = "1"
 ratatui = "0.30"
+rstest = "0.24"

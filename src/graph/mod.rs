@@ -288,7 +288,6 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[cfg(test)]
     #[must_use]
     #[inline]
-    #[expect(dead_code)]
     pub(crate) fn has_pending_violations(&self) -> bool {
         !self.violations.is_empty()
     }
@@ -373,5 +372,246 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         let a = self.gnodes.get(ancestor.index());
         let d = self.gnodes.get(descendant.index());
         a.lo <= d.lo && a.hi >= d.hi && (a.lo != d.lo || a.hi != d.hi)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Config, GvGraph};
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    // ── GvGraph::new ─────────────────────────────────────────────────────
+    mod new {
+        use super::*;
+
+        #[test]
+        fn starts_with_one_node() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.node_count(), 1);
+        }
+
+        #[test]
+        fn starts_with_one_terminal() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.terminal_count(), 1);
+        }
+
+        #[test]
+        fn starts_with_zero_sum() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.total_sum(), 0u32);
+        }
+    }
+
+    // ── GvGraph::gnode_info ───────────────────────────────────────────────
+    mod gnode_info {
+        use super::*;
+
+        #[test]
+        fn returns_some_for_root() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert!(g.gnode_info(g.g_root()).is_some());
+        }
+
+        #[test]
+        fn root_covers_full_domain() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            let info = g.gnode_info(g.g_root()).unwrap();
+            use crate::traits::Coordinate;
+            assert_eq!(info.start, u8::zero());
+            assert_eq!(info.end, u8::domain_max(8));
+        }
+
+        #[test]
+        fn root_is_terminal_at_start() {
+            use crate::nodes::gnode::GState;
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            let info = g.gnode_info(g.g_root()).unwrap();
+            assert_eq!(info.state, GState::Terminal);
+        }
+
+        #[test]
+        fn root_is_root_node() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            let info = g.gnode_info(g.g_root()).unwrap();
+            assert!(info.is_root());
+        }
+
+        #[test]
+        fn returns_none_for_unoccupied_index() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            use crate::handle::GNodeId;
+            // index 999 is well beyond the one allocated gnode
+            let unoccupied = GNodeId::from_index(999);
+            assert!(g.gnode_info(unoccupied).is_none());
+        }
+    }
+
+    // ── GvGraph::gnode_children ───────────────────────────────────────────
+    mod gnode_children {
+        use super::*;
+
+        #[test]
+        fn root_has_no_children_initially() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            let ch = g.gnode_children(g.g_root()).unwrap();
+            assert!(ch.left.is_none());
+            assert!(ch.right.is_none());
+        }
+
+        #[test]
+        fn returns_none_for_unoccupied_index() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            use crate::handle::GNodeId;
+            // index 999 is well beyond the one allocated gnode
+            let unoccupied = GNodeId::from_index(999);
+            assert!(g.gnode_children(unoccupied).is_none());
+        }
+    }
+
+    // ── GvGraph::is_ancestor_of ───────────────────────────────────────────
+    mod is_ancestor_of {
+        use super::*;
+
+        #[test]
+        fn node_is_not_ancestor_of_itself() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert!(!g.is_ancestor_of(g.g_root(), g.g_root()));
+        }
+
+        #[test]
+        fn returns_false_when_ancestor_gnode_is_unoccupied() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            use crate::handle::GNodeId;
+            let unoccupied = GNodeId::from_index(999);
+            assert!(!g.is_ancestor_of(unoccupied, g.g_root()));
+        }
+    }
+
+    // ── Config accessors ─────────────────────────────────────────────────
+    mod config_accessors {
+        use super::*;
+
+        #[test]
+        fn depth_create_matches_config() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.depth_create(), 3);
+        }
+
+        #[test]
+        fn depth_evict_matches_config() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.depth_evict(), 5);
+        }
+
+        #[test]
+        fn depth_buffer_is_evict_minus_create() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.depth_buffer(), 2);
+        }
+
+        #[test]
+        fn headroom_is_three_to_the_power_of_depth_buffer_plus_one() {
+            // depth_buffer = depth_evict(5) - depth_create(3) = 2
+            // headroom = 3^(buffer+1) = 3^3 = 27
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert_eq!(g.headroom(), 27);
+        }
+
+        #[test]
+        fn budget_is_none_when_not_configured() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert!(g.budget().is_none());
+        }
+
+        #[test]
+        fn soft_limit_is_none_without_budget() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            assert!(g.soft_limit().is_none());
+        }
+    }
+
+    // ── uniform_contour_depth_of ─────────────────────────────────────────
+    mod uniform_contour_depth_of_fn {
+        use super::*;
+        use crate::arena::Arena;
+        use crate::graph::uniform_contour_depth_of;
+        use crate::handle::GNodeId;
+        use crate::nodes::gnode::GNode;
+
+        fn make_terminal(lo: u8, hi: u8) -> GNode<u8, u32> {
+            GNode {
+                lo,
+                hi,
+                sum: 0,
+                own: 0,
+                left: None,
+                right: None,
+                parent: None,
+                entry: None,
+            }
+        }
+
+        #[test]
+        fn terminal_root_returns_some_depth() {
+            let g = GvGraph::<u8, u32, 8>::new(make_config());
+            // Fresh graph root is Terminal
+            let result = uniform_contour_depth_of(&g.gnodes, g.g_root, 8);
+            assert!(result.is_some());
+        }
+
+        #[test]
+        fn semi_internal_root_returns_none() {
+            let mut g = GvGraph::<u8, u32, 8>::new(make_config());
+            // Manually give the root a single (fake) left child → SemiInternal
+            let fake_child = GNodeId::from_index(999);
+            g.gnodes.get_mut(g.g_root.index()).left = Some(fake_child);
+            let result = uniform_contour_depth_of(&g.gnodes, g.g_root, 8);
+            assert_eq!(result, None);
+            // Restore so subsequent arena operations are not corrupted
+            g.gnodes.get_mut(g.g_root.index()).left = None;
+        }
+
+        #[test]
+        fn internal_root_with_equal_depth_children_returns_some() {
+            // For u8 / N=8, domain_max=255 means bootstrap splits produce unequal widths.
+            // Construct explicitly: root=[0,128) Internal, left=[0,64) and right=[64,128)
+            // both Terminal with equal width 64 → equal depth (8 - floor(log2(64)) = 2).
+            let mut gnodes: Arena<GNode<u8, u32>> = Arena::new();
+            let left_id = GNodeId::from_index(gnodes.alloc(make_terminal(0, 64)));
+            let right_id = GNodeId::from_index(gnodes.alloc(make_terminal(64, 128)));
+            let root_id = GNodeId::from_index(gnodes.alloc(GNode {
+                lo: 0,
+                hi: 128,
+                sum: 0,
+                own: 0,
+                left: Some(left_id),
+                right: Some(right_id),
+                parent: None,
+                entry: None,
+            }));
+            let result = uniform_contour_depth_of(&gnodes, root_id, 8);
+            assert_eq!(result, Some(2));
+        }
+
+        #[test]
+        fn internal_root_with_unequal_depth_children_returns_none() {
+            let mut g = GvGraph::<u8, u32, 8>::new(make_config());
+            // First obs: bootstrap split with odd domain (u8/N=8) → unequal-width children
+            // left=[0,127) width=127 depth=2, right=[127,255] width=128 depth=1 → mismatch → None
+            g.observe(64u8, 3u32);
+            let result = uniform_contour_depth_of(&g.gnodes, g.g_root, 8);
+            assert_eq!(result, None);
+        }
     }
 }

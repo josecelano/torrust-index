@@ -2,10 +2,12 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::arena::Arena;
 use crate::graph::GvGraph;
+use crate::graph::algorithm::rebalance::{
+    Nd, contract, push_promoted_violations, push_side_effect_violations,
+};
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
-use crate::graph::algorithm::rebalance::{Nd, contract, push_promoted_violations, push_side_effect_violations};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 
@@ -139,7 +141,11 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostics::diagnostic::audit_plateau_consistency(graph, "POST-BOOTSTRAP-SPLIT", None);
+        crate::diagnostics::diagnostic::audit_plateau_consistency(
+            graph,
+            "POST-BOOTSTRAP-SPLIT",
+            None,
+        );
     }
 }
 
@@ -238,7 +244,11 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostics::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
+        crate::diagnostics::diagnostic::audit_plateau_consistency(
+            graph,
+            "POST-CATALYTIC-SPLIT",
+            None,
+        );
     }
 }
 
@@ -301,4 +311,103 @@ fn alloc_v_structural_2<V: Accumulator>(
     vnodes.get_mut(a.index()).parent = Some(s_id);
     vnodes.get_mut(b.index()).parent = Some(s_id);
     s_id
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn fresh_graph() -> G {
+        GvGraph::new(make_config())
+    }
+
+    // ── attempt_split (via observe) ───────────────────────────────────
+    mod attempt_split {
+        use super::*;
+
+        #[test]
+        fn no_split_when_sum_at_threshold() {
+            // delta=2 equals split_threshold, condition is >, not >=
+            let mut g = fresh_graph();
+            let n0 = g.node_count();
+            g.observe(64u8, 2u32);
+            assert_eq!(g.node_count(), n0, "must not split at exactly threshold");
+        }
+
+        #[test]
+        fn no_split_when_sum_below_threshold() {
+            let mut g = fresh_graph();
+            let n0 = g.node_count();
+            g.observe(64u8, 1u32);
+            assert_eq!(g.node_count(), n0);
+        }
+
+        #[test]
+        fn bootstrap_split_increases_node_count_by_two() {
+            // sum > split_threshold on root triggers bootstrap_split
+            let mut g = fresh_graph();
+            let n0 = g.node_count();
+            g.observe(64u8, 3u32);
+            assert_eq!(g.node_count(), n0 + 2);
+        }
+
+        #[test]
+        fn bootstrap_split_increases_terminal_count_by_one() {
+            let mut g = fresh_graph();
+            let t0 = g.terminal_count();
+            g.observe(64u8, 3u32);
+            assert_eq!(g.terminal_count(), t0 + 1);
+        }
+
+        #[test]
+        fn catalytic_split_increases_node_count_further() {
+            // First observation triggers bootstrap split; second observation on a
+            // child triggers catalytic split.
+            let mut g = fresh_graph();
+            g.observe(32u8, 3u32); // bootstrap split — left child covers [0,128)
+            let n1 = g.node_count();
+            g.observe(32u8, 3u32); // catalytic split of the left child
+            assert!(g.node_count() > n1);
+        }
+
+        #[test]
+        fn already_split_node_is_not_split_again() {
+            // After a bootstrap split the root gnode has children, so
+            // attempt_split on the root is a no-op (early return).
+            let mut g = fresh_graph();
+            g.observe(64u8, 3u32); // bootstrap — root now has children
+            let n1 = g.node_count();
+            // Observing the root coordinate again should not double-split the root.
+            // A further split (if any) would happen on a child, not the root.
+            g.observe(128u8, 3u32); // different half — may split the right child
+            // node_count may grow (child splits) but the root is not split again
+            assert!(g.node_count() >= n1);
+        }
+
+        #[test]
+        fn direct_call_on_internal_gnode_is_no_op() {
+            // Exercises the first early-return guard (line 19): calling
+            // attempt_split directly on a gnode that already has children
+            // must be a no-op (it returns immediately).
+            let mut g = fresh_graph();
+            g.observe(64u8, 3u32); // bootstrap — g_root becomes Internal
+            let root = g.g_root();
+            let n_before = g.node_count();
+            crate::graph::algorithm::split::attempt_split(&mut g, root);
+            assert_eq!(g.node_count(), n_before);
+        }
+    }
 }

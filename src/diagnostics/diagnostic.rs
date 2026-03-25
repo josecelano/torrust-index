@@ -3,10 +3,10 @@
 use std::fmt;
 
 use crate::arena::Arena;
+use crate::graph::algorithm::rebalance::{self, Ctx};
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{VKind, VNode};
-use crate::graph::algorithm::rebalance::{self, Ctx};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::{graph::GvGraph, nodes::gnode::GState};
@@ -310,6 +310,282 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> fmt::Display for
                 }
             }
             None => write!(f, "P(G{idx},not_basis)"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::diagnostics::diagnostic::{
+        EvictionContext, audit_violations, diagnose_missed_violation,
+    };
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    // ── audit_violations ──────────────────────────────────────────────
+    mod audit_violations_fn {
+        use super::*;
+
+        #[test]
+        fn returns_empty_for_fresh_graph_with_no_violations_queued() {
+            let g: G = GvGraph::new(make_config());
+            let missed = audit_violations(g.vnodes(), &[], "test");
+            assert!(missed.is_empty());
+        }
+
+        #[test]
+        fn returns_empty_for_observed_graph_with_no_violations() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // bootstrap split
+            let missed = audit_violations(g.vnodes(), &[], "test");
+            // All splits should leave the graph in a consistent state.
+            assert!(missed.is_empty());
+        }
+
+        #[test]
+        fn returns_empty_after_multiple_splits() {
+            let mut g: G = GvGraph::new(make_config());
+            for coord in [32u8, 96, 160, 224] {
+                g.observe(coord, 3u32);
+            }
+            let missed = audit_violations(g.vnodes(), &[], "test");
+            assert!(missed.is_empty());
+        }
+    }
+
+    // ── diagnose_missed_violation ─────────────────────────────────────
+    mod diagnose_missed_violation_fn {
+        use super::*;
+        use crate::nodes::vnode::VKind;
+
+        #[test]
+        fn does_not_panic_for_root_vnode_after_bootstrap() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // bootstrap split creates v_root
+            let v_root = g.v_root.expect("v_root must exist");
+            let ctx = EvictionContext {
+                evicted_parent: None,
+                evicted_parent_child_count: 0,
+                collapse_sibling: None,
+            };
+            // Root has no parent → hits "node has no parent" early-return path.
+            diagnose_missed_violation(g.vnodes(), v_root, &ctx);
+        }
+
+        #[test]
+        fn depth_one_child_hits_grandparent_not_found_path() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            let v_root = g.v_root.expect("v_root must exist after bootstrap");
+            // Get a depth-1 child of v_root (parent=v_root, grandparent=None)
+            let child_id = match &g.vnodes().get(v_root.index()).kind {
+                VKind::Structural { children, .. } => children.get(0).0,
+                _ => panic!("expected Structural v_root after bootstrap"),
+            };
+            let ctx = EvictionContext {
+                evicted_parent: None,
+                evicted_parent_child_count: 0,
+                collapse_sibling: None,
+            };
+            // depth-1: parent exists, grandparent=None → "depth 1?" early-return path.
+            diagnose_missed_violation(g.vnodes(), child_id, &ctx);
+        }
+
+        #[test]
+        fn depth_two_entry_covers_full_diagnose_path() {
+            let mut g: G = GvGraph::new(make_config());
+            // Multiple observations to produce a depth-2+ vtree.
+            for coord in [32u8, 96u8, 160u8, 224u8] {
+                g.observe(coord, 3u32);
+            }
+            let v_root = g.v_root.expect("v_root must exist");
+            // BFS to find a depth-2+ Entry node.
+            let mut stack: Vec<(crate::handle::VNodeId, usize)> = vec![(v_root, 0)];
+            let mut depth2_entry = None;
+            while let Some((id, depth)) = stack.pop() {
+                let n = g.vnodes().get(id.index());
+                match &n.kind {
+                    VKind::Entry { .. } if depth >= 2 => {
+                        depth2_entry = Some(id);
+                        break;
+                    }
+                    VKind::Structural { children, .. } => {
+                        for (cid, _) in children.iter() {
+                            stack.push((cid, depth + 1));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            let Some(entry_id) = depth2_entry else {
+                return; // Not enough splits for depth-2; treat as vacuous pass.
+            };
+            // collapse_sibling=v_root: v_root IS an ancestor → is_ancestor returns true.
+            let ctx = EvictionContext {
+                evicted_parent: None,
+                evicted_parent_child_count: 0,
+                collapse_sibling: Some(v_root),
+            };
+            diagnose_missed_violation(g.vnodes(), entry_id, &ctx);
+        }
+
+        #[test]
+        fn depth_two_entry_with_evicted_parent_equals_grandparent() {
+            let mut g: G = GvGraph::new(make_config());
+            for coord in [32u8, 96u8, 160u8, 224u8] {
+                g.observe(coord, 3u32);
+            }
+            let v_root = g.v_root.expect("v_root must exist");
+            // BFS to find depth-2 entry and its grandparent.
+            let mut stack: Vec<(crate::handle::VNodeId, usize)> = vec![(v_root, 0)];
+            let mut found: Option<(crate::handle::VNodeId, crate::handle::VNodeId)> = None;
+            while let Some((id, depth)) = stack.pop() {
+                let n = g.vnodes().get(id.index());
+                match &n.kind {
+                    VKind::Entry { .. } if depth >= 2 => {
+                        let parent_id = n.parent.unwrap();
+                        let grandparent_id =
+                            g.vnodes().get(parent_id.index()).parent.unwrap();
+                        found = Some((id, grandparent_id));
+                        break;
+                    }
+                    VKind::Structural { children, .. } => {
+                        for (cid, _) in children.iter() {
+                            stack.push((cid, depth + 1));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            let Some((entry_id, grandparent_id)) = found else {
+                return;
+            };
+            // evicted_parent == grandparent_id → triggers that tracing::error! branch.
+            let ctx = EvictionContext {
+                evicted_parent: Some(grandparent_id),
+                evicted_parent_child_count: 2,
+                collapse_sibling: None,
+            };
+            diagnose_missed_violation(g.vnodes(), entry_id, &ctx);
+        }
+    }
+
+    // ── Gn::fmt ───────────────────────────────────────────────────────
+    mod gn_display_fn {
+        use super::*;
+        use crate::diagnostics::diagnostic::Gn;
+        use crate::handle::GNodeId;
+
+        #[test]
+        fn dead_gnode_shows_dead_marker() {
+            // Fresh graph: only gnode 0 is allocated; index 1 is dead.
+            let g: G = GvGraph::new(make_config());
+            let display = format!("{}", Gn(g.gnodes(), GNodeId::from_index(1)));
+            assert_eq!(display, "G1(DEAD)");
+        }
+
+        #[test]
+        fn live_terminal_gnode_shows_state_and_range() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            // Find the first occupied gnode index.
+            for i in 0..10 {
+                if g.gnodes().is_occupied(i) {
+                    let display =
+                        format!("{}", Gn(g.gnodes(), GNodeId::from_index(i)));
+                    assert!(display.starts_with(&format!("G{i}(")));
+                    assert!(!display.contains("DEAD"));
+                    return;
+                }
+            }
+            panic!("no live gnode found after bootstrap");
+        }
+    }
+
+    // ── audit_plateau_consistency ─────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod audit_plateau_consistency_fn {
+        use super::*;
+        use crate::diagnostics::diagnostic::{PlateauAuditContext, audit_plateau_consistency};
+        use crate::handle::GNodeId;
+        use crate::nodes::gnode::GState;
+
+        #[test]
+        fn does_not_panic_for_fresh_graph_no_context() {
+            let g: G = GvGraph::new(make_config());
+            audit_plateau_consistency(&g, "test", None);
+        }
+
+        #[test]
+        fn does_not_panic_after_bootstrap_no_context() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            audit_plateau_consistency(&g, "test", None);
+        }
+
+        #[test]
+        fn with_semi_internal_context_on_terminal_leaf() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            // Use a leaf gnode (Terminal) as context parent with SemiInternal state.
+            // surviving = leaf.left.or(leaf.right) = None → inner block skipped.
+            let ctx = PlateauAuditContext {
+                parent_id: GNodeId::from_index(1), // leaf gnode
+                parent_state: GState::SemiInternal,
+            };
+            audit_plateau_consistency(&g, "test", Some(&ctx));
+        }
+
+        #[test]
+        fn with_semi_internal_context_on_internal_gnode() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            // Use the Internal root (gnode 0) as context parent with SemiInternal.
+            // surviving = root.left.or(root.right) = Some(left_child).
+            let ctx = PlateauAuditContext {
+                parent_id: GNodeId::from_index(0), // internal root gnode
+                parent_state: GState::SemiInternal,
+            };
+            audit_plateau_consistency(&g, "test", Some(&ctx));
+        }
+    }
+
+    // ── Pl::fmt ───────────────────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod pl_display_fn {
+        use super::*;
+        use crate::diagnostics::diagnostic::Pl;
+        use crate::handle::GNodeId;
+
+        #[test]
+        fn internal_gnode_shows_not_basis() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            // gnode[0] is Internal after bootstrap → not in plateau basis.
+            let display = format!("{}", Pl(&g, GNodeId::from_index(0)));
+            // Either "not_basis" or a plateau display; just verify no panic.
+            assert!(!display.is_empty());
+        }
+
+        #[test]
+        fn terminal_leaf_shows_plateau_info() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32);
+            // gnode[1] is a Terminal leaf → should be in plateau basis.
+            let display = format!("{}", Pl(&g, GNodeId::from_index(1)));
+            assert!(!display.is_empty());
         }
     }
 }

@@ -1430,3 +1430,125 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         Some((start_entry, end))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+    use crate::spatial::plateau::BasisEdge;
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn fresh() -> G {
+        GvGraph::new(make_config())
+    }
+
+    // ── build_plateaus ────────────────────────────────────────────────
+    mod build_plateaus_fn {
+        use super::*;
+
+        #[test]
+        fn fresh_graph_has_exactly_one_plateau() {
+            let g = fresh();
+            let p = g.build_plateaus();
+            assert_eq!(p.len(), 1);
+        }
+
+        #[test]
+        fn fresh_plateau_sum_is_zero() {
+            let g = fresh();
+            let p = g.build_plateaus();
+            let total: u32 = p.values().map(|pl| pl.sum).sum();
+            assert_eq!(total, 0u32);
+        }
+
+        #[test]
+        fn plateau_sum_equals_total_sum_after_observations() {
+            let mut g = fresh();
+            g.observe(32u8, 3u32);
+            g.observe(192u8, 5u32);
+            let expected = g.total_sum();
+            let p = g.build_plateaus();
+            let total: u32 = p.values().map(|pl| pl.sum).sum();
+            assert_eq!(total, expected);
+        }
+
+        #[test]
+        fn plateau_count_grows_after_splits() {
+            let mut g = fresh();
+            let before = g.build_plateaus().len();
+            g.observe(64u8, 3u32); // bootstrap split
+            let after = g.build_plateaus().len();
+            assert!(after >= before, "split must not reduce plateau count");
+        }
+    }
+
+    // ── plateaus (public accessor) ────────────────────────────────────
+    mod plateaus_fn {
+        use super::*;
+
+        #[test]
+        fn plateaus_is_consistent_with_build_plateaus() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32);
+            // Without dynamic-contour-tracking, plateaus() == build_plateaus().
+            assert_eq!(g.plateaus().len(), g.build_plateaus().len());
+        }
+    }
+
+    // ── select_plateaus ───────────────────────────────────────────────
+    mod select_plateaus_fn {
+        use super::*;
+
+        #[test]
+        fn returns_none_when_lo_equals_hi() {
+            let g = fresh();
+            assert!(g.select_plateaus(64u8, 64u8).is_none());
+        }
+
+        #[test]
+        fn returns_none_when_lo_greater_than_hi() {
+            let g = fresh();
+            assert!(g.select_plateaus(200u8, 10u8).is_none());
+        }
+
+        #[test]
+        fn returns_some_for_valid_range_in_observed_graph() {
+            let mut g = fresh();
+            g.observe(32u8, 3u32); // bootstrap split creates two plateaus
+            // Select a sub-range that lies within one side
+            let result = g.select_plateaus(0u8, 128u8);
+            assert!(result.is_some(), "must find a covering plateau pair");
+        }
+
+        #[test]
+        fn start_key_is_at_most_end_key() {
+            let mut g = fresh();
+            g.observe(32u8, 3u32);
+            if let Some((start, end)) = g.select_plateaus(0u8, 128u8) {
+                assert!(start <= end);
+            }
+        }
+
+        #[test]
+        fn start_key_encodes_lo_of_covering_plateau() {
+            let mut g = fresh();
+            g.observe(64u8, 3u32); // bootstrap: plateaus at 0 and 128
+            // Asking for range [0, 64) must be covered by the first plateau
+            let result = g.select_plateaus(0u8, 64u8);
+            assert!(result.is_some());
+            let (start, _end) = result.unwrap();
+            assert_eq!(start, BasisEdge(0u8));
+        }
+    }
+}

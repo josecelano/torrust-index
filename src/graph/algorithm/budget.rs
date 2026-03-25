@@ -1,7 +1,7 @@
 use crate::graph::GvGraph;
+use crate::graph::algorithm::{evict, rebalance};
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::graph::algorithm::{evict, rebalance};
 use crate::tree::vtree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
@@ -116,7 +116,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             evicted += 1;
 
             if tracing::enabled!(tracing::Level::DEBUG) {
-                crate::diagnostics::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-EVICT");
+                crate::diagnostics::diagnostic::audit_violations(
+                    &self.vnodes,
+                    &self.violations,
+                    "POST-EVICT",
+                );
             }
 
             #[cfg(feature = "dynamic-contour-tracking")]
@@ -155,5 +159,107 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         evicted
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    /// Config that allows depth-gate tightening.
+    ///
+    /// depth_buffer = 2, headroom = 3^3 = 27, soft_limit = 30 - 27 = 3.
+    /// After the second split node_count = 5 > soft_limit = 3, so
+    /// adjust_depth_gates must tighten live_depth_evict from 4 → 3.
+    fn gate_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 2,
+            depth_evict: 4,
+            budget: Some(30),
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    // ── check_evictions ───────────────────────────────────────────────
+    mod check_evictions_fn {
+        use super::*;
+
+        #[test]
+        fn returns_zero_for_fresh_graph() {
+            let mut g: G = GvGraph::new(make_config());
+            assert_eq!(g.check_evictions(), 0);
+        }
+
+        #[test]
+        fn returns_zero_when_all_nodes_are_shallow() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // bootstrap split — leaves at depth 2, evict=5
+            assert_eq!(g.check_evictions(), 0);
+        }
+    }
+
+    // ── adjust_depth_gates ────────────────────────────────────────────
+    mod adjust_depth_gates_fn {
+        use super::*;
+
+        #[test]
+        fn no_budget_leaves_gates_unchanged() {
+            let mut g: G = GvGraph::new(make_config());
+            let d0 = g.depth_evict();
+            g.observe(64u8, 3u32);
+            assert_eq!(g.depth_evict(), d0, "gates must not change without budget");
+        }
+
+        #[test]
+        fn tightens_when_node_count_exceeds_soft_limit() {
+            // soft_limit=3; bootstrap gives count=3 (not > 3).
+            // Catalytic split raises count to 5 > 3 → tighten live_depth_evict.
+            let mut g: G = GvGraph::new(gate_config());
+            let d0 = g.depth_evict(); // starts at 4
+            // bootstrap split (count→3, soft_limit=3, 3 > 3 is false → no tighten yet)
+            g.observe(64u8, 3u32);
+            assert_eq!(g.depth_evict(), d0);
+            // catalytic split: count→5 > 3 → tighten
+            g.observe(32u8, 3u32);
+            assert!(g.depth_evict() < d0, "live_depth_evict must have tightened");
+        }
+
+        #[test]
+        fn relaxes_when_count_is_below_threshold() {
+            // With gate_config: soft_limit=3, alpha_relax=0.5, threshold=1.5.
+            // Fresh graph has count=1; observing with delta=1 (< split_threshold=2)
+            // keeps count=1 < threshold=1.5 → relax: live_depth_evict 4 → 5.
+            let mut g: G = GvGraph::new(gate_config());
+            let d0 = g.depth_evict(); // starts at 4
+            g.observe(64u8, 1u32); // no split, count stays at 1
+            assert!(g.depth_evict() > d0, "live_depth_evict must have relaxed");
+        }
+    }
+
+    // ── check_evictions_bounded ───────────────────────────────────────
+    mod check_evictions_bounded_fn {
+        use super::*;
+
+        #[test]
+        fn bounded_returns_zero_when_no_deep_candidates() {
+            let mut g: G = GvGraph::new(make_config());
+            g.observe(64u8, 3u32); // bootstrap split — leaves at depth 2, evict=5
+            assert_eq!(g.check_evictions_bounded(1), 0);
+        }
     }
 }

@@ -156,3 +156,147 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::graph::{Config, GvGraph};
+
+    type G = GvGraph<u8, u32, 8>;
+
+    fn make_config() -> Config<u32> {
+        Config {
+            split_threshold: 2,
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        }
+    }
+
+    fn fresh_graph() -> G {
+        GvGraph::new(make_config())
+    }
+
+    // ── extract ──────────────────────────────────────────────────────────
+    mod extract {
+        use super::*;
+
+        #[test]
+        fn fresh_graph_returns_one_terminal_in_layer_zero() {
+            let g = fresh_graph();
+            let pewei = g.extract();
+            assert_eq!(pewei.layer_count(), 1);
+            assert_eq!(pewei.layers[0].terminals.len(), 1);
+            assert_eq!(pewei.layers[0].transitions.len(), 0);
+        }
+
+        #[test]
+        fn extract_covers_full_domain() {
+            let g = fresh_graph();
+            let pewei = g.extract();
+            assert_eq!(pewei.domain_start, 0u8);
+            use crate::traits::Coordinate;
+            assert_eq!(pewei.domain_end, u8::domain_max(8));
+        }
+
+        #[test]
+        fn single_observation_produces_one_terminal() {
+            // delta=2 equals split_threshold so no split is triggered (>2 required)
+            let mut g = fresh_graph();
+            g.observe(0u8, 2u32);
+            let pewei = g.extract();
+            assert_eq!(pewei.node_count(), 1);
+        }
+
+        #[test]
+        fn total_energy_matches_total_sum_after_observe() {
+            let mut g = fresh_graph();
+            g.observe(0u8, 10u32);
+            g.observe(128u8, 20u32);
+            g.observe(64u8, 15u32);
+            let pewei = g.extract();
+            assert_eq!(pewei.total_energy(), g.total_sum());
+        }
+    }
+
+    // ── layers ───────────────────────────────────────────────────────────
+    mod layers {
+        use super::*;
+
+        #[test]
+        fn fresh_graph_has_exactly_one_node_in_layers() {
+            let g = fresh_graph();
+            let count = g.layers().count();
+            assert_eq!(count, 1);
+        }
+
+        #[test]
+        fn all_layer_nodes_have_gnode_ids_that_are_valid() {
+            let g = fresh_graph();
+            for (_depth, node) in g.layers() {
+                assert!(g.gnodes().is_occupied(node.gnode_id.index()));
+            }
+        }
+    }
+
+    // ── from_observations ────────────────────────────────────────────────
+    mod from_observations {
+        use super::*;
+
+        #[test]
+        fn produces_same_total_sum_as_sequential_observe() {
+            let obs: Vec<(u8, u32)> = vec![(0, 10), (128, 20)];
+
+            let g_batch = G::from_observations(make_config(), obs.clone());
+
+            let mut g_seq = fresh_graph();
+            for (coord, delta) in &obs {
+                g_seq.observe(*coord, *delta);
+            }
+
+            assert_eq!(g_batch.total_sum(), g_seq.total_sum());
+        }
+    }
+
+    // ── Extend ───────────────────────────────────────────────────────────
+    mod extend {
+        use super::*;
+
+        #[test]
+        fn extend_accumulates_all_observations() {
+            let mut g = fresh_graph();
+            g.extend([(0u8, 10u32), (128u8, 20u32)]);
+            assert_eq!(g.total_sum(), 30u32);
+        }
+    }
+
+    // ── layers after split covers Structural VNode path ───────────────
+    mod layers_after_split {
+        use super::*;
+
+        #[test]
+        fn layers_on_split_graph_yields_multiple_nodes() {
+            let mut g = fresh_graph();
+            // Trigger bootstrap split (own=5 > split_threshold=2)
+            for _ in 0..3 {
+                g.observe(64u8, 5u32);
+            }
+            let count = g.layers().count();
+            assert!(count > 1, "expected multiple nodes after split, got {count}");
+        }
+
+        #[test]
+        fn extract_on_split_graph_contains_terminals_and_transitions() {
+            let mut g = fresh_graph();
+            for _ in 0..3 {
+                g.observe(64u8, 5u32);
+            }
+            let pewei = g.extract();
+            // After split there should be at least one layer with terminals
+            assert!(pewei.layer_count() >= 1);
+            // total_energy should match total_sum
+            assert_eq!(pewei.total_energy(), g.total_sum());
+        }
+    }
+}

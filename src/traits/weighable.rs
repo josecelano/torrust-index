@@ -31,3 +31,32 @@ impl Weighable for f64 {
         self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // ── Weighable::weight ─────────────────────────────────────────────────────
+    mod weight {
+        use crate::traits::Weighable;
+        use rstest::rstest;
+
+        #[rstest]
+        #[case(0u32, 0.0_f64)]
+        #[case(100u32, 100.0_f64)]
+        #[case(1_000_000u32, 1_000_000.0_f64)]
+        fn u32_weight_equals_value_cast_to_f64(#[case] value: u32, #[case] expected: f64) {
+            assert!((value.weight() - expected).abs() < f64::EPSILON);
+        }
+
+        #[test]
+        fn f32_weight_is_losslessly_promoted_to_f64() {
+            let v = 1.5_f32;
+            assert!((v.weight() - f64::from(v)).abs() < f64::EPSILON);
+        }
+
+        #[test]
+        fn f64_weight_is_identity() {
+            let v = 3.14_f64;
+            assert!((v.weight() - v).abs() < f64::EPSILON);
+        }
+    }
+}

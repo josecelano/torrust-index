@@ -309,3 +309,494 @@ impl<C: Coordinate, V: Accumulator> Terminal<C, V> {
         C::width(self.start, self.end)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Layer, Pewei, Terminal, Transition};
+    use crate::spatial::view::Span;
+
+    fn make_pewei(layers: Vec<Layer<u8, u32>>) -> Pewei<u8, u32> {
+        Pewei {
+            domain_start: 0,
+            domain_end: 16,
+            layers,
+        }
+    }
+
+    fn make_terminal(start: u8, end: u8, intensity: u32) -> Terminal<u8, u32> {
+        Terminal {
+            start,
+            end,
+            intensity,
+            depth: 0,
+            v_depth: 0,
+        }
+    }
+
+    fn make_transition(start: u8, end: u8, baseline: u32, total: u32) -> Transition<u8, u32> {
+        Transition {
+            start,
+            end,
+            baseline,
+            total,
+            refinement: 0,
+            depth: 0,
+            v_depth: 0,
+        }
+    }
+
+    // ── Pewei::layer_count ───────────────────────────────────────────────
+    mod layer_count {
+        use super::*;
+
+        #[test]
+        fn returns_zero_for_empty_layers() {
+            assert_eq!(make_pewei(vec![]).layer_count(), 0);
+        }
+
+        #[test]
+        fn returns_count_of_layers() {
+            let empty = Layer {
+                transitions: vec![],
+                terminals: vec![],
+            };
+            let p = make_pewei(vec![empty.clone(), empty]);
+            assert_eq!(p.layer_count(), 2);
+        }
+    }
+
+    // ── Pewei::node_count ────────────────────────────────────────────────
+    mod node_count {
+        use super::*;
+
+        #[test]
+        fn returns_zero_for_empty_pewei() {
+            assert_eq!(make_pewei(vec![]).node_count(), 0);
+        }
+
+        #[test]
+        fn counts_transitions_and_terminals_across_layers() {
+            let layer0 = Layer {
+                transitions: vec![make_transition(0, 16, 5, 15)],
+                terminals: vec![],
+            };
+            let layer1 = Layer {
+                transitions: vec![],
+                terminals: vec![make_terminal(0, 8, 10), make_terminal(8, 16, 10)],
+            };
+            let p = make_pewei(vec![layer0, layer1]);
+            assert_eq!(p.node_count(), 3);
+        }
+    }
+
+    // ── Pewei::total_energy ──────────────────────────────────────────────
+    mod total_energy {
+        use super::*;
+
+        #[test]
+        fn returns_zero_for_empty_pewei() {
+            assert_eq!(make_pewei(vec![]).total_energy(), 0u32);
+        }
+
+        #[test]
+        fn sums_all_baselines_and_intensities() {
+            let layer = Layer {
+                transitions: vec![make_transition(0, 16, 10, 30)],
+                terminals: vec![make_terminal(0, 8, 5), make_terminal(8, 16, 7)],
+            };
+            let p = make_pewei(vec![layer]);
+            // baseline(10) + intensity(5) + intensity(7) = 22
+            assert_eq!(p.total_energy(), 22u32);
+        }
+    }
+
+    // ── Pewei::reconstruct ───────────────────────────────────────────────
+    mod reconstruct {
+        use super::*;
+
+        #[test]
+        fn returns_single_zero_span_for_empty_layers() {
+            let p = make_pewei(vec![]);
+            let result = p.reconstruct(0);
+            assert_eq!(
+                result,
+                vec![Span {
+                    start: 0u8,
+                    end: 16u8,
+                    intensity: 0u32,
+                    depth: 0
+                }]
+            );
+        }
+
+        // descend: Terminal branch — node at root depth is a terminal
+        #[test]
+        fn terminal_at_root_depth() {
+            let layer = Layer {
+                transitions: vec![],
+                terminals: vec![Terminal {
+                    start: 0,
+                    end: 16,
+                    intensity: 42,
+                    depth: 0,
+                    v_depth: 0,
+                }],
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![layer],
+            };
+            let result = p.reconstruct(0);
+            assert_eq!(
+                result,
+                vec![Span {
+                    start: 0u8,
+                    end: 16u8,
+                    intensity: 42u32,
+                    depth: 0
+                }]
+            );
+        }
+
+        // descend: Transition branch, (None, None) — no children in lookup
+        #[test]
+        fn transition_with_no_children() {
+            let root = Transition {
+                start: 0u8,
+                end: 16u8,
+                baseline: 10u32,
+                total: 30u32,
+                refinement: 20u32,
+                depth: 0,
+                v_depth: 0,
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![Layer {
+                    transitions: vec![root],
+                    terminals: vec![],
+                }],
+            };
+            // max_layer=0: lookup has only depth-0 nodes; child lookup returns None,None
+            let result = p.reconstruct(0);
+            assert_eq!(
+                result,
+                vec![Span {
+                    start: 0u8,
+                    end: 16u8,
+                    intensity: 30u32,
+                    depth: 0
+                }]
+            );
+        }
+
+        // descend: Transition branch, (Some, Some) — both terminal children present
+        #[test]
+        fn transition_with_both_terminal_children() {
+            let root = Transition {
+                start: 0u8,
+                end: 16u8,
+                baseline: 10u32,
+                total: 30u32,
+                refinement: 20u32,
+                depth: 0,
+                v_depth: 0,
+            };
+            let left_t = Terminal {
+                start: 0u8,
+                end: 8u8,
+                intensity: 10u32,
+                depth: 1,
+                v_depth: 0,
+            };
+            let right_t = Terminal {
+                start: 8u8,
+                end: 16u8,
+                intensity: 10u32,
+                depth: 1,
+                v_depth: 0,
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![
+                    Layer {
+                        transitions: vec![root],
+                        terminals: vec![],
+                    },
+                    Layer {
+                        transitions: vec![],
+                        terminals: vec![left_t, right_t],
+                    },
+                ],
+            };
+            let result = p.reconstruct(1);
+            // half_bg = 10.prorate(1,2) = 5; each child: 5+10=15
+            assert_eq!(result.len(), 2);
+            assert_eq!(
+                result[0],
+                Span {
+                    start: 0u8,
+                    end: 8u8,
+                    intensity: 15u32,
+                    depth: 1
+                }
+            );
+            assert_eq!(
+                result[1],
+                Span {
+                    start: 8u8,
+                    end: 16u8,
+                    intensity: 15u32,
+                    depth: 1
+                }
+            );
+        }
+
+        // descend: Transition branch, (Some, None) — left terminal child only
+        // also covers node_total Terminal arm
+        #[test]
+        fn transition_with_left_terminal_child_only() {
+            let root = Transition {
+                start: 0u8,
+                end: 16u8,
+                baseline: 10u32,
+                total: 30u32,
+                refinement: 0u32,
+                depth: 0,
+                v_depth: 0,
+            };
+            let left_t = Terminal {
+                start: 0u8,
+                end: 8u8,
+                intensity: 12u32,
+                depth: 1,
+                v_depth: 0,
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![
+                    Layer {
+                        transitions: vec![root],
+                        terminals: vec![],
+                    },
+                    Layer {
+                        transitions: vec![],
+                        terminals: vec![left_t],
+                    },
+                ],
+            };
+            let result = p.reconstruct(1);
+            // half_bg=5; left=5+12=17; remainder=30-10-12=8; right=5+8=13
+            assert_eq!(result.len(), 2);
+            assert_eq!(
+                result[0],
+                Span {
+                    start: 0u8,
+                    end: 8u8,
+                    intensity: 17u32,
+                    depth: 1
+                }
+            );
+            assert_eq!(
+                result[1],
+                Span {
+                    start: 8u8,
+                    end: 16u8,
+                    intensity: 13u32,
+                    depth: 0
+                }
+            );
+        }
+
+        // descend: Transition branch, (None, Some) — right terminal child only
+        #[test]
+        fn transition_with_right_terminal_child_only() {
+            let root = Transition {
+                start: 0u8,
+                end: 16u8,
+                baseline: 10u32,
+                total: 30u32,
+                refinement: 0u32,
+                depth: 0,
+                v_depth: 0,
+            };
+            let right_t = Terminal {
+                start: 8u8,
+                end: 16u8,
+                intensity: 12u32,
+                depth: 1,
+                v_depth: 0,
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![
+                    Layer {
+                        transitions: vec![root],
+                        terminals: vec![],
+                    },
+                    Layer {
+                        transitions: vec![],
+                        terminals: vec![right_t],
+                    },
+                ],
+            };
+            let result = p.reconstruct(1);
+            // half_bg=5; right_total=12; remainder=30-10-12=8; left=5+8=13; right=5+12=17
+            assert_eq!(result.len(), 2);
+            assert_eq!(
+                result[0],
+                Span {
+                    start: 0u8,
+                    end: 8u8,
+                    intensity: 13u32,
+                    depth: 0
+                }
+            );
+            assert_eq!(
+                result[1],
+                Span {
+                    start: 8u8,
+                    end: 16u8,
+                    intensity: 17u32,
+                    depth: 1
+                }
+            );
+        }
+
+        // descend: (Some, None) where the child present is itself a Transition
+        // covers node_total Transition arm
+        #[test]
+        fn transition_with_left_transition_child_only() {
+            let root = Transition {
+                start: 0u8,
+                end: 16u8,
+                baseline: 10u32,
+                total: 30u32,
+                refinement: 0u32,
+                depth: 0,
+                v_depth: 0,
+            };
+            // left child is itself a Transition (no grandchildren in lookup)
+            let left_tr = Transition {
+                start: 0u8,
+                end: 8u8,
+                baseline: 5u32,
+                total: 15u32,
+                refinement: 0u32,
+                depth: 1,
+                v_depth: 0,
+            };
+            let p = Pewei {
+                domain_start: 0u8,
+                domain_end: 16u8,
+                layers: vec![
+                    Layer {
+                        transitions: vec![root],
+                        terminals: vec![],
+                    },
+                    Layer {
+                        transitions: vec![left_tr],
+                        terminals: vec![],
+                    },
+                ],
+            };
+            let result = p.reconstruct(1);
+            // root descend(0,16,0,0):
+            //   transition depth=0, mid=8, total_bg=10, half_bg=5, child_depth=1
+            //   left_ref=Some(Transition{l:1,i:0}), right_ref=None → (Some, None)
+            //   descend(0,8,1,5): left_tr depth=1, mid=4, total_bg=10, half_bg=5, child_depth=2
+            //     both None → push Span{0,8, 5+15=20, depth=1}
+            //   left_total = node_total(Transition{l:1,i:0}) = layers[1].transitions[0].total = 15
+            //   remainder = 30-10-15 = 5
+            //   push Span{8,16, 5+5=10, depth=0}
+            assert_eq!(result.len(), 2);
+            assert_eq!(
+                result[0],
+                Span {
+                    start: 0u8,
+                    end: 8u8,
+                    intensity: 20u32,
+                    depth: 1
+                }
+            );
+            assert_eq!(
+                result[1],
+                Span {
+                    start: 8u8,
+                    end: 16u8,
+                    intensity: 10u32,
+                    depth: 0
+                }
+            );
+        }
+    }
+
+    // ── Transition::snr ──────────────────────────────────────────────────
+    mod transition_snr {
+        use super::*;
+
+        #[test]
+        fn none_when_baseline_is_zero() {
+            let t = Transition::<u8, u32> {
+                start: 0,
+                end: 16,
+                baseline: 0,
+                total: 10,
+                refinement: 5,
+                depth: 0,
+                v_depth: 0,
+            };
+            assert_eq!(t.snr(), None);
+        }
+
+        #[test]
+        fn some_when_baseline_nonzero() {
+            let t = Transition::<u8, u32> {
+                start: 0,
+                end: 16,
+                baseline: 5,
+                total: 15,
+                refinement: 10,
+                depth: 0,
+                v_depth: 0,
+            };
+            // refinement.weight() / baseline.weight() = 10.0 / 5.0 = 2.0
+            assert!((t.snr().unwrap() - 2.0_f64).abs() < 1e-9);
+        }
+    }
+
+    // ── Terminal::width ──────────────────────────────────────────────────
+    mod terminal_width {
+        use super::*;
+
+        #[test]
+        fn returns_end_minus_start() {
+            let t = make_terminal(4, 12, 0);
+            assert_eq!(t.width(), 8u8);
+        }
+    }
+
+    // ── Transition::width ────────────────────────────────────────────────
+    mod transition_width {
+        use super::*;
+
+        #[test]
+        fn returns_end_minus_start() {
+            let t = Transition::<u8, u32> {
+                start: 0,
+                end: 16,
+                baseline: 0,
+                total: 0,
+                refinement: 0,
+                depth: 0,
+                v_depth: 0,
+            };
+            assert_eq!(t.width(), 16u8);
+        }
+    }
+}
