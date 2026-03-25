@@ -1,11 +1,11 @@
 digraph gtree {
-  label="Step 8: obs coord=2  value=1";
+  label="Step 9: obs coord=10 value=1";
   rankdir=TB;
   node [shape=box, fontname="Courier New", fontsize=11];
 
-  G0 [label="G0  [0, 16)\nd=0  I  VEntry(0)\nown=3  sum=8", style=filled, fillcolor="#fff9c4"];
+  G0 [label="G0  [0, 16)\nd=0  I  VEntry(0)\nown=3  sum=9", style=filled, fillcolor="#fff9c4"];
   G1 [label="G1  [0, 8)\nd=1  I  VEntry(1)\nown=3  sum=4", style=filled, fillcolor="#fff9c4"];
-  G2 [label="G2  [8, 16)\nd=1  T  VEntry(2)\nown=1  sum=1", style=filled, fillcolor="#c8e6c9"];
+  G2 [label="G2  [8, 16)\nd=1  T  VEntry(2)\nown=2  sum=2", style=filled, fillcolor="#c8e6c9"];
   G3 [label="G3  [0, 4)\nd=2  T  VEntry(5)\nown=1  sum=1", style=filled, fillcolor="#c8e6c9"];
   G4 [label="G4  [4, 8)\nd=2  T  VEntry(6)\nown=0  sum=0", style=filled, fillcolor="#c8e6c9"];
 

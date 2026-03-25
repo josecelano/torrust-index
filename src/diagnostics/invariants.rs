@@ -271,6 +271,7 @@ pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N
     check_g_i1_summation(graph, &mut errors);
     check_g_i2_variable_fanout(graph, &mut errors);
     check_g_i4_entry_consistency(graph, &mut errors);
+    check_g_i5_entry_bijection(graph, &mut errors);
     check_v_i1_structural_sum(graph, &mut errors);
     check_v_i2_branching_factor(graph, &mut errors);
     check_v_i3_max_uncle(graph, &mut errors);
@@ -385,6 +386,41 @@ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, con
 }
 
 #[allow(clippy::float_cmp)]
+/// G-I5: every occupied G-node must have exactly one V-Entry, and the total
+/// count of occupied G-nodes must equal the total count of `VKind::Entry` nodes.
+/// This asserts the 1-to-1 bijection between G-nodes and V-Entry nodes.
+fn check_g_i5_entry_bijection<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
+    let mut g_without_entry = Vec::new();
+    let mut g_count = 0usize;
+    for (idx, g) in graph.gnodes().iter_occupied() {
+        g_count += 1;
+        if g.entry.is_none() {
+            g_without_entry.push(idx);
+        }
+    }
+
+    for idx in &g_without_entry {
+        errors.push(format!(
+            "G-I5 violated at G-node {idx}: no V-Entry — every G-node must have exactly one"
+        ));
+    }
+
+    let v_entry_count = graph
+        .vnodes()
+        .iter_occupied()
+        .filter(|(_, v)| matches!(v.kind, VKind::Entry { .. }))
+        .count();
+
+    if g_count != v_entry_count {
+        errors.push(format!(
+            "G-I5 violated: {g_count} occupied G-nodes but {v_entry_count} V-Entry nodes (must be equal)"
+        ));
+    }
+}
+
 fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,

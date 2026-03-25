@@ -1,5 +1,5 @@
 digraph vtree {
-  label="Step 5: obs coord=2 value=1";
+  label="Step 5: obs coord=2  value=1";
   rankdir=TB;
   node [fontname="Courier New", fontsize=11];
 

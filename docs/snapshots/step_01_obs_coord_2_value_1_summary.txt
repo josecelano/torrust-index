@@ -1,4 +1,4 @@
-═══ Step 1: obs coord=2 value=1 ═══
+═══ Step 1: obs coord=2  value=1 ═══
 Total sum : 1
 Node count: 1
 

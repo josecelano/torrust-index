@@ -1,4 +1,4 @@
-═══ Step 3: obs coord=2 value=1 → SPLIT ① G0 ═══
+═══ Step 3: obs coord=2  value=1 → SPLIT ① G0 ═══
 Total sum : 3
 Node count: 3
 

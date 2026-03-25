@@ -1,0 +1,28 @@
+digraph vtree {
+  label="Step 12: obs coord=12 value=1";
+  rankdir=TB;
+  node [fontname="Courier New", fontsize=11];
+
+  V4 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V4 Struct\nintensity=12  has_evict=true"];
+  V8 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V8 Struct\nintensity=6  has_evict=true"];
+  V1 [shape=box, style=filled, fillcolor="#bbdefb", label="V1 Entry\nG1  [0,8) d=1 I\nintensity=3  exposed=false  evict=false"];
+  V0 [shape=box, style=filled, fillcolor="#bbdefb", label="V0 Entry\nG0  [0,16) d=0 I\nintensity=3  exposed=false  evict=false"];
+  V2 [shape=box, style=filled, fillcolor="#bbdefb", label="V2 Entry\nG2  [8,16) d=1 I\nintensity=3  exposed=false  evict=false"];
+  V7 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V7 Struct\nintensity=1  has_evict=true"];
+  V11 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V11 Struct\nintensity=2  has_evict=true"];
+  V5 [shape=box, style=filled, fillcolor="#bbdefb", label="V5 Entry\nG3  [0,4) d=2 T\nintensity=1  exposed=true  evict=true"];
+  V6 [shape=box, style=filled, fillcolor="#bbdefb", label="V6 Entry\nG4  [4,8) d=2 T\nintensity=0  exposed=true  evict=true"];
+  V9 [shape=box, style=filled, fillcolor="#bbdefb", label="V9 Entry\nG5  [8,12) d=2 T\nintensity=1  exposed=true  evict=true"];
+  V10 [shape=box, style=filled, fillcolor="#bbdefb", label="V10 Entry\nG6  [12,16) d=2 T\nintensity=1  exposed=true  evict=true"];
+
+  V4 -> V8 [label="i=6"];
+  V4 -> V1 [label="i=3"];
+  V4 -> V0 [label="i=3"];
+  V8 -> V2 [label="i=3"];
+  V8 -> V7 [label="i=1"];
+  V8 -> V11 [label="i=2"];
+  V7 -> V5 [label="i=1"];
+  V7 -> V6 [label="i=0"];
+  V11 -> V9 [label="i=1"];
+  V11 -> V10 [label="i=1"];
+}

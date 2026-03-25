@@ -1,8 +1,9 @@
 //! Step-by-step visual snapshots of the G-Tree and V-Tree internal state.
 //!
 //! Uses a tiny 4-bit address space (`N = 4`, coordinates `0..=15`) so the
-//! trees stay small and easy to follow.  Two structural splits are triggered
-//! as observations accumulate.
+//! trees stay small and easy to follow.  Three structural splits are triggered
+//! as observations accumulate, producing a complete 3-level G-Tree and
+//! demonstrating the V-Tree `contract` rebalancing step.
 //!
 //! After each observation the example writes three files into `docs/snapshots/`:
 //!
@@ -141,16 +142,19 @@ fn main() {
     //
     // split_threshold = 2  → a node splits as soon as its accumulated sum
     //                        exceeds 2 (sum > 2, i.e. sum ≥ 3).
-    // depth_create = 2     → the V-tree split gate allows Entry nodes at
-    //                        v-depth ≤ 2 to trigger a G-tree split.
-    //                        After the first (bootstrap) split, G0's children
-    //                        land at v-depth 2, so they can still split.
-    // depth_evict = 4      → eviction starts at G-tree depth 4.
+    // depth_create = 3     → the V-tree split gate allows Entry nodes at
+    //                        v-depth ≤ 3 to trigger a G-tree split.
+    //                        After two splits the deepest Entry nodes sit at
+    //                        v-depth 3 (or 2 if kept as the isolate during a
+    //                        contract), so depth_create = 3 guarantees all
+    //                        second-generation children can still split.
+    // depth_evict = 5      → eviction starts at G-tree depth 5 (must be
+    //                        strictly greater than depth_create).
     // N = 4 (type-level)   → domain [0, 16).
     let mut graph = TinyMap::new(Config {
         split_threshold: 2_u32,
-        depth_create: 2,
-        depth_evict: 4,
+        depth_create: 3,
+        depth_evict: 5,
         budget: None,
         alpha_relax: 0.5,
         bounded_eviction: false,
@@ -163,20 +167,26 @@ fn main() {
     //
     // Legend for the "notes" below:
     //   G0 = the initial root G-node covering [0, 16)
-    //   Split ① happens after step 3: G0 (sum 3 > 2) is bisected into
-    //          G[0,8) and G[8,16).
-    //   Split ② happens after step 7: the left child G[0,8) (sum 3 > 2)
-    //          is bisected into G[0,4) and G[4,8).
+    //   Split ① after step 3:  G0[0,16)  → G1[0,8)  + G2[8,16)   (bootstrap)
+    //   Split ② after step 7:  G1[0,8)   → G3[0,4)  + G4[4,8)    (catalytic)
+    //   Split ③ after step 10: G2[8,16)  → G5[8,12) + G6[12,16)  (catalytic)
+    //     Before split ③ the V-tree Structural node that parents E1, E2, S2
+    //     has three children; `contract` fires first, merging the two lightest
+    //     children into a new Structural node before the split is applied.
     let observations: &[(u8, u32, &str)] = &[
         //  coord  value  label
-        (2, 1, "obs coord=2 value=1"),
-        (3, 1, "obs coord=3 value=1"),
-        (2, 1, "obs coord=2 value=1 → SPLIT ① G0"), // G0 sum=3 > 2 → split
+        (2, 1, "obs coord=2  value=1"),
+        (3, 1, "obs coord=3  value=1"),
+        (2, 1, "obs coord=2  value=1 → SPLIT ① G0"), // G0 sum=3 > 2 → split
         (10, 1, "obs coord=10 value=1"),
-        (2, 1, "obs coord=2 value=1"),
-        (3, 1, "obs coord=3 value=1"),
-        (2, 1, "obs coord=2 value=1 → SPLIT ② G1"), // G1[0,8) sum=3 > 2 → split
-        (2, 1, "obs coord=2 value=1"),
+        (2, 1, "obs coord=2  value=1"),
+        (3, 1, "obs coord=3  value=1"),
+        (2, 1, "obs coord=2  value=1 → SPLIT ② G1"), // G1[0,8) sum=3 > 2 → split
+        (2, 1, "obs coord=2  value=1"),
+        (10, 1, "obs coord=10 value=1"),
+        (12, 1, "obs coord=12 value=1 → SPLIT ③ G2"), // G2[8,16) sum=3 > 2 → split
+        (10, 1, "obs coord=10 value=1"),
+        (12, 1, "obs coord=12 value=1"),
     ];
 
     for &(coord, value, label) in observations {

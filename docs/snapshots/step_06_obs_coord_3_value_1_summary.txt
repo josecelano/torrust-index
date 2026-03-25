@@ -1,4 +1,4 @@
-═══ Step 6: obs coord=3 value=1 ═══
+═══ Step 6: obs coord=3  value=1 ═══
 Total sum : 6
 Node count: 3
 

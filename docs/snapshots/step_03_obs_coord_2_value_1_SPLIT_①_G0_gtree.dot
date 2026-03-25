@@ -1,5 +1,5 @@
 digraph gtree {
-  label="Step 3: obs coord=2 value=1 → SPLIT ① G0";
+  label="Step 3: obs coord=2  value=1 → SPLIT ① G0";
   rankdir=TB;
   node [shape=box, fontname="Courier New", fontsize=11];
 

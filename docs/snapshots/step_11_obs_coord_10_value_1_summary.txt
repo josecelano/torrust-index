@@ -1,11 +1,13 @@
-═══ Step 8: obs coord=2  value=1 ═══
-Total sum : 8
-Node count: 5
+═══ Step 11: obs coord=10 value=1 ═══
+Total sum : 11
+Node count: 7
 
 v-dep  range [lo … hi)                  own     sum  state           gnode-id
 ────────────────────────────────────────────────────────────────────────────────
-    1  [0            …          16)       3       8  Internal        G(0)
-    2  [0            …           8)       3       4  Internal        G(1)
-    2  [8            …          16)       1       1  Terminal        G(2)
+    1  [0            …           8)       3       4  Internal        G(1)
+    1  [0            …          16)       3      11  Internal        G(0)
+    2  [8            …          16)       3       4  Internal        G(2)
     3  [0            …           4)       1       1  Terminal        G(3)
     3  [4            …           8)       0       0  Terminal        G(4)
+    3  [8            …          12)       1       1  Terminal        G(5)
+    3  [12           …          16)       0       0  Terminal        G(6)
