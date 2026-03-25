@@ -273,7 +273,139 @@ The largest module (1,478L), clean structure:
 
 ## Phase 5 — Tests & Benchmarks
 
-_Pending_
+An isolated analysis was performed on an extracted copy of the mudlark package
+(branch `review/pr-832-mudlark-isolated`, local repo
+`~/Documents/git/committer/me/github/torrust/torrust-mudlark`). The package was
+restructured into a cleaner module layout there and additional tests were written
+to probe coverage ceilings. All findings below are derived from that work.
+
+### Test suite structure (as submitted in PR #832)
+
+The PR ships **1,311 tests**, all inline `#[cfg(test)]` unit tests inside source
+modules. There are no integration tests or snapshot tests in the submitted PR.
+
+### Coverage — reviewer's independent measurement (2026-03-24)
+
+Run against the author's codebase as submitted. Full detail:
+[llvm-cov-2026-03-24.md](coverage-results/llvm-cov-2026-03-24.md)
+
+| Metric    | Coverage |
+| --------- | -------- |
+| Lines     | 86.4%    |
+| Functions | 92.2%    |
+
+### Coverage — isolated analysis (2026-03-25, post-refactor copy)
+
+The isolated copy was extended with:
+
+- 10 integration tests (`tests/integration.rs`) — public-API safety net
+- 4 `insta` snapshot tests (`tests/snapshot_tests.rs`) — regression guard for
+  internal `GvGraph` state: `simple_observe`, `split_triggered`, `decay`,
+  `two_hot_spots`
+- Additional unit tests targeting uncovered branches (all 31 modules surveyed)
+
+**Results after independent test additions (436 tests total: 422 unit, 10 integration, 4 snapshot):**
+
+| Metric    | Covered | Total | Coverage   |
+| --------- | ------- | ----: | ---------- |
+| Lines     | 7249    |  8336 | **86.96%** |
+| Functions | 813     |   841 | **96.67%** |
+| Regions   | 12005   | 13796 | **87.02%** |
+
+**Coverage ceiling — Finding #11:** A `debug_assert` in `plateau.rs` (`"POST-EVICT-SINGLE-1:
+dynamic-contour-tracking mirror diverged"`) fires immediately after eviction in
+debug builds, blocking every test path that requires eviction. Until this assert
+is fixed or softened, the following modules cannot be fully covered:
+
+| Module                         | Line Cov. | Blocked paths                                |
+| ------------------------------ | --------- | -------------------------------------------- |
+| `graph/algorithm/plateau.rs`   | 72%       | eviction-gated plateau merge/split paths     |
+| `graph/algorithm/evict.rs`     | 77%       | full eviction flow                           |
+| `diagnostics/invariants.rs`    | 77%       | SemiInternal invariant checks post-eviction  |
+| `graph/algorithm/rebalance.rs` | 79%       | contract/legacy-promote paths after eviction |
+| `graph/algorithm/query.rs`     | 84%       | SemiInternal `decompose_basis` paths         |
+| `diagnostics/diagnostic.rs`    | 85%       | `tracing::error!/debug!` lazy format args    |
+
+This is separate from **Finding #9** (f64 plateau drift after G-node split).
+
+### Snapshot tests
+
+Four deterministic scenarios were written using `insta`:
+
+| Scenario          | Operations                              | What it guards                        |
+| ----------------- | --------------------------------------- | ------------------------------------- |
+| `simple_observe`  | 3 observations at distinct coordinates  | G/V-tree shape before split threshold |
+| `split_triggered` | observations until split + deep splits  | split and eviction geometry           |
+| `decay`           | observe then decay at 50% and 25%       | value attenuation across tree         |
+| `two_hot_spots`   | cluster observations at two coordinates | multi-cluster V-tree routing          |
+
+Snapshots capture `total_sum`, the full G-tree, and the active V-tree after each
+step. Any future change to splitting, eviction, or decay logic that alters
+observable behaviour will produce a diff on a named `.snap` file.
+
+### Cyclomatic complexity analysis
+
+Analysed using `rust-code-analysis-cli` v0.0.25 (Mozilla). Results from the
+refactored module layout (paths differ from submitted PR which uses a flat `src/`
+structure).
+
+**Functions with CC ≥ 20:**
+
+| CC  | Cognitive | Function                    | File                         |
+| --- | --------- | --------------------------- | ---------------------------- |
+| 39  | **95**    | `plateau_after_evict`       | `graph/algorithm/evict.rs`   |
+| 32  | 37        | `evict_tip`                 | `graph/algorithm/evict.rs`   |
+| 26  | 46        | `normalize_plateaus`        | `graph/algorithm/plateau.rs` |
+| 25  | 42        | `decay_selective`           | `graph/algorithm/decay.rs`   |
+| 22  | 21        | `diagnose_missed_violation` | `diagnostics/diagnostic.rs`  |
+| 20  | 40        | `decompose_basis`           | `graph/algorithm/query.rs`   |
+
+`plateau_after_evict` (CC=39, Cognitive=95) has a cognitive complexity that is
+2.4× its cyclomatic number, indicating deeply nested control flow that is much
+harder to read and test than the raw McCabe score suggests. `graph/algorithm/evict.rs`
+is the single highest-priority refactoring candidate in the codebase.
+
+### Mutation testing
+
+Run: `cargo mutants -p torrust-mudlark` (2026-03-16, original submitted codebase)
+
+| Caught | Missed | Unviable | Kill Rate |
+| -----: | -----: | -------: | --------- |
+|    621 |    413 |      597 | **60.1%** |
+
+Kill rate is borderline — 80%+ is more typical of a well-tested crate at 1.0.0.
+The primary gaps are in `rebalance.rs` and `plateau.rs`, which are also the
+hardest modules by cyclomatic complexity. A re-run after the coverage gaps are
+addressed (once Finding #11 is resolved) is recommended before merge.
+
+### Module structure observation
+
+The submitted PR has a flat `src/` directory with all 14 modules at top level.
+The isolated analysis explored (and implemented) the following grouping:
+
+| Layer       | Location               | Modules                                                         |
+| ----------- | ---------------------- | --------------------------------------------------------------- |
+| Nodes       | `src/nodes/`           | `gnode.rs`, `vnode.rs`                                          |
+| Trees       | `src/tree/`            | `gtree.rs`, `vtree.rs`                                          |
+| Spatial     | `src/spatial/`         | `view.rs`, `plateau.rs`, `pewei.rs`, `contour_range.rs`         |
+| Graph API   | `src/graph/`           | `graph.rs` → `mod.rs`, `graph_traits.rs` → `traits.rs`          |
+| Algorithms  | `src/graph/algorithm/` | `observe`, `split`, `decay`, `evict`, `rebalance`, `extract`, … |
+| Diagnostics | `src/diagnostics/`     | `invariants.rs`, `diagnostic.rs`                                |
+
+The flat layout is not a merge blocker, but the grouped layout significantly
+improves navigability and is worth proposing to the author as a follow-up.
+
+### Phase 5 Verdict
+
+| Check                                            | Result                                               |
+| ------------------------------------------------ | ---------------------------------------------------- |
+| Author's 1,311 tests pass                        | ✅                                                   |
+| Independent line coverage ≥ 86%                  | ✅ (86.96%)                                          |
+| Integration tests (reviewer-written)             | ✅ 10 pass                                           |
+| Snapshot tests (reviewer-written)                | ✅ 4 scenarios                                       |
+| Mutation kill rate                               | ⚠️ 60.1% — borderline, re-run needed after #11 fixed |
+| **Finding #11: post-evict `debug_assert` fires** | ❗ Blocks all eviction test paths                    |
+| Complexity: `plateau_after_evict` CC=39/Cog=95   | ⚠️ Highest-priority refactor target                  |
 
 ---
 
