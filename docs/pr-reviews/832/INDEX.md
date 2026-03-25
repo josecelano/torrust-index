@@ -45,19 +45,20 @@
 
 One file per finding in [findings/](findings/). Status key: ✅ Resolved · ⚠️ Open · ❗ Confirmed bug · ❓ Question.
 
-| #   | Title                                                       | Status                               | File                                                                          |
-| --- | ----------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------- |
-| 1   | MSRV bump 1.72 → 1.80 (workspace-wide)                      | ✅ Fixed in PR #833                  | —                                                                             |
-| 2   | `src/ui/proxy.rs` — error images silently broken            | ✅ Fixed in PR #833                  | —                                                                             |
-| 3   | `torrust-sentinel` in `cargo-machete` ignore — undocumented | ⚠️ Open (low priority)               | —                                                                             |
-| 4   | `docs/api.md` out of date (multiple missing symbols)        | ✅ Addressed by Cameron's API audit  | —                                                                             |
-| 5   | `debug_plateau_basis()` should be `#[doc(hidden)]`          | ✅ Addressed by Cameron's API audit  | —                                                                             |
-| 6   | `AGENTS.md` scope — mudlark conventions in repo-global file | ⚠️ Open (low priority)               | —                                                                             |
-| 7   | Several `pub` methods missing from `docs/api.md`            | ✅ Addressed by Cameron's API audit  | —                                                                             |
-| 8   | `GNodeInfo` not in `docs/api.md`                            | ✅ Merged into `Node` by Cameron     | —                                                                             |
-| 9   | **[BUG] f64 plateau sum drift after G-node split**          | ❗ Confirmed open                    | [finding-09-f64-plateau-drift.md](findings/finding-09-f64-plateau-drift.md)   |
-| 10  | **Arena stale-handle ABA problem (no generation counters)** | ⚠️ Open — usage contract unclear     | [finding-10-arena-stale-handle.md](findings/finding-10-arena-stale-handle.md) |
-| 11  | **[BUG] Post-evict `debug_assert` fires in debug builds**   | ❗ Confirmed (blocks eviction tests) | [finding-11-post-evict-assert.md](findings/finding-11-post-evict-assert.md)   |
+| #   | Title                                                       | Status                               | File                                                                                    |
+| --- | ----------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- |
+| 1   | MSRV bump 1.72 → 1.80 (workspace-wide)                      | ✅ Fixed in PR #833                  | —                                                                                       |
+| 2   | `src/ui/proxy.rs` — error images silently broken            | ✅ Fixed in PR #833                  | —                                                                                       |
+| 3   | `torrust-sentinel` in `cargo-machete` ignore — undocumented | ⚠️ Open (low priority)               | —                                                                                       |
+| 4   | `docs/api.md` out of date (multiple missing symbols)        | ✅ Addressed by Cameron's API audit  | —                                                                                       |
+| 5   | `debug_plateau_basis()` should be `#[doc(hidden)]`          | ✅ Addressed by Cameron's API audit  | —                                                                                       |
+| 6   | `AGENTS.md` scope — mudlark conventions in repo-global file | ⚠️ Open (low priority)               | —                                                                                       |
+| 7   | Several `pub` methods missing from `docs/api.md`            | ✅ Addressed by Cameron's API audit  | —                                                                                       |
+| 8   | `GNodeInfo` not in `docs/api.md`                            | ✅ Merged into `Node` by Cameron     | —                                                                                       |
+| 9   | **[BUG] f64 plateau sum drift after G-node split**          | ❗ Confirmed open                    | [finding-09-f64-plateau-drift.md](findings/finding-09-f64-plateau-drift.md)             |
+| 10  | **Arena stale-handle ABA problem (no generation counters)** | ⚠️ Open — usage contract unclear     | [finding-10-arena-stale-handle.md](findings/finding-10-arena-stale-handle.md)           |
+| 11  | **`range_sum` approximation not clearly documented**        | ⚠️ Open — docs gap                   | [finding-11-range-sum-approximation.md](findings/finding-11-range-sum-approximation.md) |
+| 12  | **[BUG] Post-evict `debug_assert` fires in debug builds**   | ❗ Confirmed (blocks eviction tests) | [finding-12-post-evict-assert.md](findings/finding-12-post-evict-assert.md)             |
 
 ---
 
@@ -65,11 +66,12 @@ One file per finding in [findings/](findings/). Status key: ✅ Resolved · ⚠�
 
 1. **Finding #9 — f64 plateau drift** — confirmed still fires on rebased code. Needs to be reported to Cameron.
 2. **Finding #10 — arena stale handle** — usage contract needs clarification or generation counters.
-3. **Finding #11 — post-evict `debug_assert`** — `plateau.rs:127` fires immediately after any eviction in debug builds; blocks all eviction-gated test paths. Root cause of coverage ceiling at ~87%. Needs fix (relax to `debug_assert`, soften, or remove).
-4. **`torrust-sentinel` in machete ignore** — low priority, intent undocumented.
-5. **`AGENTS.md` scope** — mudlark conventions belong in `packages/mudlark/AGENTS.md`.
-6. **Mutation kill rate 60.1%** — borderline; re-run `cargo mutants -p torrust-mudlark` after Finding #11 is fixed; target ≥ 80% before merge.
-7. **Module structure** — flat `src/` layout works but a grouped layout (nodes/tree/spatial/graph/algorithm/diagnostics) would improve navigability; propose as follow-up to Cameron.
+3. **Finding #11 — `range_sum` approximation** — not clearly documented; proptest found that `range_sum(x..x+1) = 0` even after `observe(x, 64)` until split threshold is triggered. Suggest adding `# Approximation` note to docstring.
+4. **Finding #12 — post-evict `debug_assert`** — `plateau.rs:127` fires immediately after any eviction in debug builds; blocks all eviction-gated test paths. Root cause of coverage ceiling at ~87%. Needs fix (relax to `debug_assert`, soften, or remove).
+5. **`torrust-sentinel` in machete ignore** — low priority, intent undocumented.
+6. **`AGENTS.md` scope** — mudlark conventions belong in `packages/mudlark/AGENTS.md`.
+7. **Mutation kill rate 60.1%** — borderline; re-run `cargo mutants -p torrust-mudlark` after Finding #12 is fixed; target ≥ 80% before merge.
+8. **Module structure** — flat `src/` layout works but a grouped layout (nodes/tree/spatial/graph/algorithm/diagnostics) would improve navigability; propose as follow-up to Cameron.
 
 ---
 
@@ -80,7 +82,7 @@ One file per finding in [findings/](findings/). Status key: ✅ Resolved · ⚠�
 | 2026-03-24 | `cargo llvm-cov` | 86.4% lines / 92.2% functions        | [llvm-cov-2026-03-24.md](coverage-results/llvm-cov-2026-03-24.md)    |
 | 2026-03-25 | `cargo llvm-cov` | 86.96% lines / 96.67% fn (436 tests) | Isolated branch — see [REVIEW_PR_832.md § Phase 5](REVIEW_PR_832.md) |
 | 2026-03-16 | `cargo mutants`  | 60.1% kill rate (621/1034)           | [mutants-results/](mutants-results/)                                 |
-| (pending)  | `cargo mutants`  | —                                    | Re-run after Finding #11 resolved                                    |
+| (pending)  | `cargo mutants`  | —                                    | Re-run after Finding #12 resolved                                    |
 
 ---
 

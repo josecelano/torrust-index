@@ -312,7 +312,7 @@ The isolated copy was extended with:
 | Functions | 813     |   841 | **96.67%** |
 | Regions   | 12005   | 13796 | **87.02%** |
 
-**Coverage ceiling — Finding #11:** A `debug_assert` in `plateau.rs` (`"POST-EVICT-SINGLE-1:
+**Coverage ceiling — Finding #12:** A `debug_assert` in `plateau.rs` (`"POST-EVICT-SINGLE-1:
 dynamic-contour-tracking mirror diverged"`) fires immediately after eviction in
 debug builds, blocking every test path that requires eviction. Until this assert
 is fixed or softened, the following modules cannot be fully covered:
@@ -376,7 +376,7 @@ Run: `cargo mutants -p torrust-mudlark` (2026-03-16, original submitted codebase
 Kill rate is borderline — 80%+ is more typical of a well-tested crate at 1.0.0.
 The primary gaps are in `rebalance.rs` and `plateau.rs`, which are also the
 hardest modules by cyclomatic complexity. A re-run after the coverage gaps are
-addressed (once Finding #11 is resolved) is recommended before merge.
+addressed (once Finding #12 is resolved) is recommended before merge.
 
 ### Module structure observation
 
@@ -403,8 +403,8 @@ improves navigability and is worth proposing to the author as a follow-up.
 | Independent line coverage ≥ 86%                  | ✅ (86.96%)                                          |
 | Integration tests (reviewer-written)             | ✅ 10 pass                                           |
 | Snapshot tests (reviewer-written)                | ✅ 4 scenarios                                       |
-| Mutation kill rate                               | ⚠️ 60.1% — borderline, re-run needed after #11 fixed |
-| **Finding #11: post-evict `debug_assert` fires** | ❗ Blocks all eviction test paths                    |
+| Mutation kill rate                               | ⚠️ 60.1% — borderline, re-run needed after #12 fixed |
+| **Finding #12: post-evict `debug_assert` fires** | ❗ Blocks all eviction test paths                    |
 | Complexity: `plateau_after_evict` CC=39/Cog=95   | ⚠️ Highest-priority refactor target                  |
 
 ---

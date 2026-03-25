@@ -1,4 +1,4 @@
-# Finding #11 — Post-Evict `debug_assert` Fires in Debug Builds
+# Finding #12 — Post-Evict `debug_assert` Fires in Debug Builds
 
 **Status:** ❗ CONFIRMED  
 **Severity:** Crash (debug builds) · Test-coverage blocker  
