@@ -1,0 +1,57 @@
+Command
+-------
+CARGO_PROFILE_DEV_OPT_LEVEL=3 cargo test -p torrust-mudlark --test proptest_harness
+
+Date: 2026-03-25
+Commit: review/pr-832-mudlark (post-fix, see notes below)
+proptest version: 1.11.0
+
+Output
+------
+   Compiling torrust-mudlark v1.0.0
+   Finished `test` profile [optimized + debuginfo] target(s) in 1.11s
+     Running tests/proptest_harness.rs
+
+running 7 tests
+test p2_range_sum_additivity ... ok
+test p3_range_sum_le_total_sum ... ok
+test p5_plateaus_cover_domain ... ok
+test p1_total_sum_conservation ... ok
+test p6_annihilation_zeroes_total ... ok
+test p7_budget_never_exceeded ... ok
+test p4_invariants_hold_after_every_op ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+Notes on fixes applied before this run
+---------------------------------------
+1. P7 (budget_never_exceeded):
+   Original budget = 32 caused a panic on GvGraph construction:
+     "Config: budget (32) must be > max(3^(buffer+1), 2*(D_c-1)) = 81"
+   Fix: raised to BUDGET = 100 (ADR-M-018 requires budget > 81 for the
+   default depth_create=3, depth_evict=6 configuration).
+
+2. P2 (range_sum_additivity):
+   Initial version asserted exact equality:
+     range_sum(lo..m) + range_sum(m..hi) == range_sum(lo..hi)
+   Minimal failing input:
+     ops = [Observe{coord:0, delta:3}, Observe{coord:0, delta:60},
+            Observe{coord:0, delta:1}]
+     lo=0, m=1, hi=5
+     range_sum(0..1)=0, range_sum(1..5)=0, range_sum(0..5)=1
+   Root cause: range_sum uses f64 pro-rating for nodes where the query
+   boundary bisects the node's spatial range.  Independent floor()
+   truncation on each sub-query means additivity only holds exactly when
+   all boundaries coincide with G-node edges.  This is documented in the
+   range_sum docstring ("pro-rated partial overlaps", ADR-M-020).
+   Fix: loosened assertion to allow |combined - total| <= N = 8.
+
+Regression seeds (packages/mudlark/tests/proptest_harness.proptest-regressions)
+--------------------------------------------------------------------------------
+cc 1be8fbb09f10e948bd513e1f2e7bc91b11e357f03834dd7aeedb6f6b8fa1b367
+  shrinks to: ops=[Observe{coord:0,delta:1}]          (was P7 panic)
+cc ac101aa0aa99475a29a60339591e6fed63fcaa7f2c31206a7d385d100fd1004e
+  shrinks to: ops=[Observe{coord:0,delta:3},Observe{coord:0,delta:60},
+              Observe{coord:0,delta:1}], lo=0, span=5, mid_frac=1  (was P2 exact-eq)
+
+Both seeds now pass with the corrected assertions.

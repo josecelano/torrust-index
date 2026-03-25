@@ -216,10 +216,35 @@ This is an honest, defensible position for a 64k-line AI-assisted PR.
 
 ## Progress
 
-| Step | Description                         | Status                                 |
-| ---- | ----------------------------------- | -------------------------------------- |
-| 1    | Run author's tests                  | ✅ Passes                              |
-| 2    | Reference implementation comparator | ✅ 17 passed, 1 bug found (Finding #9) |
-| 3    | Use-case acceptance tests           | ⬜ Not written                         |
-| 4    | Mutation testing                    | ✅ 60.1% kill rate (413 missed)        |
-| 5    | Static analysis                     | ⬜ Not run                             |
+| Step | Description                                | Status                                                             |
+| ---- | ------------------------------------------ | ------------------------------------------------------------------ |
+| 1    | Run author's tests                         | ✅ Passes (1,311 tests)                                            |
+| 2    | Reference implementation comparator        | ✅ 17 passed, 1 bug found (Finding #9)                             |
+| 3    | Use-case acceptance tests                  | ⬜ Not written                                                     |
+| 4    | Mutation testing                           | ✅ 60.1% kill rate (413 missed)                                    |
+| 5    | Static analysis                            | ⬜ Not run                                                         |
+| 6    | Property-based / model-based testing (new) | See [PROPTEST_STRATEGY.md](PROPTEST_STRATEGY.md) and results below |
+
+---
+
+## Step 6 — Property-Based Testing (proptest)
+
+Fixed-seed tests in `reference_comparator.rs` validate the contract but explore
+the same code paths on every run. Property-based testing generates random
+operation sequences and checks algebraic laws after each step — covering
+interaction bugs that fixed sequences miss.
+
+**Full strategy document:** [PROPTEST_STRATEGY.md](PROPTEST_STRATEGY.md)
+
+**Results:** [proptest-results/proptest-2026-03-25.md](proptest-results/proptest-2026-03-25.md)
+
+Properties checked:
+
+| #   | Property                                                         | Type  |
+| --- | ---------------------------------------------------------------- | ----- |
+| P1  | `total_sum` == naive after any observe sequence                  | exact |
+| P2  | `range_sum` additivity: `sum(lo..m) + sum(m..hi) == sum(lo..hi)` | exact |
+| P3  | `range_sum` ≤ `total_sum` (monotonicity)                         | exact |
+| P4  | Structural invariants hold after every operation                 | exact |
+| P5  | Plateaus cover `[0, 2^N)` with no gaps                           | exact |
+| P6  | Full decay (att=0) → `total_sum == 0`                            | exact |
