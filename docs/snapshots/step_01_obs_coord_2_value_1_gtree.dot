@@ -1,0 +1,8 @@
+digraph gtree {
+  label="Step 1: obs coord=2 value=1";
+  rankdir=TB;
+  node [shape=box, fontname="Courier New", fontsize=11];
+
+  G0 [label="G0  [0, 16)\nd=0  T  VEntry(0)\nown=1  sum=1", style=filled, fillcolor="#c8e6c9"];
+
+}

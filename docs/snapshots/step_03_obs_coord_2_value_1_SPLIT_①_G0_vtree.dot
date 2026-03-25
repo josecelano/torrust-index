@@ -1,0 +1,16 @@
+digraph vtree {
+  label="Step 3: obs coord=2 value=1 → SPLIT ① G0";
+  rankdir=TB;
+  node [fontname="Courier New", fontsize=11];
+
+  V4 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V4 Struct\nintensity=3  has_evict=true"];
+  V0 [shape=box, style=filled, fillcolor="#bbdefb", label="V0 Entry\nG0  [0,16) d=0 I\nintensity=3  exposed=false  evict=false"];
+  V3 [shape=ellipse, style=filled, fillcolor="#e1bee7", label="V3 Struct\nintensity=0  has_evict=true"];
+  V1 [shape=box, style=filled, fillcolor="#bbdefb", label="V1 Entry\nG1  [0,8) d=1 T\nintensity=0  exposed=true  evict=true"];
+  V2 [shape=box, style=filled, fillcolor="#bbdefb", label="V2 Entry\nG2  [8,16) d=1 T\nintensity=0  exposed=true  evict=true"];
+
+  V4 -> V0 [label="i=3"];
+  V4 -> V3 [label="i=0"];
+  V3 -> V1 [label="i=0"];
+  V3 -> V2 [label="i=0"];
+}

@@ -1,0 +1,8 @@
+digraph gtree {
+  label="Step 0: initial-empty";
+  rankdir=TB;
+  node [shape=box, fontname="Courier New", fontsize=11];
+
+  G0 [label="G0  [0, 16)\nd=0  T  VEntry(0)\nown=0  sum=0", style=filled, fillcolor="#c8e6c9"];
+
+}

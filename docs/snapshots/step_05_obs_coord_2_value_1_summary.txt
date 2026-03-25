@@ -1,0 +1,9 @@
+═══ Step 5: obs coord=2 value=1 ═══
+Total sum : 5
+Node count: 3
+
+v-dep  range [lo … hi)                  own     sum  state           gnode-id
+────────────────────────────────────────────────────────────────────────────────
+    1  [0            …          16)       3       5  Internal        G(0)
+    2  [0            …           8)       1       1  Terminal        G(1)
+    2  [8            …          16)       1       1  Terminal        G(2)

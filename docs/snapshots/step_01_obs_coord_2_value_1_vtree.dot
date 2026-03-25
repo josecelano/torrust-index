@@ -1,0 +1,8 @@
+digraph vtree {
+  label="Step 1: obs coord=2 value=1";
+  rankdir=TB;
+  node [fontname="Courier New", fontsize=11];
+
+  V0 [shape=box, style=filled, fillcolor="#bbdefb", label="V0 Entry\nG0  [0,16) d=0 T\nintensity=1  exposed=true  evict=true"];
+
+}

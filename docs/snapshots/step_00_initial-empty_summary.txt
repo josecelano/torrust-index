@@ -1,0 +1,7 @@
+═══ Step 0: initial-empty ═══
+Total sum : 0
+Node count: 1
+
+v-dep  range [lo … hi)                  own     sum  state           gnode-id
+────────────────────────────────────────────────────────────────────────────────
+    0  [0            …          16)       0       0  Terminal        G(0)

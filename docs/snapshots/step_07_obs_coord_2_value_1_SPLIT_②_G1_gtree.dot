@@ -1,0 +1,16 @@
+digraph gtree {
+  label="Step 7: obs coord=2 value=1 → SPLIT ② G1";
+  rankdir=TB;
+  node [shape=box, fontname="Courier New", fontsize=11];
+
+  G0 [label="G0  [0, 16)\nd=0  I  VEntry(0)\nown=3  sum=7", style=filled, fillcolor="#fff9c4"];
+  G1 [label="G1  [0, 8)\nd=1  I  VEntry(1)\nown=3  sum=3", style=filled, fillcolor="#fff9c4"];
+  G2 [label="G2  [8, 16)\nd=1  T  VEntry(2)\nown=1  sum=1", style=filled, fillcolor="#c8e6c9"];
+  G3 [label="G3  [0, 4)\nd=2  T  VEntry(5)\nown=0  sum=0", style=filled, fillcolor="#c8e6c9"];
+  G4 [label="G4  [4, 8)\nd=2  T  VEntry(6)\nown=0  sum=0", style=filled, fillcolor="#c8e6c9"];
+
+  G0 -> G1 [label="L"];
+  G0 -> G2 [label="R"];
+  G1 -> G3 [label="L"];
+  G1 -> G4 [label="R"];
+}
