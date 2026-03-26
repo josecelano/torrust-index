@@ -15,7 +15,14 @@ use crate::traits::{Accumulator, Coordinate};
 
 use super::config::Config;
 
-#[allow(dead_code)]
+/// Returns the uniform contour depth of the subtree rooted at `gid`, or `None`
+/// if the leaf G-nodes in the subtree do not all share the same depth.
+///
+/// Used by plateau algorithms (see `src/graph/algorithm/plateau/`) to verify
+/// that a G-tree sub-region has a consistent contour depth.  Only compiled when
+/// the `dynamic-contour-tracking` feature is enabled; without it this function
+/// has no callers.
+#[cfg(feature = "dynamic-contour-tracking")]
 pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(
     gnodes: &Arena<GNode<C, V>>,
     gid: GNodeId,
@@ -490,6 +497,7 @@ mod tests {
     }
 
     // ── uniform_contour_depth_of ─────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
     mod uniform_contour_depth_of_fn {
         use super::*;
         use crate::arena::Arena;
