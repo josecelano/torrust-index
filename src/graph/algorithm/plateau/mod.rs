@@ -9,6 +9,7 @@ use crate::spatial::plateau::{BasisEdge, Plateau};
 use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 
+mod noop;
 mod normalise;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
@@ -496,11 +497,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn place_subtree_basis_elements(&mut self, _gid: GNodeId) {}
-
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(clippy::float_cmp)]
     pub(crate) fn debug_check_plateau_sums(&self, label: &str) {
@@ -676,11 +672,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn repair_p_i4(&mut self) {}
-
     #[cfg(feature = "dynamic-contour-tracking")]
     fn split_for_p_i4(
         &mut self,
@@ -804,16 +795,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_after_observe<O: crate::traits::Observation<V>>(
-        &mut self,
-        _g_id: GNodeId,
-        _delta: O,
-    ) {
-    }
-
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn plateau_after_bootstrap_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
         let _span = tracing::debug_span!(
@@ -863,11 +844,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             self.place_basis_element(right_id, right_depth);
         }
     }
-
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_after_bootstrap_split(&mut self, _g_id: GNodeId, _left_id: GNodeId) {}
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn plateau_after_catalytic_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
@@ -968,11 +944,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.place_sorted(&mut to_place);
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_after_catalytic_split(&mut self, _g_id: GNodeId, _left_id: GNodeId) {}
-
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(dead_code)]
     pub(crate) fn plateau_after_legacy_promote(&mut self, new_gid: GNodeId) {
@@ -1004,11 +975,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         to_place.push((new_gid, child_depth));
         self.place_sorted(&mut to_place);
     }
-
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_after_legacy_promote(&mut self, _new_gid: GNodeId) {}
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, new_gnodes: &[GNodeId]) {
@@ -1058,11 +1024,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         self.place_sorted(&mut to_place);
     }
-
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, _new_gnodes: &[GNodeId]) {}
 
     #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(clippy::too_many_lines)]
@@ -1261,19 +1222,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
         to_place.extend(displaced_extra);
         self.place_sorted(&mut to_place);
-    }
-
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self)]
-    pub(crate) fn plateau_after_evict(
-        &mut self,
-        _gnode_id: GNodeId,
-        _parent_id: GNodeId,
-        _parent_state_after: crate::nodes::gnode::GState,
-        _parent_lo: C,
-        _parent_hi: C,
-    ) {
     }
 
     #[must_use]

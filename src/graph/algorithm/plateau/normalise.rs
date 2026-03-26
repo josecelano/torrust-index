@@ -289,11 +289,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn normalize_plateaus(&mut self) {}
-
     /// Iterates every basis element and attempts to merge sibling pairs into
     /// their parent via [`consolidate_basis_up`].
     #[cfg(feature = "dynamic-contour-tracking")]
@@ -324,11 +319,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn consolidate_all_basis(&mut self) {}
-
     /// Recomputes the `sum` field for every plateau entry from the current
     /// G-tree node sums.  Called after a bulk weight mutation (e.g. `decay`).
     #[cfg(feature = "dynamic-contour-tracking")]
@@ -357,9 +347,4 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             );
         }
     }
-
-    #[cfg(not(feature = "dynamic-contour-tracking"))]
-    #[inline(always)]
-    #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn plateau_recompute_sums(&mut self, _label: &str) {}
 }
