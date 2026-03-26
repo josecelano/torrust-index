@@ -1,6 +1,7 @@
 use crate::arena::Arena;
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
+use crate::graph::algorithm::violation_push;
 use crate::handle::VNodeId;
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::{VKind, VNode};
@@ -62,7 +63,7 @@ fn push_eviction_violations<V: Accumulator>(
     violations: &mut Vec<VNodeId>,
 ) {
     if let Some(start) = ctx.change_point {
-        rebalance::push_leaf_removal_violations(vnodes, start, violations);
+        violation_push::push_leaf_removal_violations(vnodes, start, violations);
     }
     match ctx.child_count {
         2 => {
@@ -71,14 +72,14 @@ fn push_eviction_violations<V: Accumulator>(
                     sole = sole.index(),
                     "evict_tip: calling push_collapse_violations"
                 );
-                rebalance::push_collapse_violations(vnodes, sole, violations);
+                violation_push::push_collapse_violations(vnodes, sole, violations);
                 if let Some(grandparent) = ctx.change_point {
                     tracing::debug!(
                         sole = sole.index(),
                         grandparent = grandparent.index(),
                         "evict_tip: calling push_cousin_violations (source 9)",
                     );
-                    rebalance::push_cousin_violations(vnodes, sole, grandparent, violations);
+                    violation_push::push_cousin_violations(vnodes, sole, grandparent, violations);
                 }
             }
         }
@@ -88,7 +89,7 @@ fn push_eviction_violations<V: Accumulator>(
                     parent = p.index(),
                     "evict_tip: calling push_remaining_sibling_violations"
                 );
-                rebalance::push_remaining_sibling_violations(vnodes, p, v_id, violations);
+                violation_push::push_remaining_sibling_violations(vnodes, p, v_id, violations);
             }
         }
         _ => {}

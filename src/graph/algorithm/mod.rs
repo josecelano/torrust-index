@@ -7,4 +7,5 @@ pub(crate) mod plateau;
 pub(crate) mod query;
 pub(crate) mod rebalance;
 pub(crate) mod split;
+pub(crate) mod violation_push;
 pub(crate) mod violation_sources;
