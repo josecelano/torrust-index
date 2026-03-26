@@ -401,6 +401,53 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
     result
 }
 
+/// Log the violation-queue tail and either panic (debug) or signal a break
+/// (release) when the rebalance loop exceeds its iteration budget.
+///
+/// Returns `false` in debug builds (unreachable — `panic!` diverges) and `true`
+/// in release builds to tell the caller to break out of the loop.
+fn handle_iteration_limit<V: Accumulator>(
+    vnodes: &Arena<VNode<V>>,
+    violations: &[VNodeId],
+    iterations: u32,
+    max_iterations: u32,
+    resolved: u32,
+    current: VNodeId,
+) -> bool {
+    tracing::error!(
+        iterations,
+        max_iterations,
+        resolved,
+        queue = violations.len(),
+        current = current.index(),
+        "rebalance safety-net exceeded — dumping queue tail",
+    );
+    let tail = violations.len().saturating_sub(20);
+    for (i, v) in violations[tail..].iter().enumerate() {
+        if vnodes.is_occupied(v.index()) {
+            tracing::error!(idx = tail + i, entry = %Ctx(vnodes, *v));
+        } else {
+            tracing::error!(idx = tail + i, node = v.index(), "DEAD");
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    panic!(
+        "rebalance: exceeded {max_iterations} iterations \
+         (queue={}, node=v{}, resolved={resolved})",
+        violations.len(),
+        current.index(),
+    );
+    #[cfg(not(debug_assertions))]
+    {
+        tracing::error!(
+            "breaking out of rebalance loop — \
+             possible bug in violation resolution",
+        );
+        true
+    }
+}
+
 pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
     vnodes: &mut Arena<VNode<V>>,
     gnodes: &mut Arena<GNode<C, V>>,
@@ -422,36 +469,7 @@ pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
     while let Some(c) = violations.pop() {
         iterations += 1;
         if iterations > max_iterations {
-            tracing::error!(
-                iterations,
-                max_iterations,
-                resolved,
-                queue = violations.len(),
-                current = c.index(),
-                "rebalance safety-net exceeded — dumping queue tail",
-            );
-            let tail = violations.len().saturating_sub(20);
-            for (i, v) in violations[tail..].iter().enumerate() {
-                if vnodes.is_occupied(v.index()) {
-                    tracing::error!(idx = tail + i, entry = %Ctx(vnodes, *v));
-                } else {
-                    tracing::error!(idx = tail + i, node = v.index(), "DEAD");
-                }
-            }
-
-            #[cfg(debug_assertions)]
-            panic!(
-                "rebalance: exceeded {max_iterations} iterations \
-                 (queue={}, node=v{}, resolved={resolved})",
-                violations.len(),
-                c.index(),
-            );
-            #[cfg(not(debug_assertions))]
-            {
-                tracing::error!(
-                    "breaking out of rebalance loop — \
-                     possible bug in violation resolution",
-                );
+            if handle_iteration_limit(vnodes, violations, iterations, max_iterations, resolved, c) {
                 break;
             }
         }
