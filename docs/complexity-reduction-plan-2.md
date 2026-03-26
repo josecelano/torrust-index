@@ -335,17 +335,17 @@ blocks if that's the local convention (check existing files first).
 
 ## Tracking
 
-| ID  | Status      | Notes |
-| --- | ----------- | ----- |
-| Q1  | Not started |       |
-| Q2  | Not started |       |
-| Q3  | Not started |       |
-| Q4  | Not started |       |
-| Q5  | Not started |       |
-| Q6  | Not started |       |
-| Q7  | Not started |       |
-| Q8  | Not started |       |
-| Q9  | Not started |       |
-| Q10 | Not started |       |
-| Q11 | Not started |       |
-| Q12 | Not started |       |
+| ID  | Status      | Notes                                                                       |
+| --- | ----------- | --------------------------------------------------------------------------- |
+| Q1  | Not started |                                                                             |
+| Q2  | Not started |                                                                             |
+| Q3  | Done        | `89ab927` — phase banners in `observe()`                                    |
+| Q4  | Not started |                                                                             |
+| Q5  | Not started |                                                                             |
+| Q6  | Not started |                                                                             |
+| Q7  | Done        | `922f2f3` — formula doc + NOTE comments in decay                            |
+| Q8  | Done        | `61ad514` — module doc, `RegionLookup::build` doc, `descend()` arm comments |
+| Q9  | Not started |                                                                             |
+| Q10 | Done        | `9ff3ee6` — module-level doc for `vtree.rs`                                 |
+| Q11 | Done        | `9ddd9d3` — doc comment + path banners in `resolve()`                       |
+| Q12 | Not started |                                                                             |
