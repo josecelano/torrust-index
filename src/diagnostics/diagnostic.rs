@@ -1,15 +1,12 @@
 #![allow(dead_code)]
 
-use std::fmt;
-
 use crate::arena::Arena;
-use crate::graph::algorithm::rebalance::{self, Ctx};
-use crate::handle::{GNodeId, VNodeId};
-use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{VKind, VNode};
-use crate::traits::{Accumulator, Coordinate, Inspectable};
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::{graph::GvGraph, nodes::gnode::GState};
+pub use crate::diagnostics::plateau_audit::{PlateauAuditContext, audit_plateau_consistency};
+use crate::graph::algorithm::rebalance::{self, Ctx};
+use crate::handle::VNodeId;
+use crate::nodes::vnode::{VKind, VNode};
+use crate::traits::{Accumulator, Inspectable};
 
 pub fn audit_violations<V: Accumulator + Inspectable>(
     vnodes: &Arena<VNode<V>>,
@@ -30,69 +27,6 @@ pub fn audit_violations<V: Accumulator + Inspectable>(
         }
     }
     missed
-}
-
-#[cfg(feature = "dynamic-contour-tracking")]
-pub struct PlateauAuditContext {
-    pub parent_id: GNodeId,
-    pub parent_state: GState,
-}
-
-#[cfg(feature = "dynamic-contour-tracking")]
-pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
-    graph: &GvGraph<C, V, N>,
-    checkpoint: &str,
-    context: Option<&PlateauAuditContext>,
-) {
-    for &key in graph.plateaus.keys() {
-        for &r in graph.plateau_basis.basis_elements(&key) {
-            let back = graph.plateau_basis.plateau_key(r);
-            if back != Some(key) {
-                tracing::error!(
-                    checkpoint,
-                    ?key,
-                    gnode = r.index(),
-                    ?back,
-                    "basis back-pointer inconsistency"
-                );
-            }
-        }
-    }
-
-    let map_len = graph.plateaus.len();
-    let basis_len = graph.plateau_basis.plateau_count();
-    if map_len != basis_len {
-        tracing::error!(
-            checkpoint,
-            map_len,
-            basis_len,
-            "plateaus.len() != plateau_basis.plateau_count()",
-        );
-    }
-
-    if let Some(ctx) = context {
-        if ctx.parent_state == GState::SemiInternal {
-            let g = graph.gnodes.get(ctx.parent_id.index());
-            let surviving = g.left.or(g.right);
-            if let Some(surviving_id) = surviving {
-                let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);
-                if let Some(pk) = parent_plateau {
-                    if let Some(ck) = graph.plateau_basis.plateau_key(surviving_id) {
-                        if pk == ck {
-                            tracing::debug!(
-                                checkpoint,
-                                ?pk,
-                                ?ck,
-                                parent = ctx.parent_id.index(),
-                                surviving = surviving_id.index(),
-                                "transient P-I4 overlap (will be repaired)",
-                            );
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 pub struct EvictionContext {
@@ -256,64 +190,6 @@ fn is_ancestor<V: Accumulator>(
     false
 }
 
-pub struct Gn<'a, C: Coordinate, V: Accumulator + Inspectable>(
-    pub &'a Arena<GNode<C, V>>,
-    pub GNodeId,
-);
-
-impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let idx = self.1.index();
-        if !self.0.is_occupied(idx) {
-            return write!(f, "G{idx}(DEAD)");
-        }
-        let g = self.0.get(idx);
-        let state = match g.state() {
-            crate::nodes::gnode::GState::Terminal => "T",
-            crate::nodes::gnode::GState::SemiInternal => "S",
-            crate::nodes::gnode::GState::Internal => "I",
-        };
-        write!(
-            f,
-            "G{idx}({state},[{},{}),sum={})",
-            g.lo.to_f64(),
-            g.hi.to_f64(),
-            g.sum.to_f64_approx()
-        )
-    }
-}
-
-#[cfg(feature = "dynamic-contour-tracking")]
-pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
-    pub &'a GvGraph<C, V, N>,
-    pub GNodeId,
-);
-
-#[cfg(feature = "dynamic-contour-tracking")]
-impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> fmt::Display for Pl<'_, C, V, N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let idx = self.1.index();
-        let key = self.0.plateau_basis.plateau_key(self.1);
-        match key {
-            Some(k) => {
-                if let Some(plateau) = self.0.plateaus.get(&k) {
-                    write!(
-                        f,
-                        "P([{},{}),d={},sum={})",
-                        plateau.start.to_f64(),
-                        plateau.end.to_f64(),
-                        plateau.depth,
-                        plateau.sum.to_f64_approx()
-                    )
-                } else {
-                    write!(f, "P(G{idx},key={k:?},NO_PLATEAU)")
-                }
-            }
-            None => write!(f, "P(G{idx},not_basis)"),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::diagnostics::diagnostic::{
@@ -456,8 +332,7 @@ mod tests {
                 match &n.kind {
                     VKind::Entry { .. } if depth >= 2 => {
                         let parent_id = n.parent.unwrap();
-                        let grandparent_id =
-                            g.vnodes().get(parent_id.index()).parent.unwrap();
+                        let grandparent_id = g.vnodes().get(parent_id.index()).parent.unwrap();
                         found = Some((id, grandparent_id));
                         break;
                     }
@@ -479,113 +354,6 @@ mod tests {
                 collapse_sibling: None,
             };
             diagnose_missed_violation(g.vnodes(), entry_id, &ctx);
-        }
-    }
-
-    // ── Gn::fmt ───────────────────────────────────────────────────────
-    mod gn_display_fn {
-        use super::*;
-        use crate::diagnostics::diagnostic::Gn;
-        use crate::handle::GNodeId;
-
-        #[test]
-        fn dead_gnode_shows_dead_marker() {
-            // Fresh graph: only gnode 0 is allocated; index 1 is dead.
-            let g: G = GvGraph::new(make_config());
-            let display = format!("{}", Gn(g.gnodes(), GNodeId::from_index(1)));
-            assert_eq!(display, "G1(DEAD)");
-        }
-
-        #[test]
-        fn live_terminal_gnode_shows_state_and_range() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            // Find the first occupied gnode index.
-            for i in 0..10 {
-                if g.gnodes().is_occupied(i) {
-                    let display =
-                        format!("{}", Gn(g.gnodes(), GNodeId::from_index(i)));
-                    assert!(display.starts_with(&format!("G{i}(")));
-                    assert!(!display.contains("DEAD"));
-                    return;
-                }
-            }
-            panic!("no live gnode found after bootstrap");
-        }
-    }
-
-    // ── audit_plateau_consistency ─────────────────────────────────────
-    #[cfg(feature = "dynamic-contour-tracking")]
-    mod audit_plateau_consistency_fn {
-        use super::*;
-        use crate::diagnostics::diagnostic::{PlateauAuditContext, audit_plateau_consistency};
-        use crate::handle::GNodeId;
-        use crate::nodes::gnode::GState;
-
-        #[test]
-        fn does_not_panic_for_fresh_graph_no_context() {
-            let g: G = GvGraph::new(make_config());
-            audit_plateau_consistency(&g, "test", None);
-        }
-
-        #[test]
-        fn does_not_panic_after_bootstrap_no_context() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            audit_plateau_consistency(&g, "test", None);
-        }
-
-        #[test]
-        fn with_semi_internal_context_on_terminal_leaf() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            // Use a leaf gnode (Terminal) as context parent with SemiInternal state.
-            // surviving = leaf.left.or(leaf.right) = None → inner block skipped.
-            let ctx = PlateauAuditContext {
-                parent_id: GNodeId::from_index(1), // leaf gnode
-                parent_state: GState::SemiInternal,
-            };
-            audit_plateau_consistency(&g, "test", Some(&ctx));
-        }
-
-        #[test]
-        fn with_semi_internal_context_on_internal_gnode() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            // Use the Internal root (gnode 0) as context parent with SemiInternal.
-            // surviving = root.left.or(root.right) = Some(left_child).
-            let ctx = PlateauAuditContext {
-                parent_id: GNodeId::from_index(0), // internal root gnode
-                parent_state: GState::SemiInternal,
-            };
-            audit_plateau_consistency(&g, "test", Some(&ctx));
-        }
-    }
-
-    // ── Pl::fmt ───────────────────────────────────────────────────────
-    #[cfg(feature = "dynamic-contour-tracking")]
-    mod pl_display_fn {
-        use super::*;
-        use crate::diagnostics::diagnostic::Pl;
-        use crate::handle::GNodeId;
-
-        #[test]
-        fn internal_gnode_shows_not_basis() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            // gnode[0] is Internal after bootstrap → not in plateau basis.
-            let display = format!("{}", Pl(&g, GNodeId::from_index(0)));
-            // Either "not_basis" or a plateau display; just verify no panic.
-            assert!(!display.is_empty());
-        }
-
-        #[test]
-        fn terminal_leaf_shows_plateau_info() {
-            let mut g: G = GvGraph::new(make_config());
-            g.observe(64u8, 3u32);
-            // gnode[1] is a Terminal leaf → should be in plateau basis.
-            let display = format!("{}", Pl(&g, GNodeId::from_index(1)));
-            assert!(!display.is_empty());
         }
     }
 }

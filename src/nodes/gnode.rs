@@ -1,5 +1,13 @@
 use crate::handle::{GNodeId, VNodeId};
 
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GNodeChildren {
+    pub left: Option<GNodeId>,
+
+    pub right: Option<GNodeId>,
+}
+
 #[derive(Debug, Clone)]
 pub struct GNode<C, V> {
     pub(crate) lo: C,

@@ -4,8 +4,9 @@ use std::collections::BTreeMap;
 use crate::graph::{GvGraph, uniform_contour_depth_of};
 use crate::handle::GNodeId;
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::spatial::plateau::PlateauBasis;
 use crate::spatial::plateau::{BasisEdge, Plateau};
+#[cfg(feature = "dynamic-contour-tracking")]
+use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
