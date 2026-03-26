@@ -4,6 +4,7 @@ pub(crate) mod evict;
 pub(crate) mod extract;
 pub(crate) mod observe;
 pub(crate) mod plateau;
+pub(crate) mod promote;
 pub(crate) mod query;
 pub(crate) mod rebalance;
 pub(crate) mod sample;
