@@ -1365,6 +1365,218 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, _new_gnodes: &[GNodeId]) {}
 
     #[cfg(feature = "dynamic-contour-tracking")]
+    #[allow(clippy::too_many_lines)]
+    pub(crate) fn plateau_after_evict(
+        &mut self,
+        gnode_id: GNodeId,
+        parent_id: GNodeId,
+        parent_state_after: crate::nodes::gnode::GState,
+        parent_lo: C,
+        parent_hi: C,
+    ) {
+        use crate::nodes::gnode::GState;
+        let _span = tracing::debug_span!(
+            "plateau_after_evict",
+            gnode = gnode_id.index(),
+            parent = parent_id.index(),
+            ?parent_state_after,
+        )
+        .entered();
+
+        let evicted_key = self.plateau_basis.remove(gnode_id);
+
+        let mut displaced: Vec<GNodeId> = Vec::new();
+        let mut displaced_extra: Vec<(GNodeId, u32)> = Vec::new();
+
+        let ancestor_key = if let Some(key) = self.plateau_basis.remove(parent_id) {
+            if parent_state_after == GState::SemiInternal {
+                let g = self.gnodes.get(parent_id.index());
+                if let Some(sib) = g.left.or(g.right) {
+                    if let Some(ok) = self.plateau_basis.remove(sib) {
+                        self.fixup_plateau(ok);
+                    }
+                    displaced.push(sib);
+                }
+            }
+            Some(key)
+        } else {
+            let mut path: Vec<GNodeId> = vec![parent_id];
+            let mut cur = self.gnodes.get(parent_id.index()).parent;
+            let mut found = None;
+
+            let parent_key = {
+                let pg = self.gnodes.get(parent_id.index());
+                crate::spatial::plateau::basis_edge_of(pg)
+            };
+
+            while let Some(anc) = cur {
+                if let Some(&anc_key) = self.plateau_basis.plateau_key(anc).as_ref() {
+                    let next_key = self
+                        .plateaus
+                        .range((
+                            std::ops::Bound::Excluded(anc_key),
+                            std::ops::Bound::Unbounded,
+                        ))
+                        .next()
+                        .map(|(&k, _)| k);
+                    let tile_covers =
+                        parent_key >= anc_key && next_key.is_none_or(|nk| parent_key < nk);
+
+                    if tile_covers {
+                        self.plateau_basis.remove(anc);
+
+                        if parent_state_after == GState::SemiInternal {
+                            let g = self.gnodes.get(parent_id.index());
+                            if let Some(sib) = g.left.or(g.right) {
+                                if let Some(ok) = self.plateau_basis.remove(sib) {
+                                    self.fixup_plateau(ok);
+                                }
+                                displaced.push(sib);
+                            }
+                        }
+
+                        for &path_node in &path {
+                            let par = self
+                                .gnodes
+                                .get(path_node.index())
+                                .parent
+                                .expect("path node must have a parent");
+                            let pg = self.gnodes.get(par.index());
+                            let sibling = if pg.left == Some(path_node) {
+                                pg.right
+                            } else {
+                                pg.left
+                            };
+                            if let Some(sib_id) = sibling {
+                                if displaced.contains(&sib_id) {
+                                    continue;
+                                }
+                                if let Some(ok) = self.plateau_basis.remove(sib_id) {
+                                    self.fixup_plateau(ok);
+                                }
+                                displaced.push(sib_id);
+                            }
+                        }
+
+                        found = Some(anc_key);
+                        break;
+                    }
+                }
+                path.push(anc);
+                cur = self.gnodes.get(anc.index()).parent;
+            }
+
+            found
+        };
+
+        if let Some(ek) = evicted_key {
+            self.fixup_plateau(ek);
+        }
+        if let Some(ak) = ancestor_key {
+            if evicted_key != Some(ak) {
+                self.fixup_plateau(ak);
+            }
+        }
+
+        let parent_depth = match parent_state_after {
+            GState::Terminal | GState::SemiInternal => {
+                crate::tree::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
+            }
+            GState::Internal => {
+                unreachable!("evict_tip: parent cannot remain Internal after eviction")
+            }
+        };
+
+        let parent_be = BasisEdge(parent_lo);
+
+        {
+            let right_keys: Vec<BasisEdge<C>> = self
+                .plateaus
+                .range(BasisEdge(parent_hi)..)
+                .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
+                .filter(|(_, p)| p.depth == parent_depth)
+                .map(|(&k, _)| k)
+                .collect();
+            for rk in right_keys {
+                let members: Vec<GNodeId> = self
+                    .plateau_basis
+                    .basis_elements(&rk)
+                    .iter()
+                    .copied()
+                    .collect();
+                if !members.is_empty() {
+                    tracing::trace!(
+                        ?rk,
+                        parent_depth,
+                        members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
+                        "evacuating right-adjacent same-depth plateau for evict placement",
+                    );
+                    for &m in &members {
+                        self.plateau_basis.remove(m);
+                    }
+                    self.plateaus.remove(&rk);
+                    for &m in &members {
+                        self.collect_subtree_basis_elements(m, &mut displaced_extra);
+                    }
+                }
+            }
+
+            let left_keys: Vec<BasisEdge<C>> = self
+                .plateaus
+                .range(..parent_be)
+                .rev()
+                .take_while(|(_, p)| p.end.total_cmp(&parent_lo) != std::cmp::Ordering::Less)
+                .filter(|(_, p)| p.depth == parent_depth)
+                .map(|(&k, _)| k)
+                .collect();
+            for lk in left_keys {
+                let members: Vec<GNodeId> = self
+                    .plateau_basis
+                    .basis_elements(&lk)
+                    .iter()
+                    .copied()
+                    .collect();
+                if !members.is_empty() {
+                    tracing::trace!(
+                        ?lk,
+                        parent_depth,
+                        members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
+                        "evacuating left-adjacent same-depth plateau for evict placement",
+                    );
+                    for &m in &members {
+                        self.plateau_basis.remove(m);
+                    }
+                    self.plateaus.remove(&lk);
+                    for &m in &members {
+                        self.collect_subtree_basis_elements(m, &mut displaced_extra);
+                    }
+                }
+            }
+        }
+
+        let mut to_place = Vec::new();
+        to_place.push((parent_id, parent_depth));
+        for &sib_id in &displaced {
+            self.collect_subtree_basis_elements(sib_id, &mut to_place);
+        }
+        to_place.extend(displaced_extra);
+        self.place_sorted(&mut to_place);
+    }
+
+    #[cfg(not(feature = "dynamic-contour-tracking"))]
+    #[inline(always)]
+    #[allow(clippy::unused_self)]
+    pub(crate) fn plateau_after_evict(
+        &mut self,
+        _gnode_id: GNodeId,
+        _parent_id: GNodeId,
+        _parent_state_after: crate::nodes::gnode::GState,
+        _parent_lo: C,
+        _parent_hi: C,
+    ) {
+    }
+
+    #[cfg(feature = "dynamic-contour-tracking")]
     #[cfg_attr(not(debug_assertions), allow(unused_variables))]
     pub(crate) fn plateau_recompute_sums(&mut self, label: &str) {
         for (&key, plateau) in &mut self.plateaus {

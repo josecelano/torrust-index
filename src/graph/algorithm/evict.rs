@@ -1,13 +1,107 @@
+use crate::arena::Arena;
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::handle::VNodeId;
-#[cfg(feature = "dynamic-contour-tracking")]
 use crate::nodes::gnode::GState;
-use crate::nodes::vnode::VKind;
+use crate::nodes::vnode::{VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree;
 
-#[allow(clippy::too_many_lines)]
+/// Topology of the V-node being evicted, captured before the leaf is removed.
+struct LeafRemovalContext {
+    v_parent: Option<VNodeId>,
+    /// Number of children the V-parent had immediately before removal.
+    child_count: usize,
+    /// The V-node from which leaf-removal violations should be pushed.
+    /// Present when the parent had 2 or 3 children.
+    change_point: Option<VNodeId>,
+    /// The sole surviving sibling when the parent collapses (2 → 1 children).
+    collapse_sibling: Option<VNodeId>,
+}
+
+/// Captures the V-topology before removing `v_id` from the tree.
+fn classify_leaf_removal<V: Accumulator>(
+    vnodes: &Arena<VNode<V>>,
+    v_id: VNodeId,
+) -> LeafRemovalContext {
+    let v_parent = vnodes.get(v_id.index()).parent;
+    let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
+        let count = match &vnodes.get(p.index()).kind {
+            VKind::Structural { children, .. } => children.len(),
+            VKind::Entry { .. } => 0,
+        };
+        match count {
+            3 => (3, Some(p), None),
+            2 => {
+                let sibling = match &vnodes.get(p.index()).kind {
+                    VKind::Structural { children, .. } => {
+                        let (c0, _) = children.get(0);
+                        let (c1, _) = children.get(1);
+                        if c0 == v_id { Some(c1) } else { Some(c0) }
+                    }
+                    VKind::Entry { .. } => None,
+                };
+                (2, vnodes.get(p.index()).parent, sibling)
+            }
+            _ => (count, None, None),
+        }
+    });
+    LeafRemovalContext {
+        v_parent,
+        child_count,
+        change_point,
+        collapse_sibling,
+    }
+}
+
+/// Pushes all rebalancing violations triggered by the removal of `v_id`.
+fn push_eviction_violations<V: Accumulator>(
+    vnodes: &Arena<VNode<V>>,
+    v_id: VNodeId,
+    ctx: &LeafRemovalContext,
+    violations: &mut Vec<VNodeId>,
+) {
+    if let Some(start) = ctx.change_point {
+        rebalance::push_leaf_removal_violations(vnodes, start, violations);
+    }
+    match ctx.child_count {
+        2 => {
+            if let Some(sole) = ctx.collapse_sibling {
+                tracing::debug!(
+                    sole = sole.index(),
+                    "evict_tip: calling push_collapse_violations"
+                );
+                rebalance::push_collapse_violations(vnodes, sole, violations);
+                if let Some(grandparent) = ctx.change_point {
+                    tracing::debug!(
+                        sole = sole.index(),
+                        grandparent = grandparent.index(),
+                        "evict_tip: calling push_cousin_violations (source 9)",
+                    );
+                    rebalance::push_cousin_violations(vnodes, sole, grandparent, violations);
+                }
+            }
+        }
+        3 => {
+            if let Some(p) = ctx.v_parent {
+                tracing::debug!(
+                    parent = p.index(),
+                    "evict_tip: calling push_remaining_sibling_violations"
+                );
+                rebalance::push_remaining_sibling_violations(vnodes, p, v_id, violations);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Parent G-node state captured before dealloc, for use by the plateau update.
+struct ParentSnapshot<C> {
+    state: GState,
+    lo: C,
+    hi: C,
+}
+
 pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &mut GvGraph<C, V, N>,
     v_id: VNodeId,
@@ -49,6 +143,9 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         .expect("evict_tip: terminal G-node must have a parent");
     span.record("parent", parent_id.index());
 
+    // ── Phase 1: G-tree restructuring ───────────────────────────────────────
+    // Absorb the evicted child's sum into the parent's own weight, detach
+    // the child slot, and recompute the parent sum invariant.
     let child_sum = graph.gnodes.get(gnode_id.index()).sum;
     let parent_sum_before = graph.gnodes.get(parent_id.index()).sum;
 
@@ -90,6 +187,9 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         graph.gnodes.get_mut(parent_id.index()).sum = recomputed;
     }
 
+    // ── Phase 2: V-intensity propagation ────────────────────────────────────
+    // The parent's `own` changed; push its new intensity up the V-tree and
+    // requeue any nodes that are now violated.
     let p_entry_id = graph
         .gnodes
         .get(parent_id.index())
@@ -110,6 +210,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         }
     }
 
+    // ── Phase 3: Evictable / exposed flag propagation ────────────────────────
     {
         let p = graph.gnodes.get(parent_id.index());
         let parent_is_exposed = p.uncovered_range().is_some();
@@ -129,82 +230,21 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         vtree::propagate_evictable_flags(&mut graph.vnodes, p_entry_id);
     }
 
-    let v_parent = graph.vnodes.get(v_id.index()).parent;
-    let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
-        let count = match &graph.vnodes.get(p.index()).kind {
-            VKind::Structural { children, .. } => children.len(),
-            VKind::Entry { .. } => 0,
-        };
-        match count {
-            3 => (3, Some(p), None),
-            2 => {
-                let sibling = match &graph.vnodes.get(p.index()).kind {
-                    VKind::Structural { children, .. } => {
-                        let (c0, _) = children.get(0);
-                        let (c1, _) = children.get(1);
-                        if c0 == v_id { Some(c1) } else { Some(c0) }
-                    }
-                    VKind::Entry { .. } => None,
-                };
-                (2, graph.vnodes.get(p.index()).parent, sibling)
-            }
-            _ => (count, None, None),
-        }
-    });
+    // ── Phase 4–6: Capture V-topology, remove leaf, push violations ─────
+    // Topology must be captured before removal; violations are pushed after.
+    let removal_ctx = classify_leaf_removal(&graph.vnodes, v_id);
 
     graph.v_root =
         vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gnodes, v_id, graph.v_root);
 
-    if let Some(start) = change_point {
-        rebalance::push_leaf_removal_violations(&graph.vnodes, start, &mut graph.violations);
-    }
+    push_eviction_violations(&graph.vnodes, v_id, &removal_ctx, &mut graph.violations);
 
-    match child_count {
-        2 => {
-            if let Some(sole) = collapse_sibling {
-                tracing::debug!(
-                    sole = sole.index(),
-                    "evict_tip: calling push_collapse_violations"
-                );
-                rebalance::push_collapse_violations(&graph.vnodes, sole, &mut graph.violations);
-
-                if let Some(grandparent) = change_point {
-                    tracing::debug!(
-                        sole = sole.index(),
-                        grandparent = grandparent.index(),
-                        "evict_tip: calling push_cousin_violations (source 9)",
-                    );
-                    rebalance::push_cousin_violations(
-                        &graph.vnodes,
-                        sole,
-                        grandparent,
-                        &mut graph.violations,
-                    );
-                }
-            }
-        }
-        3 => {
-            if let Some(p) = v_parent {
-                tracing::debug!(
-                    parent = p.index(),
-                    "evict_tip: calling push_remaining_sibling_violations"
-                );
-                rebalance::push_remaining_sibling_violations(
-                    &graph.vnodes,
-                    p,
-                    v_id,
-                    &mut graph.violations,
-                );
-            }
-        }
-        _ => {}
-    }
-
+    // ── Phase 7: Debug audit for missed violations ───────────────────────
     if tracing::enabled!(tracing::Level::ERROR) {
         let ctx = crate::diagnostics::diagnostic::EvictionContext {
-            evicted_parent: v_parent,
-            evicted_parent_child_count: child_count,
-            collapse_sibling,
+            evicted_parent: removal_ctx.v_parent,
+            evicted_parent_child_count: removal_ctx.child_count,
+            collapse_sibling: removal_ctx.collapse_sibling,
         };
         let all_violated = rebalance::find_violated_nodes(&graph.vnodes);
         let queued: std::collections::HashSet<usize> =
@@ -216,10 +256,14 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         }
     }
 
-    #[cfg(feature = "dynamic-contour-tracking")]
+    // ── Phase 8: Plateau snapshot, dealloc, terminal-count update ────────
     let parent_snapshot = {
         let pg = graph.gnodes.get(parent_id.index());
-        (pg.state(), pg.lo, pg.hi)
+        ParentSnapshot {
+            state: pg.state(),
+            lo: pg.lo,
+            hi: pg.hi,
+        }
     };
 
     graph.gnodes.dealloc(gnode_id.index());
@@ -230,228 +274,27 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         graph.terminal_count += 1;
     }
 
+    // ── Phase 9: Plateau mirror update ───────────────────────────────────────
+    // plateau_after_evict is a no-op when the feature is disabled.
+    let parent_state_after = parent_snapshot.state;
+    graph.plateau_after_evict(
+        gnode_id,
+        parent_id,
+        parent_state_after,
+        parent_snapshot.lo,
+        parent_snapshot.hi,
+    );
     #[cfg(feature = "dynamic-contour-tracking")]
-    {
-        let (parent_state_after, parent_lo, parent_hi) = parent_snapshot;
-        plateau_after_evict(
+    if tracing::enabled!(tracing::Level::DEBUG) {
+        crate::diagnostics::diagnostic::audit_plateau_consistency(
             graph,
-            gnode_id,
-            parent_id,
-            parent_state_after,
-            parent_lo,
-            parent_hi,
+            "POST-EVICT",
+            Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
+                parent_id,
+                parent_state: parent_state_after,
+            }),
         );
-
-        if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostics::diagnostic::audit_plateau_consistency(
-                graph,
-                "POST-EVICT",
-                Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
-                    parent_id,
-                    parent_state: parent_state_after,
-                }),
-            );
-        }
     }
-}
-
-#[cfg(feature = "dynamic-contour-tracking")]
-#[allow(clippy::too_many_lines)]
-fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
-    graph: &mut GvGraph<C, V, N>,
-    gnode_id: crate::handle::GNodeId,
-    parent_id: crate::handle::GNodeId,
-    parent_state_after: GState,
-    parent_lo: C,
-    parent_hi: C,
-) {
-    let _span = tracing::debug_span!(
-        "plateau_after_evict",
-        gnode = gnode_id.index(),
-        parent = parent_id.index(),
-        ?parent_state_after,
-    )
-    .entered();
-
-    let evicted_key = graph.plateau_basis.remove(gnode_id);
-
-    let mut displaced: Vec<crate::handle::GNodeId> = Vec::new();
-    let mut displaced_extra: Vec<(crate::handle::GNodeId, u32)> = Vec::new();
-
-    let ancestor_key = if let Some(key) = graph.plateau_basis.remove(parent_id) {
-        if parent_state_after == GState::SemiInternal {
-            let g = graph.gnodes.get(parent_id.index());
-            if let Some(sib) = g.left.or(g.right) {
-                if let Some(ok) = graph.plateau_basis.remove(sib) {
-                    graph.fixup_plateau(ok);
-                }
-                displaced.push(sib);
-            }
-        }
-
-        Some(key)
-    } else {
-        let mut path: Vec<crate::handle::GNodeId> = vec![parent_id];
-        let mut cur = graph.gnodes.get(parent_id.index()).parent;
-        let mut found = None;
-
-        let parent_key = {
-            let pg = graph.gnodes.get(parent_id.index());
-            crate::spatial::plateau::basis_edge_of(pg)
-        };
-
-        while let Some(anc) = cur {
-            if let Some(&anc_key) = graph.plateau_basis.plateau_key(anc).as_ref() {
-                let next_key = graph
-                    .plateaus
-                    .range((
-                        std::ops::Bound::Excluded(anc_key),
-                        std::ops::Bound::Unbounded,
-                    ))
-                    .next()
-                    .map(|(&k, _)| k);
-                let tile_covers =
-                    parent_key >= anc_key && next_key.is_none_or(|nk| parent_key < nk);
-
-                if tile_covers {
-                    graph.plateau_basis.remove(anc);
-
-                    if parent_state_after == GState::SemiInternal {
-                        let g = graph.gnodes.get(parent_id.index());
-                        if let Some(sib) = g.left.or(g.right) {
-                            if let Some(ok) = graph.plateau_basis.remove(sib) {
-                                graph.fixup_plateau(ok);
-                            }
-                            displaced.push(sib);
-                        }
-                    }
-
-                    for &path_node in &path {
-                        let par = graph
-                            .gnodes
-                            .get(path_node.index())
-                            .parent
-                            .expect("path node must have a parent");
-                        let pg = graph.gnodes.get(par.index());
-                        let sibling = if pg.left == Some(path_node) {
-                            pg.right
-                        } else {
-                            pg.left
-                        };
-                        if let Some(sib_id) = sibling {
-                            if displaced.contains(&sib_id) {
-                                continue;
-                            }
-                            if let Some(ok) = graph.plateau_basis.remove(sib_id) {
-                                graph.fixup_plateau(ok);
-                            }
-                            displaced.push(sib_id);
-                        }
-                    }
-
-                    found = Some(anc_key);
-                    break;
-                }
-            }
-            path.push(anc);
-            cur = graph.gnodes.get(anc.index()).parent;
-        }
-
-        found
-    };
-
-    if let Some(ek) = evicted_key {
-        graph.fixup_plateau(ek);
-    }
-    if let Some(ak) = ancestor_key {
-        if evicted_key != Some(ak) {
-            graph.fixup_plateau(ak);
-        }
-    }
-
-    let parent_depth = match parent_state_after {
-        GState::Terminal | GState::SemiInternal => {
-            crate::tree::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
-        }
-        GState::Internal => {
-            unreachable!("evict_tip: parent cannot remain Internal after eviction")
-        }
-    };
-
-    let parent_be = crate::spatial::plateau::BasisEdge(parent_lo);
-
-    {
-        let right_keys: Vec<crate::spatial::plateau::BasisEdge<C>> = graph
-            .plateaus
-            .range(crate::spatial::plateau::BasisEdge(parent_hi)..)
-            .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
-            .filter(|(_, p)| p.depth == parent_depth)
-            .map(|(&k, _)| k)
-            .collect();
-        for rk in right_keys {
-            let members: Vec<crate::handle::GNodeId> = graph
-                .plateau_basis
-                .basis_elements(&rk)
-                .iter()
-                .copied()
-                .collect();
-            if !members.is_empty() {
-                tracing::trace!(
-                    ?rk,
-                    parent_depth,
-                    members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
-                    "evacuating right-adjacent same-depth plateau for evict placement",
-                );
-                for &m in &members {
-                    graph.plateau_basis.remove(m);
-                }
-                graph.plateaus.remove(&rk);
-                for &m in &members {
-                    graph.collect_subtree_basis_elements(m, &mut displaced_extra);
-                }
-            }
-        }
-
-        let left_keys: Vec<crate::spatial::plateau::BasisEdge<C>> = graph
-            .plateaus
-            .range(..parent_be)
-            .rev()
-            .take_while(|(_, p)| p.end.total_cmp(&parent_lo) != std::cmp::Ordering::Less)
-            .filter(|(_, p)| p.depth == parent_depth)
-            .map(|(&k, _)| k)
-            .collect();
-        for lk in left_keys {
-            let members: Vec<crate::handle::GNodeId> = graph
-                .plateau_basis
-                .basis_elements(&lk)
-                .iter()
-                .copied()
-                .collect();
-            if !members.is_empty() {
-                tracing::trace!(
-                    ?lk,
-                    parent_depth,
-                    members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
-                    "evacuating left-adjacent same-depth plateau for evict placement",
-                );
-                for &m in &members {
-                    graph.plateau_basis.remove(m);
-                }
-                graph.plateaus.remove(&lk);
-                for &m in &members {
-                    graph.collect_subtree_basis_elements(m, &mut displaced_extra);
-                }
-            }
-        }
-    }
-
-    let mut to_place = Vec::new();
-    to_place.push((parent_id, parent_depth));
-    for &sib_id in &displaced {
-        graph.collect_subtree_basis_elements(sib_id, &mut to_place);
-    }
-    to_place.extend(displaced_extra);
-    graph.place_sorted(&mut to_place);
 }
 
 pub fn scan_for_candidates<C: Coordinate, V: Accumulator, const N: u32>(
