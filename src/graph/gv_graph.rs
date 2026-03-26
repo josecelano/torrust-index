@@ -87,12 +87,54 @@ pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
     pub(crate) plateaus_dirty: bool,
 }
 
+/// Capacity parameters derived from [`Config`] that control arena sizing,
+/// eviction headroom, and the optional soft node-count limit.
+struct Capacity {
+    /// `depth_evict - depth_create` — the number of depth levels between
+    /// the creation gate and the eviction gate.
+    depth_buffer: u32,
+    /// Maximum number of nodes that can exist between the creation gate and
+    /// the eviction gate.  Computed as `max(3^(depth_buffer+1), 2*depth_create-1)`
+    /// to satisfy both the fanout bound and the convergence bound.
+    headroom: usize,
+    /// If a budget was configured, the soft node-count limit at which eviction
+    /// is triggered: `budget - headroom`.
+    soft_limit: Option<usize>,
+}
+
+/// Derive [`Capacity`] from a graph configuration.
+///
+/// `headroom` is taken as the maximum of two bounds:
+/// - **Fanout bound**: `3^(depth_buffer + 1)` — worst-case number of nodes that
+///   can exist in the depth band `[depth_create, depth_evict]` given the maximum
+///   branching factor of 3.
+/// - **Convergence bound**: `2 * depth_create - 1` — minimum headroom required
+///   for the rebalance algorithm to converge without starvation.
+fn compute_capacity<V: Accumulator>(config: &Config<V>) -> Capacity {
+    let depth_buffer = config.depth_evict - config.depth_create;
+    let headroom_fanout = 3usize.pow(depth_buffer + 1);
+    let headroom_convergence = 2 * (config.depth_create as usize).saturating_sub(1);
+    let headroom = headroom_fanout.max(headroom_convergence);
+    let soft_limit = config.budget.map(|b| {
+        let s = b - headroom;
+        assert!(
+            s >= 1,
+            "soft_limit must be >= 1 (budget={b}, headroom={headroom})"
+        );
+        s
+    });
+    Capacity {
+        depth_buffer,
+        headroom,
+        soft_limit,
+    }
+}
+
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     // ── Construction ─────────────────────────────────────────────────────
     #[must_use]
     pub fn new(config: Config<V>) -> Self {
         const { assert!(N <= C::BITS, "N must be <= C::BITS") };
-
         config.validate();
 
         let mut gnodes = Arena::new();
@@ -125,18 +167,11 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
         let live_depth_evict = config.depth_evict;
         let live_depth_create = config.depth_create;
-        let depth_buffer = config.depth_evict - config.depth_create;
-        let headroom = 3usize.pow(depth_buffer + 1);
-        let convergence_bound = 2 * (live_depth_create as usize).saturating_sub(1);
-        let required_headroom = headroom.max(convergence_bound);
-        let soft_limit = config.budget.map(|b| {
-            let s = b - required_headroom;
-            assert!(
-                s >= 1,
-                "soft_limit must be >= 1 (budget={b}, headroom={required_headroom})"
-            );
-            s
-        });
+        let Capacity {
+            depth_buffer,
+            headroom,
+            soft_limit,
+        } = compute_capacity(&config);
 
         #[cfg(feature = "dynamic-contour-tracking")]
         let (plateaus, plateau_basis) = {
