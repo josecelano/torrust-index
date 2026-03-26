@@ -1,3 +1,20 @@
+//! Pewei — layered spatial snapshot of the G-tree.
+//!
+//! A [`Pewei`] is a read-only, multi-layer representation of the G-tree state
+//! captured at successive decay epochs.  Each [`Layer`] records the G-tree
+//! regions that were "visible" at a specific epoch:
+//!
+//! - A [`Terminal`] node is a region that was a leaf in the G-tree at that
+//!   epoch.  It holds a single `intensity` value covering the whole
+//!   `[start, end)` span.
+//! - A [`Transition`] node is an internal region at that epoch.  It holds a
+//!   `baseline` (the G-node's own accumulated value) and a `total` (sum of the
+//!   entire subtree below it in the most recent layer where it was `Internal`).
+//!
+//! [`Pewei::reconstruct`] materialises a contiguous list of [`Span`] values
+//! covering `[domain_start, domain_end)`.  It uses [`RegionLookup`] to do
+//! O(log n) lookups per depth level, and [`descend`] to recursively compose
+//! overlapping contributions from multiple layers into smooth spatial spans.
 use crate::spatial::view::Span;
 use crate::traits::{Accumulator, Coordinate, Proratable};
 
@@ -95,6 +112,14 @@ struct RegionLookup<C: Coordinate> {
 }
 
 impl<C: Coordinate> RegionLookup<C> {
+    /// Build depth-indexed sorted lookup buckets from `layers`.
+    ///
+    /// Each `DepthBucket` holds two parallel vecs — `starts` and `nodes` —
+    /// sorted by `start` coordinate.  Together they enable an O(log n) binary
+    /// search: given a `(start, depth)` pair, `RegionLookup::get` finds the
+    /// matching node in the corresponding depth bucket in O(log n) time,
+    /// avoiding a linear scan over all nodes at each recursive step in
+    /// [`descend`].
     fn build<V: Accumulator>(layers: &[Layer<C, V>]) -> Self {
         let max_depth = layers
             .iter()
@@ -176,6 +201,8 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
 ) {
     match lookup.get(start, g_depth) {
         None => {
+            // No node covers this region at this depth across any layer; emit
+            // a uniform span carrying only the background accumulated so far.
             #[allow(clippy::cast_possible_truncation)]
             output.push(Span {
                 start,
@@ -185,6 +212,8 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
             });
         }
         Some(NodeRef::Terminal { layer, idx }) => {
+            // A leaf node — no children exist.  Add its intensity to the
+            // accumulated background and emit a single span for [start, end).
             let t = &layers[layer as usize].terminals[idx as usize];
             output.push(Span {
                 start,
@@ -194,6 +223,9 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
             });
         }
         Some(NodeRef::Transition { layer, idx }) => {
+            // An internal node — may have 0, 1, or 2 children in the lookup.
+            // `baseline` is the node's own (non-child) energy contribution;
+            // `total` is the full subtree energy (baseline + all descendants).
             let tr = &layers[layer as usize].transitions[idx as usize];
             let baseline = tr.baseline;
             let total = tr.total;
@@ -209,10 +241,15 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
 
             match (left_ref, right_ref) {
                 (Some(_), Some(_)) => {
+                    // Both children are present — recurse into each half.
                     descend(lookup, layers, start, mid, child_depth, half_bg, output);
                     descend(lookup, layers, mid, end, child_depth, half_bg, output);
                 }
                 (Some(left_nr), None) => {
+                    // Only the left child is present.  Recurse left; for the
+                    // right half emit a uniform span carrying the energy that
+                    // cannot be attributed to either the baseline or the known
+                    // left child: remainder = total − baseline − left_total.
                     descend(lookup, layers, start, mid, child_depth, half_bg, output);
                     let left_total = node_total(layers, left_nr);
                     let remainder = V::sub(V::sub(total, baseline), left_total);
@@ -224,6 +261,9 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
                     });
                 }
                 (None, Some(right_nr)) => {
+                    // Only the right child is present.  Emit a uniform span for
+                    // the left half (remainder = total − baseline − right_total)
+                    // then recurse right.
                     let right_total = node_total(layers, right_nr);
                     let remainder = V::sub(V::sub(total, baseline), right_total);
                     output.push(Span {
@@ -235,6 +275,8 @@ fn descend<C: Coordinate, V: Accumulator + Proratable>(
                     descend(lookup, layers, mid, end, child_depth, half_bg, output);
                 }
                 (None, None) => {
+                    // Neither child is present — emit the whole region as a
+                    // single span with the full subtree energy.
                     output.push(Span {
                         start,
                         end,
