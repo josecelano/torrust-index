@@ -150,6 +150,13 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     }
 }
 
+/// Saturating depth increment: returns `d + 1` unless `d` is `DEPTH_STALE`,
+/// in which case `DEPTH_STALE` is propagated unchanged.
+#[inline]
+fn depth_plus_one(d: u32) -> u32 {
+    if d == DEPTH_STALE { DEPTH_STALE } else { d + 1 }
+}
+
 #[allow(clippy::too_many_lines)]
 fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &mut GvGraph<C, V, N>,
@@ -172,6 +179,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         .parent
         .expect("catalytic_split: entry must have a parent");
 
+    // ── Phase 1: Allocate G-children and V-entry nodes ───────────────────
     let left_id = alloc_g_child(&mut graph.gnodes, lo, mid, g_id);
     let right_id = alloc_g_child(&mut graph.gnodes, mid, hi, g_id);
     graph.gnodes.get_mut(g_id.index()).left = Some(left_id);
@@ -180,21 +188,14 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, left_id);
     let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, right_id);
 
+    // ── Phase 2: Compute depth metadata ───────────────────────────────────
     let p_depth = graph
         .vnodes
         .get(p_id.index())
         .cached_depth
         .load(Ordering::Relaxed);
-    let s_depth = if p_depth == DEPTH_STALE {
-        DEPTH_STALE
-    } else {
-        p_depth + 1
-    };
-    let child_depth = if s_depth == DEPTH_STALE {
-        DEPTH_STALE
-    } else {
-        s_depth + 1
-    };
+    let s_depth = depth_plus_one(p_depth);
+    let child_depth = depth_plus_one(s_depth);
 
     let s = VNode {
         intensity: V::zero(),
@@ -209,6 +210,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph.vnodes.get_mut(le_id.index()).parent = Some(s_id);
     graph.vnodes.get_mut(re_id.index()).parent = Some(s_id);
 
+    // ── Phase 4: Wire `s` into the parent's child list; store child depths ───
     graph
         .vnodes
         .get(le_id.index())
@@ -235,8 +237,10 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         *is_evictable = false;
     }
 
+    // ── Phase 5: Propagate evictable flags ────────────────────────────────
     propagate_evictable_flags(&mut graph.vnodes, p_id);
 
+    // ── Phase 6: Update node/terminal counts and plateau state ─────────────
     graph.node_count += 2;
 
     graph.terminal_count += 1;
