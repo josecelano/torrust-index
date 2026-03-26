@@ -5,6 +5,26 @@ use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
 use crate::tree::{gtree, vtree};
 
 #[allow(clippy::float_cmp)]
+/// Compute per-depth attenuation factors for a decay operation over a G-tree
+/// subtree that spans `depth_range + 1` depth levels.
+///
+/// For each local depth `d` in `0..=depth_range` the factor is:
+///
+/// $$f(d) = \text{att}^{q \cdot t + 1}, \qquad
+///   t = \frac{2\,d}{D} - 1 \in [-1,\, 1]$$
+///
+/// where $D = \text{depth\_range}$ (or 0 when the subtree is a single level,
+/// in which case $t = 0$ and every node receives exactly `att`).
+///
+/// The `q` parameter shapes the depth-selectivity:
+/// - `q = 0.0` → **uniform**: every depth gets `att` unchanged.
+/// - `q = 1.0` → **maximum taper**: the shallowest level ($t = -1$) receives
+///   $\text{att}^0 = 1$ (no decay); the deepest level ($t = +1$) receives
+///   $\text{att}^2$ (double-strength decay).
+/// - Values between 0 and 1 interpolate linearly between those extremes.
+///
+/// Special cases for `att == 0.0` and `att == ∞` are handled explicitly to
+/// avoid `NaN` arising from `0.0.ln()` and `∞.ln()`.
 fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
     if att == 0.0 {
         (0..=depth_range)
@@ -97,6 +117,11 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             let g = self.gnodes.get_mut(gid.index());
             g.own = g.own.attenuate(att);
 
+            // NOTE: V-entry intensity is written inline here, alongside g.own,
+            // because the same factor applies to every depth.  The subsequent
+            // `recompute_all_v_intensities` call derives all parent V-sums from
+            // these leaf intensities, so inline updates are safe and avoid a
+            // second tree traversal.
             if let Some(v_id) = g.entry {
                 let own = g.own;
                 self.vnodes.get_mut(v_id.index()).intensity = own;
@@ -172,6 +197,13 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             }
         }
 
+        // NOTE: V-entry intensities are written in a *separate second pass*,
+        // after all G-node own-values have been updated and G-sums recomputed.
+        // This is required because the per-depth factors differ: if we wrote
+        // v.intensity inline (as decay_uniform does), a node at depth d would
+        // receive a factor derived from the not-yet-final g.own of a sibling at
+        // a different depth.  Delaying until all g.own are stable avoids that
+        // ordering hazard.
         for &gid in &order {
             let g = self.gnodes.get(gid.index());
             if let Some(v_id) = g.entry {
