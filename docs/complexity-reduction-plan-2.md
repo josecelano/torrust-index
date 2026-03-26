@@ -335,17 +335,17 @@ blocks if that's the local convention (check existing files first).
 
 ## Tracking
 
-| ID  | Status      | Notes                                                                       |
-| --- | ----------- | --------------------------------------------------------------------------- |
-| Q1  | Not started |                                                                             |
-| Q2  | Not started |                                                                             |
-| Q3  | Done        | `89ab927` — phase banners in `observe()`                                    |
-| Q4  | Not started |                                                                             |
-| Q5  | Not started |                                                                             |
-| Q6  | Not started |                                                                             |
-| Q7  | Done        | `922f2f3` — formula doc + NOTE comments in decay                            |
-| Q8  | Done        | `61ad514` — module doc, `RegionLookup::build` doc, `descend()` arm comments |
-| Q9  | Not started |                                                                             |
-| Q10 | Done        | `9ff3ee6` — module-level doc for `vtree.rs`                                 |
-| Q11 | Done        | `9ddd9d3` — doc comment + path banners in `resolve()`                       |
-| Q12 | Not started |                                                                             |
+| ID  | Status      | Notes                                                                        |
+| --- | ----------- | ---------------------------------------------------------------------------- |
+| Q1  | Done        | `9186235` — extract `compute_capacity()` from `GvGraph::new()`               |
+| Q2  | Done        | `b9bdcb0` — extract `handle_iteration_limit()` from `rebalance()` safety-net |
+| Q3  | Done        | `89ab927` — phase banners in `observe()`                                     |
+| Q4  | Not started |                                                                              |
+| Q5  | Done        | `94172b8` — gate `uniform_contour_depth_of` with feature flag                |
+| Q6  | Done        | `c53546f` — phase banners + `depth_plus_one` in `catalytic_split()`          |
+| Q7  | Done        | `922f2f3` — formula doc + NOTE comments in decay                             |
+| Q8  | Done        | `61ad514` — module doc, `RegionLookup::build` doc, `descend()` arm comments  |
+| Q9  | Done        | `553645a` — group `check_all_invariants` into 4 private helpers              |
+| Q10 | Done        | `9ff3ee6` — module-level doc for `vtree.rs`                                  |
+| Q11 | Done        | `9ddd9d3` — doc comment + path banners in `resolve()`                        |
+| Q12 | Done        | `99cbdf9` — section banners in `gv_graph.rs` impl block                      |

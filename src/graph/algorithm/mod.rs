@@ -2,6 +2,7 @@ pub(crate) mod budget;
 pub(crate) mod decay;
 pub(crate) mod evict;
 pub(crate) mod extract;
+pub(crate) mod fmt;
 pub(crate) mod observe;
 pub(crate) mod plateau;
 pub(crate) mod promote;

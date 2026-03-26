@@ -1,4 +1,3 @@
-use std::fmt;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::arena::Arena;
@@ -11,64 +10,8 @@ use crate::tree::vtree::{invalidate_depth_subtree, propagate_evictable_flags, v_
 use super::promote::{legacy_promote, skip_promote, standard_promote};
 use super::violation_push::*;
 
-pub struct Nd<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);
-
-impl<V: Accumulator> fmt::Display for Nd<'_, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let idx = self.1.index();
-        if !self.0.is_occupied(idx) {
-            return write!(f, "v{idx}(DEAD)");
-        }
-        let n = self.0.get(idx);
-        match &n.kind {
-            VKind::Entry { .. } => write!(f, "v{idx}(E,{:?})", n.intensity),
-            VKind::Structural { children, .. } => {
-                write!(f, "v{idx}(S{},{:?})", children.len(), n.intensity)
-            }
-        }
-    }
-}
-
-pub(super) struct Ch<'a, V: Accumulator>(pub(super) &'a Arena<VNode<V>>, pub(super) VNodeId);
-
-impl<V: Accumulator> fmt::Display for Ch<'_, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.0.get(self.1.index()).kind {
-            VKind::Entry { .. } => f.write_str("∅"),
-            VKind::Structural { children, .. } => {
-                f.write_str("[")?;
-                for i in 0..children.len() {
-                    if i > 0 {
-                        f.write_str(", ")?;
-                    }
-                    let (id, int) = children.get(i);
-                    write!(f, "v{}({:?})", id.index(), int)?;
-                }
-                f.write_str("]")
-            }
-        }
-    }
-}
-
-pub struct Ctx<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);
-
-impl<V: Accumulator> fmt::Display for Ctx<'_, V> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (vnodes, c) = (self.0, self.1);
-        write!(f, "{}", Nd(vnodes, c))?;
-        let Some(p) = vnodes.get(c.index()).parent else {
-            return f.write_str(" (root)");
-        };
-        write!(f, " ← {} {}", Nd(vnodes, p), Ch(vnodes, p))?;
-        if let Some(g) = vnodes.get(p.index()).parent {
-            write!(f, " ← {} {}", Nd(vnodes, g), Ch(vnodes, g))?;
-        }
-        if let Some(u) = max_uncle_intensity(vnodes, c) {
-            write!(f, "  uncle_max={u:?}")?;
-        }
-        Ok(())
-    }
-}
+pub(super) use super::fmt::Ch;
+pub use super::fmt::{Ctx, Nd};
 
 #[must_use]
 pub fn max_uncle_intensity<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> Option<V> {
