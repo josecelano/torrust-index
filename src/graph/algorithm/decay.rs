@@ -4,6 +4,53 @@ use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
 use crate::tree::{gtree, vtree};
 
+#[allow(clippy::float_cmp)]
+fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
+    if att == 0.0 {
+        (0..=depth_range)
+            .map(|d_local| {
+                let exponent = if depth_range == 0 {
+                    1.0
+                } else {
+                    let t = 2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0;
+                    q.mul_add(t, 1.0)
+                };
+                if exponent == 0.0 { 1.0 } else { 0.0 }
+            })
+            .collect()
+    } else if att.is_infinite() {
+        (0..=depth_range)
+            .map(|d_local| {
+                let exponent = if depth_range == 0 {
+                    1.0
+                } else {
+                    let t = 2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0;
+                    q.mul_add(t, 1.0)
+                };
+                if exponent == 0.0 {
+                    1.0
+                } else if exponent > 0.0 {
+                    f64::INFINITY
+                } else {
+                    0.0
+                }
+            })
+            .collect()
+    } else {
+        let ln_att = att.ln();
+        (0..=depth_range)
+            .map(|d_local| {
+                let t = if depth_range == 0 {
+                    0.0
+                } else {
+                    2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0
+                };
+                (ln_att * q.mul_add(t, 1.0)).exp()
+            })
+            .collect()
+    }
+}
+
 impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn decay(&mut self, root: GNodeId, attenuation: f64, q: f64) {
         let _span = tracing::debug_span!("decay", root = root.index(), attenuation, q,).entered();
@@ -76,34 +123,9 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             vtree::recompute_all_v_intensities(&mut self.vnodes, v_root);
         }
 
-        self.violations = rebalance::find_violated_nodes(&self.vnodes);
-        let new_gnodes = rebalance::rebalance(
-            &mut self.vnodes,
-            &mut self.gnodes,
-            &mut self.violations,
-            self.live_depth_evict,
-        );
-        if !new_gnodes.is_empty() {
-            self.handle_legacy_promotes(&new_gnodes);
-        }
-
-        self.plateau_recompute_sums("DECAY-UNIFORM");
-
-        #[cfg(feature = "dynamic-contour-tracking")]
-        {
-            self.plateaus_dirty = true;
-        }
-        self.normalize_plateaus();
-
-        self.repair_p_i4();
-
-        #[cfg(feature = "dynamic-contour-tracking")]
-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
-            self.debug_assert_plateau_mirror_consistency("POST-DECAY-UNIFORM");
-        }
+        self.post_decay_repair("DECAY-UNIFORM");
     }
 
-    #[allow(clippy::too_many_lines)]
     fn decay_selective(&mut self, root: GNodeId, att: f64, q: f64, is_global: bool) {
         let _span =
             tracing::debug_span!("decay_selective", root = root.index(), att, q, is_global,)
@@ -132,50 +154,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
         }
         let depth_range = max_depth - d_root;
 
-        #[allow(clippy::float_cmp)]
-        let factors: Vec<f64> = if att == 0.0 {
-            (0..=depth_range)
-                .map(|d_local| {
-                    let exponent = if depth_range == 0 {
-                        1.0
-                    } else {
-                        let t = 2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0;
-                        q.mul_add(t, 1.0)
-                    };
-                    if exponent == 0.0 { 1.0 } else { 0.0 }
-                })
-                .collect()
-        } else if att.is_infinite() {
-            (0..=depth_range)
-                .map(|d_local| {
-                    let exponent = if depth_range == 0 {
-                        1.0
-                    } else {
-                        let t = 2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0;
-                        q.mul_add(t, 1.0)
-                    };
-                    if exponent == 0.0 {
-                        1.0
-                    } else if exponent > 0.0 {
-                        f64::INFINITY
-                    } else {
-                        0.0
-                    }
-                })
-                .collect()
-        } else {
-            let ln_att = att.ln();
-            (0..=depth_range)
-                .map(|d_local| {
-                    let t = if depth_range == 0 {
-                        0.0
-                    } else {
-                        2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0
-                    };
-                    (ln_att * q.mul_add(t, 1.0)).exp()
-                })
-                .collect()
-        };
+        let factors = depth_attenuation_factors(att, q, depth_range);
 
         for &gid in &order {
             let d_local = self.gnode_depth(gid) - d_root;
@@ -205,7 +184,10 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             vtree::recompute_all_v_intensities(&mut self.vnodes, v_root);
         }
 
-        let _ = is_global;
+        self.post_decay_repair("DECAY-SELECTIVE");
+    }
+
+    fn post_decay_repair(&mut self, label: &str) {
         self.violations = rebalance::find_violated_nodes(&self.vnodes);
         let new_gnodes = rebalance::rebalance(
             &mut self.vnodes,
@@ -217,7 +199,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             self.handle_legacy_promotes(&new_gnodes);
         }
 
-        self.plateau_recompute_sums("DECAY-SELECTIVE");
+        self.plateau_recompute_sums(label);
 
         #[cfg(feature = "dynamic-contour-tracking")]
         {
@@ -229,7 +211,8 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
 
         #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
-            self.debug_assert_plateau_mirror_consistency("POST-DECAY-SELECTIVE");
+            let post_label = format!("POST-{label}");
+            self.debug_assert_plateau_mirror_consistency(&post_label);
         }
     }
 }

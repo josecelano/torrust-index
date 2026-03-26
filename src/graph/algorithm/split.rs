@@ -3,7 +3,9 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use crate::arena::Arena;
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance::{Nd, contract};
-use crate::graph::algorithm::violation_push::{push_promoted_violations, push_side_effect_violations};
+use crate::graph::algorithm::violation_push::{
+    push_promoted_violations, push_side_effect_violations,
+};
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
