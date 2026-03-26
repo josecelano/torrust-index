@@ -279,6 +279,25 @@ fn escalate_after_promote<V: Accumulator>(
     }
 }
 
+/// Attempt to resolve a single violation at V-node `c`.
+///
+/// The function dispatches between two paths based on the shape of `c`:
+///
+/// - **Path A (standard promote)**: `c` is a structural node with exactly two
+///   children.  The violation is resolved by calling `standard_promote` and
+///   propagating any side-effects upward.  This is the common, cheap case.
+///
+/// - **Path B (skip/legacy promote)**: `c` is any other kind (entry, or
+///   structural with ≠ 2 children).  An optional grandparent contraction is
+///   attempted first; then, if `c` is a semi-internal entry at or above
+///   `depth_evict`, a `legacy_promote` upgrades it to a full G-node (returning
+///   the new `GNodeId`); otherwise a `skip_promote` moves the violation up.
+///
+/// In both paths a preliminary contraction of the *parent* is attempted when
+/// the parent has 3 structural children, which may resolve the violation
+/// outright before the main dispatch.
+///
+/// Returns `Some(new_g)` only when a legacy promote created a new G-node.
 pub fn resolve<C: Coordinate, V: Accumulator>(
     vnodes: &mut Arena<VNode<V>>,
     gnodes: &mut Arena<GNode<C, V>>,
@@ -313,12 +332,14 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
 
     let mut result = None;
 
+    // ── Path A: standard promote ─────────────────────────────────────────────
     if is_c_structural_2 {
         tracing::debug!("phase 2: standard promote");
         standard_promote(vnodes, c);
         push_side_effect_violations(vnodes, p, violations);
         push_promoted_violations(vnodes, p, violations);
         escalate_after_promote(vnodes, p, violations);
+    // ── Path B: skip / legacy promote ──────────────────────────────────────────
     } else {
         tracing::debug!("phase 2: skip promote path");
         let Some(g) = vnodes.get(p.index()).parent else {
