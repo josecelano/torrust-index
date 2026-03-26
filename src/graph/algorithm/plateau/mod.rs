@@ -468,36 +468,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     #[cfg(feature = "dynamic-contour-tracking")]
-    #[allow(dead_code)]
-    pub(crate) fn place_subtree_basis_elements(&mut self, gid: GNodeId) {
-        use crate::nodes::gnode::GState;
-
-        let g = self.gnodes.get(gid.index());
-        match g.state() {
-            GState::Terminal | GState::SemiInternal => {
-                let depth = crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N);
-                self.place_basis_element(gid, depth);
-            }
-            GState::Internal => {
-                if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
-                    self.place_basis_element(gid, ud);
-                } else {
-                    let (left, right) = {
-                        let g = self.gnodes.get(gid.index());
-                        (g.left, g.right)
-                    };
-                    if let Some(l) = left {
-                        self.place_subtree_basis_elements(l);
-                    }
-                    if let Some(r) = right {
-                        self.place_subtree_basis_elements(r);
-                    }
-                }
-            }
-        }
-    }
-
-    #[cfg(feature = "dynamic-contour-tracking")]
     #[allow(clippy::float_cmp)]
     pub(crate) fn debug_check_plateau_sums(&self, label: &str) {
         if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {

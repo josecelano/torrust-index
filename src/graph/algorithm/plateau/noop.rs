@@ -11,10 +11,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     // --- from mod.rs ---
 
     #[inline(always)]
-    #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
-    pub(crate) fn place_subtree_basis_elements(&mut self, _gid: GNodeId) {}
-
-    #[inline(always)]
     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
     pub(crate) fn repair_p_i4(&mut self) {}
 

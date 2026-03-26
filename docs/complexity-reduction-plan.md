@@ -419,21 +419,21 @@ V-only rebalancing from G+V joint operations.
 
 ## Tracking
 
-| ID  | Status      | Notes |
-| --- | ----------- | ----- |
-| P1  | Not started |       |
-| P2  | Not started |       |
-| P3  | Not started |       |
-| P4  | Not started |       |
-| P5  | Not started |       |
-| P6  | Not started |       |
-| P7  | Not started |       |
-| P8  | Not started |       |
-| P9  | Not started |       |
-| P10 | Not started |       |
-| P11 | Not started |       |
-| P12 | Not started |       |
-| P13 | Not started |       |
-| P14 | Not started |       |
-| P15 | Not started |       |
-| P16 | Not started |       |
+| ID  | Status      | Notes                                                                          |
+| --- | ----------- | ------------------------------------------------------------------------------ |
+| P1  | Done        | commit `731efed` — `LeafRemovalContext`, `ParentSnapshot<C>`, phase comments   |
+| P2  | Done        | commit `731efed` — `plateau_after_evict` moved to `plateau/mod.rs`             |
+| P3  | Done        | commit `6de0eeb` — `normalise.rs` sub-module extracted                         |
+| P4  | Done        | commit `f229326` — no-op stubs collected in `plateau/noop.rs`                  |
+| P5  | Done        | commit `845ac7a` — `push_*` helpers extracted to `violation_push.rs`           |
+| P6  | Done        | commit `9b01720` — `post_decay_repair` + `depth_attenuation_factors` extracted |
+| P7  | Done        | commit `2a5845e` — `sample`/`sample_child` moved to `algorithm/sample.rs`      |
+| P8  | Not started |                                                                                |
+| P9  | Not started |                                                                                |
+| P10 | Not started |                                                                                |
+| P11 | Not started |                                                                                |
+| P12 | Not started |                                                                                |
+| P13 | Not started |                                                                                |
+| P14 | Not started |                                                                                |
+| P15 | Done        | removed as part of P6 (`let _ = is_global` eliminated)                         |
+| P16 | Not started |                                                                                |
