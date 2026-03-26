@@ -40,7 +40,7 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     if p_child_count == 3 {
         span.record("case", "shrink");
         remove_child_from_structural(vnodes, p_id, v_id);
-        propagate_v_sums_from(vnodes, p_id);
+        recompute_and_propagate_v_sums(vnodes, p_id);
         propagate_evictable_flags(vnodes, p_id);
         vnodes.dealloc(v_id.index());
         return v_root;
@@ -57,7 +57,7 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     let new_root = grandparent.map_or(Some(sole_id), |g_id| {
         let sole_int = vnodes.get(sole_id.index()).intensity;
         replace_child_in_parent(vnodes, g_id, p_id, sole_id, sole_int);
-        propagate_v_sums_from(vnodes, g_id);
+        recompute_and_propagate_v_sums(vnodes, g_id);
         propagate_evictable_flags(vnodes, g_id);
         v_root
     });
@@ -67,17 +67,23 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     new_root
 }
 
+/// Walks ancestors of `start` (exclusive — `start` itself is not recomputed)
+/// and updates each structural node's intensity and its cached slot in its parent.
+/// Use [`recompute_and_propagate_v_sums`] when `start` also needs recomputing.
 pub fn propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
     tracing::trace!(start = start.index(), "propagate_v_sums");
     let mut current = vnodes.get(start.index()).parent;
     while let Some(id) = current {
         recompute_structural_intensity(vnodes, id);
         let new_int = vnodes.get(id.index()).intensity;
-        update_parent_cached_intensity(vnodes, id, new_int);
+        sync_intensity_in_parent(vnodes, id, new_int);
         current = vnodes.get(id.index()).parent;
     }
 }
 
+/// Recomputes intensities for every node in the tree rooted at `v_root`
+/// (full post-order traversal). Use [`propagate_v_sums`] for a cheaper
+/// ancestor-only walk after a targeted update.
 pub fn recompute_all_v_intensities<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, v_root: VNodeId) {
     recompute_v_postorder(vnodes, v_root);
 }
@@ -194,7 +200,7 @@ pub fn invalidate_depth_subtree<V: Accumulator>(vnodes: &Arena<VNode<V>>, root: 
     }
 }
 
-pub fn update_parent_cached_intensity<V: Accumulator>(
+pub fn sync_intensity_in_parent<V: Accumulator>(
     vnodes: &mut Arena<VNode<V>>,
     child_id: VNodeId,
     new_intensity: V,
@@ -263,10 +269,10 @@ pub fn recompute_structural_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V
     }
 }
 
-fn propagate_v_sums_from<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+fn recompute_and_propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
     recompute_structural_intensity(vnodes, start);
     let new_int = vnodes.get(start.index()).intensity;
-    update_parent_cached_intensity(vnodes, start, new_int);
+    sync_intensity_in_parent(vnodes, start, new_int);
     propagate_v_sums(vnodes, start);
 }
 

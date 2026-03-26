@@ -199,7 +199,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     {
         let p_own = graph.gnodes.get(parent_id.index()).own;
         graph.vnodes.get_mut(p_entry_id.index()).intensity = p_own;
-        vtree::update_parent_cached_intensity(&mut graph.vnodes, p_entry_id, p_own);
+        vtree::sync_intensity_in_parent(&mut graph.vnodes, p_entry_id, p_own);
         vtree::propagate_v_sums(&mut graph.vnodes, p_entry_id);
 
         let mut check_id = Some(p_entry_id);

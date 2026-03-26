@@ -21,7 +21,7 @@ use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 use crate::tree::vtree::{
     invalidate_depth_subtree, propagate_evictable_flags, recompute_structural_intensity,
-    replace_child_in_parent, update_parent_cached_intensity,
+    replace_child_in_parent, sync_intensity_in_parent,
 };
 
 use super::rebalance::{Ch, Nd, node_has_evictable};
@@ -300,7 +300,7 @@ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
 
     recompute_structural_intensity(vnodes, p);
     let new_p_int = vnodes.get(p.index()).intensity;
-    update_parent_cached_intensity(vnodes, p, new_p_int);
+    sync_intensity_in_parent(vnodes, p, new_p_int);
 
     propagate_evictable_flags(vnodes, p);
     propagate_evictable_flags(vnodes, g);

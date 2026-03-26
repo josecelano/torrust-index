@@ -23,7 +23,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             v.intensity = O::accumulate(v.intensity, delta);
             let new_intensity = v.intensity;
 
-            vtree::update_parent_cached_intensity(&mut self.vnodes, entry_id, new_intensity);
+            vtree::sync_intensity_in_parent(&mut self.vnodes, entry_id, new_intensity);
             vtree::propagate_v_sums(&mut self.vnodes, entry_id);
 
             let mut check_id = Some(entry_id);
