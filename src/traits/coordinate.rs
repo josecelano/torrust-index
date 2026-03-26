@@ -15,9 +15,6 @@ pub trait Coordinate: Copy + PartialOrd + Debug + Default + Send + Sync + 'stati
 
     fn from_u64(v: u64) -> Self;
 
-    #[must_use]
-    fn next_value(self) -> Self;
-
     fn to_f64(self) -> f64;
 
     fn is_nan(self) -> bool;
@@ -64,11 +61,6 @@ macro_rules! impl_coordinate_uint {
             }
 
             #[inline]
-            fn next_value(self) -> Self {
-                self + 1
-            }
-
-            #[inline]
             #[allow(clippy::cast_precision_loss, clippy::cast_lossless)]
             fn to_f64(self) -> f64 {
                 self as f64
@@ -88,6 +80,32 @@ macro_rules! impl_coordinate_uint {
 }
 
 impl_coordinate_uint!(u8, u16, u32, u64, u128);
+
+/// Subtrait of [`Coordinate`] for integer (discrete) coordinate types.
+///
+/// Integer coordinates support a `next_value` operation (increment by one
+/// unit) that has no meaningful equivalent for float coordinates. Bounding
+/// a function on `DiscreteCoordinate` instead of `Coordinate` makes this
+/// requirement visible at compile time and prevents accidental use with
+/// floating-point coordinate types.
+pub trait DiscreteCoordinate: Coordinate {
+    /// Returns the smallest coordinate strictly greater than `self`.
+    #[must_use]
+    fn next_value(self) -> Self;
+}
+
+macro_rules! impl_discrete_coordinate_uint {
+    ($($ty:ty),+) => {$(
+        impl DiscreteCoordinate for $ty {
+            #[inline]
+            fn next_value(self) -> Self {
+                self + 1
+            }
+        }
+    )+};
+}
+
+impl_discrete_coordinate_uint!(u8, u16, u32, u64, u128);
 
 impl Coordinate for f32 {
     const BITS: u32 = 32;
@@ -122,13 +140,6 @@ impl Coordinate for f32 {
     #[allow(clippy::cast_precision_loss)]
     fn from_u64(v: u64) -> Self {
         v as Self
-    }
-
-    #[inline]
-    fn next_value(self) -> Self {
-        panic!(
-            "next_value is not supported for f32 coordinates; use Excluded/Included bounds directly"
-        )
     }
 
     #[inline]
@@ -180,13 +191,6 @@ impl Coordinate for f64 {
     #[allow(clippy::cast_precision_loss)]
     fn from_u64(v: u64) -> Self {
         v as Self
-    }
-
-    #[inline]
-    fn next_value(self) -> Self {
-        panic!(
-            "next_value is not supported for f64 coordinates; use Excluded/Included bounds directly"
-        )
     }
 
     #[inline]
@@ -382,29 +386,17 @@ mod tests {
         }
     }
 
-    // ── Coordinate::next_value ──────────────────────────────────────────────
+    // ── DiscreteCoordinate::next_value ─────────────────────────────────────
     mod next_value {
-        use crate::traits::Coordinate;
+        use crate::traits::DiscreteCoordinate;
 
         #[test]
         fn increments_an_integer_by_one() {
             assert_eq!(5u8.next_value(), 6u8);
         }
-
-        #[test]
-        #[should_panic]
-        fn panics_for_f32() {
-            let _ = 1.0_f32.next_value();
-        }
-
-        #[test]
-        #[should_panic]
-        fn panics_for_f64() {
-            let _ = 1.0_f64.next_value();
-        }
     }
 
-    // ── Coordinate::to_f64 ──────────────────────────────────────────────────
+    // ── Coordinate::to_f64 ─────────────────────────────────────────────────
     mod to_f64 {
         use crate::traits::Coordinate;
 

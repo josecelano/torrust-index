@@ -7,7 +7,7 @@ use crate::spatial::contour_range::{
     BasisElement, ContourRange, ContourRangeEnergy, compute_plateau_energy, validate_endpoints,
 };
 use crate::spatial::plateau::BasisEdge;
-use crate::traits::{Accumulator, Coordinate, Inspectable, Proratable};
+use crate::traits::{Accumulator, Coordinate, DiscreteCoordinate, Inspectable, Proratable};
 use crate::tree::gtree::gnode_depth_from_interval;
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
@@ -97,7 +97,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     }
 }
 
-impl<C: Coordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> {
+impl<C: DiscreteCoordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     pub fn range_sum<R: std::ops::RangeBounds<C>>(&self, range: R) -> V {
         use std::ops::Bound;
@@ -177,7 +177,9 @@ impl<C: Coordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> 
     }
 }
 
-impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvGraph<C, V, N> {
+impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: u32>
+    GvGraph<C, V, N>
+{
     #[must_use]
     pub fn contour_range(
         &self,

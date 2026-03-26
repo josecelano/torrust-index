@@ -1,5 +1,5 @@
 mod coordinate;
-pub use coordinate::Coordinate;
+pub use coordinate::{Coordinate, DiscreteCoordinate};
 
 mod accumulator;
 pub use accumulator::Accumulator;
