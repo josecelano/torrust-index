@@ -1,3 +1,44 @@
+//! V-tree — intensity-aggregation tree overlaid on the G-tree.
+//!
+//! The V-tree is a binary tree whose leaves (`VKind::Entry`) correspond
+//! one-to-one with live G-node entry points.  Internal nodes
+//! (`VKind::Structural`) aggregate the intensities of their children so that
+//! any ancestor query can be answered in O(depth) time.
+//!
+//! ## Node kinds
+//!
+//! - **`VKind::Entry`**: a leaf that stores the intensity contributed by one
+//!   G-node.  It also carries the `GNodeId` it belongs to, enabling the
+//!   G-tree to look up its V-node in O(1).
+//! - **`VKind::Structural`**: an internal node whose `intensity` is always
+//!   the sum of all descendant entry intensities.  Its `children` array holds
+//!   up to 3 entries (2 in the balanced case; 3 is transient and triggers a
+//!   rebalance violation).
+//!
+//! ## Update patterns
+//!
+//! Three contexts require different amounts of work:
+//!
+//! 1. **Point update + ancestor propagate** (`observe`): after a single
+//!    G-node's own value changes, call [`sync_intensity_in_parent`] to update
+//!    the entry's cached slot in its parent, then [`propagate_v_sums`] to walk
+//!    up to the root recomputing structural intensities.  O(depth) work.
+//!
+//! 2. **Full post-order recompute** (`decay`): after a bulk operation that
+//!    changes many G-nodes at once, call [`recompute_all_v_intensities`] which
+//!    visits every V-node in post-order.  O(n) work, but correct regardless of
+//!    which entries changed.
+//!
+//! 3. **Depth invalidation** (`split`, `evict`): structural changes (inserts,
+//!    removes) invalidate cached depth values.  Call
+//!    [`invalidate_depth_subtree`] to mark a subtree stale; depths are
+//!    recomputed on demand via [`v_depth`].
+//!
+//! ## Rebalance violations
+//!
+//! A V-node is *violated* when its intensity distribution across children
+//! breaches the configured balance threshold.  See `rebalance.rs` for the
+//! `is_violated` predicate and the `resolve` function that repairs violations.
 use std::sync::atomic::Ordering;
 
 use crate::arena::Arena;
