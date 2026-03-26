@@ -419,21 +419,21 @@ V-only rebalancing from G+V joint operations.
 
 ## Tracking
 
-| ID  | Status      | Notes                                                                          |
-| --- | ----------- | ------------------------------------------------------------------------------ |
-| P1  | Done        | commit `731efed` — `LeafRemovalContext`, `ParentSnapshot<C>`, phase comments   |
-| P2  | Done        | commit `731efed` — `plateau_after_evict` moved to `plateau/mod.rs`             |
-| P3  | Done        | commit `6de0eeb` — `normalise.rs` sub-module extracted                         |
-| P4  | Done        | commit `f229326` — no-op stubs collected in `plateau/noop.rs`                  |
-| P5  | Done        | commit `845ac7a` — `push_*` helpers extracted to `violation_push.rs`           |
-| P6  | Done        | commit `9b01720` — `post_decay_repair` + `depth_attenuation_factors` extracted |
-| P7  | Done        | commit `2a5845e` — `sample`/`sample_child` moved to `algorithm/sample.rs`      |
-| P8  | Not started |                                                                                |
-| P9  | Not started |                                                                                |
-| P10 | Not started |                                                                                |
-| P11 | Not started |                                                                                |
-| P12 | Not started |                                                                                |
-| P13 | Not started |                                                                                |
-| P14 | Not started |                                                                                |
-| P15 | Done        | removed as part of P6 (`let _ = is_global` eliminated)                         |
-| P16 | Not started |                                                                                |
+| ID  | Status | Notes                                                                                              |
+| --- | ------ | -------------------------------------------------------------------------------------------------- |
+| P1  | Done   | commit `731efed` — `LeafRemovalContext`, `ParentSnapshot<C>`, phase comments                       |
+| P2  | Done   | commit `731efed` — `plateau_after_evict` moved to `plateau/mod.rs`                                 |
+| P3  | Done   | commit `6de0eeb` — `normalise.rs` sub-module extracted                                             |
+| P4  | Done   | commit `f229326` — no-op stubs collected in `plateau/noop.rs`                                      |
+| P5  | Done   | commit `845ac7a` — `push_*` helpers extracted to `violation_push.rs`                               |
+| P6  | Done   | commit `9b01720` — `post_decay_repair` + `depth_attenuation_factors` extracted                     |
+| P7  | Done   | commit `2a5845e` — `sample`/`sample_child` moved to `algorithm/sample.rs`                          |
+| P8  | Done   | commit `94e9fe0` — violation source table added to `violation_push.rs`                             |
+| P9  | Done   | commit `94e9fe0` — `repair_p_i4` invariant documented in `plateau/mod.rs`                          |
+| P10 | Done   | commit `701dfb4` — `EvictionContext` → `MissedViolationContext`; `is_ancestor` moved to `vtree.rs` |
+| P11 | Done   | commit `e8a2a1e` — intensity propagation helpers renamed; doc comments added                       |
+| P12 | Done   | commit `9e79e50` — `recompute_v_postorder` simplified                                              |
+| P13 | Done   | commit `a3e65be` — `DiscreteCoordinate` subtrait; `next_value` moved off `Coordinate`              |
+| P14 | Done   | commit `4ce8e0c` — `place_subtree_basis_elements` dead code removed                                |
+| P15 | Done   | removed as part of P6 (`let _ = is_global` eliminated)                                             |
+| P16 | Done   | commit `5eb586a` — `standard_promote`, `skip_promote`, `legacy_promote` moved to `promote.rs`      |
