@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::soft_limit -> Option<usize> with Some(0)
+@@ -1037,17 +1037,17 @@
+     /// # let g2 = GvGraph::<u64, u64, 8>::new(cfg2);
+     /// let s = g2.soft_limit().unwrap();
+     /// assert!(s < 500);
+     /// assert_eq!(s, 500 - g2.headroom()); // headroom = 81 > 2*(3−1)
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn soft_limit(&self) -> Option<usize> {
+-        self.soft_limit
++        Some(0) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Shared helpers (Phase 4) ────────────────────────────────
+ 
+     /// Compute the G-Tree depth of a node by its interval width.
+     ///
+     /// Thin wrapper around [`gtree::gnode_depth_from_interval`] that
+     /// captures the const-generic `N`.

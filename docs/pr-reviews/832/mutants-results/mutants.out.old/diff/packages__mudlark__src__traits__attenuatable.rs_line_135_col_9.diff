@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/attenuatable.rs
++++ replace <impl Attenuatable for f32>::attenuate -> Self with Default::default()
+@@ -127,17 +127,17 @@
+ impl_attenuatable_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Attenuatable for f32 {
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn attenuate(self, factor: f64) -> Self {
+-        (f64::from(self) * factor) as Self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Attenuatable for f64 {
+     #[inline]
+     fn attenuate(self, factor: f64) -> Self {
+         self * factor
+     }

@@ -1,0 +1,56 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i1_structural_sum with ()
+@@ -420,52 +420,17 @@
+ }
+ 
+ // ── V-I1: Structural sum consistency ────────────────────────────────
+ 
+ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        if let VKind::Structural { children, .. } = &v.kind {
+-            // Check that node intensity equals sum of children's intensities.
+-            let mut sum = 0.0_f64;
+-            for i in 0..children.len() {
+-                let (child_id, cached_int) = children.get(i);
+-
+-                // Verify cached intensity matches authoritative child intensity.
+-                if !graph.vnodes().is_occupied(child_id.index()) {
+-                    errors.push(format!(
+-                        "V-I1 violated at V-node {idx}: child {} is not occupied",
+-                        child_id.index()
+-                    ));
+-                    continue;
+-                }
+-                let actual_int = graph.vnodes().get(child_id.index()).intensity;
+-                if (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() > 1e-9 {
+-                    errors.push(format!(
+-                        "V-I1 cached intensity mismatch at V-node {idx}, child {}: \
+-                         cached={}, actual={}",
+-                        child_id.index(),
+-                        cached_int.to_f64_approx(),
+-                        actual_int.to_f64_approx()
+-                    ));
+-                }
+-                sum += cached_int.to_f64_approx();
+-            }
+-
+-            let node_int = v.intensity.to_f64_approx();
+-            if (node_int - sum).abs() > 1e-9 {
+-                errors.push(format!(
+-                    "V-I1 violated at V-node {idx}: intensity={node_int}, sum of children={sum}"
+-                ));
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I2: Branching factor ──────────────────────────────────────────
+ 
+ fn check_v_i2_branching_factor<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

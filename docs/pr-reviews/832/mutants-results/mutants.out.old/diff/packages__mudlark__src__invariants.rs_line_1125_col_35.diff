@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace < with == in check_p_i1_ii_tile_contiguity
+@@ -1117,17 +1117,17 @@
+     errors: &mut Vec<String>,
+ ) {
+     let plateaus = &graph.plateaus;
+     let pb = graph.plateau_basis();
+     let keys: Vec<BasisEdge<C>> = plateaus.keys().copied().collect();
+     let domain_max = C::domain_max(N);
+ 
+     for (i, &key) in keys.iter().enumerate() {
+-        let next_start = if i + 1 < keys.len() { keys[i + 1].0 } else { domain_max };
++        let next_start = if i + 1 == /* ~ changed by cargo-mutants ~ */ keys.len() { keys[i + 1].0 } else { domain_max };
+ 
+         let elements = pb.basis_elements(&key);
+         if elements.is_empty() {
+             errors.push(format!("P-I1(ii): plateau {key:?} has no basis elements"));
+             continue;
+         }
+ 
+         // Collect tile intervals and sort.

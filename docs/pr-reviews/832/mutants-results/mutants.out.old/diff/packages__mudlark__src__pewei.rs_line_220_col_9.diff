@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Pewei<C, V>::node_count -> usize with 0
+@@ -212,17 +212,17 @@
+     /// # };
+     /// # let mut g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// # g.observe(42, 10u64);
+     /// let pewei = g.extract();
+     /// assert!(pewei.node_count() >= 1);
+     /// ```
+     #[must_use]
+     pub fn node_count(&self) -> usize {
+-        self.layers.iter().map(|l| l.transitions.len() + l.terminals.len()).sum()
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Total energy: sum of all terminal intensities plus all
+     /// transition baselines. Equals the G-root sum when extracted
+     /// from a consistent tree. Returns `V::zero()` for an empty
+     /// snapshot.
+     ///
+     /// This walks all layers — $O(n)$ where $n$ is `node_count()`.

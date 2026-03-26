@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_promoted_violations_with_config
+@@ -743,17 +743,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_promoted_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_4_promotion_children {
++    if  /* ~ changed by cargo-mutants ~ */config.source_4_promotion_children {
+         return;
+     }
+     let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+         VKind::Entry { .. } => return,
+     };
+     for child_id in child_ids {
+         if is_violated(vnodes, child_id) {

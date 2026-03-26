@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_collapse_violations_with_config
+@@ -870,17 +870,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_collapse_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     sole: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_7_collapse_children {
++    if  /* ~ changed by cargo-mutants ~ */config.source_7_collapse_children {
+         return;
+     }
+     tracing::debug!(sole = sole.index(), "push_collapse_violations: checking node");
+     push_children_violations(vnodes, sole, "collapse (source 7)", violations);
+ }
+ 
+ /// Check the remaining siblings' children after a 3→2 transition.
+ ///

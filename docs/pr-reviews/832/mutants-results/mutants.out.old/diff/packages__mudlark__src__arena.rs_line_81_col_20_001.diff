@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace -= with /= in Arena<T>::dealloc
+@@ -73,17 +73,17 @@
+     /// # Panics (debug only)
+     ///
+     /// `debug_assert`s that the slot is currently occupied.
+     pub fn dealloc(&mut self, index: usize) -> T {
+         debug_assert!(self.is_occupied(index), "Arena::dealloc: slot {index} is not occupied");
+         self.set_occupied(index, false);
+         #[allow(clippy::cast_possible_truncation)] // arena indices are always < u32::MAX
+         self.free.push(index as u32);
+-        self.count -= 1;
++        self.count /= /* ~ changed by cargo-mutants ~ */ 1;
+         std::mem::take(&mut self.slots[index])
+     }
+ 
+     /// Immutable access to the slot at `index`.
+     ///
+     /// # Panics (debug only)
+     ///
+     /// `debug_assert`s that the slot is currently occupied.

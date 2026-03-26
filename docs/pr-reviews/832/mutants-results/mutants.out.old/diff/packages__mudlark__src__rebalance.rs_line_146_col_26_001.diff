@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace > with < in <impl fmt::Display for Ch<'_, V>>::fmt
+@@ -138,17 +138,17 @@
+ 
+ impl<V: Accumulator> fmt::Display for Ch<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         match &self.0.get(self.1.index()).kind {
+             VKind::Entry { .. } => f.write_str("∅"),
+             VKind::Structural { children, .. } => {
+                 f.write_str("[")?;
+                 for i in 0..children.len() {
+-                    if i > 0 {
++                    if i < /* ~ changed by cargo-mutants ~ */ 0 {
+                         f.write_str(", ")?;
+                     }
+                     let (id, int) = children.get(i);
+                     write!(f, "v{}({:?})", id.index(), int)?;
+                 }
+                 f.write_str("]")
+             }
+         }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace -= with += in evict_tip
+@@ -262,17 +262,17 @@
+     // Snapshot parent state before deallocation for plateau maintenance.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     let parent_snapshot = {
+         let pg = graph.gnodes.get(parent_id.index());
+         (pg.state(), pg.lo, pg.hi)
+     };
+ 
+     graph.gnodes.dealloc(gnode_id.index());
+-    graph.node_count -= 1;
++    graph.node_count += /* ~ changed by cargo-mutants ~ */ 1;
+     // The evicted node was a terminal: −1.
+     // If the parent is now terminal (both children gone): +1 → net 0.
+     graph.terminal_count -= 1;
+     if graph.gnodes.get(parent_id.index()).is_terminal() {
+         graph.terminal_count += 1;
+     }
+ 
+     // 8. Plateau maintenance (no-op without `plateau` feature).

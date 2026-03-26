@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/proratable.rs
++++ replace == with != in <impl Proratable for f32>::prorate
+@@ -122,17 +122,17 @@
+ impl_proratable_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Proratable for f32 {
+     #[inline]
+     #[allow(clippy::cast_precision_loss)]
+     fn prorate(self, portion: u64, total: u64) -> Self {
+-        if total == 0 {
++        if total != /* ~ changed by cargo-mutants ~ */ 0 {
+             return <Self as Accumulator>::zero();
+         }
+         self * (portion as Self / total as Self)
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn scale_by(self, ratio: f64) -> Self {

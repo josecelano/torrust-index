@@ -1,0 +1,148 @@
+
+*** packages/mudlark/src/graph_plateau.rs:73:9: replace GvGraph<C, V, N>::plateaus -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())]))
+
+*** mutation diff:
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateaus -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())]))
+@@ -65,25 +65,17 @@
+     ///
+     /// // Floor-key lookup: find the plateau containing coordinate 42.
+     /// let hit = p.range(..=BasisEdge(42u64)).next_back();
+     /// assert!(hit.is_some());
+     /// ```
+     #[must_use]
+     #[allow(clippy::missing_const_for_fn)] // Cow::Borrowed is not const-compatible
+     pub fn plateaus(&self) -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> {
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        {
+-            self.debug_assert_plateau_mirror_consistency("plateaus()");
+-            Cow::Borrowed(&self.plateaus)
+-        }
+-        #[cfg(not(feature = "dynamic-contour-tracking"))]
+-        {
+-            Cow::Owned(self.build_plateaus())
+-        }
++        Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Mirror consistency check ────────────────────────────────
+ 
+     /// Assert that the dynamically-maintained plateau mirror matches
+     /// a freshly-built version from the G-tree state.
+     ///
+     /// Only compiled in debug builds with `dynamic-contour-tracking`.
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh find-msvc-tools v0.1.9
+       Fresh once_cell v1.21.3
+       Fresh shlex v1.3.0
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh regex-automata v0.4.14
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh ciborium-io v0.2.2
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh plotters-backend v0.3.7
+       Fresh clap_lex v1.0.0
+       Fresh memchr v2.8.0
+       Fresh itoa v1.0.17
+       Fresh serde_json v1.0.149
+       Fresh clap_builder v4.5.59
+       Fresh plotters-svg v0.3.7
+       Fresh tracing v0.1.44
+       Fresh ciborium-ll v0.2.2
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh cast v0.3.0
+       Fresh criterion-plot v0.8.2
+       Fresh tracing-log v0.2.0
+       Fresh sharded-slab v0.1.7
+       Fresh walkdir v2.5.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh alloca v0.4.0
+       Fresh plotters v0.3.7
+       Fresh ciborium v0.2.2
+       Fresh clap v4.5.59
+       Fresh tinytemplate v1.2.1
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh smallvec v1.15.1
+       Fresh oorandom v11.1.5
+       Fresh nu-ansi-term v0.50.3
+       Fresh anes v0.1.6
+       Fresh rand_core v0.10.0
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0599]: no function or associated item named `from_iter` found for struct `BasisEdge<C>` in the current scope
+  --> packages/mudlark/src/graph_plateau.rs:73:56
+   |
+73 |         Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])) /* ~ changed by cargo-mutants ~ */
+   |                                                        ^^^^^^^^^ function or associated item not found in `BasisEdge<_>`
+   |
+  ::: packages/mudlark/src/plateau.rs:98:1
+   |
+98 | pub struct BasisEdge<C: Coordinate>(pub C);
+   | ----------------------------------- function or associated item `from_iter` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `from_iter`, perhaps you need to implement it:
+           candidate #1: `FromIterator`
+
+error[E0308]: mismatched types
+   --> packages/mudlark/src/graph_plateau.rs:73:23
+    |
+ 73 |         Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])) /* ~ changed by cargo-mutants ~ */
+    |         ------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&BTreeMap<BasisEdge<C>, Plateau<C, V>>`, found `BTreeMap<_, _>`
+    |         |
+    |         arguments to this enum variant are incorrect
+    |
+    = note: expected reference `&BTreeMap<BasisEdge<C>, Plateau<C, V>>`
+                  found struct `BTreeMap<_, _>`
+note: tuple variant defined here
+   --> /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/borrow.rs:175:5
+    |
+175 |     Borrowed(#[stable(feature = "rust1", since = "1.0.0")] &'a B),
+    |     ^^^^^^^^
+help: consider borrowing here
+    |
+ 73 |         Cow::Borrowed(&BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])) /* ~ changed by cargo-mutants ~ */
+    |                       +
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

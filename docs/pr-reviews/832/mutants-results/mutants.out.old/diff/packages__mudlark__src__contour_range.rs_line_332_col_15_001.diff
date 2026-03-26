@@ -1,0 +1,21 @@
+--- packages/mudlark/src/contour_range.rs
++++ replace += with *= in compute_plateau_energy
+@@ -324,17 +324,17 @@
+     plateaus: &BTreeMap<BasisEdge<C>, Plateau<C, V>>,
+     start: BasisEdge<C>,
+     end: BasisEdge<C>,
+ ) -> (V, usize) {
+     let mut sum = V::zero();
+     let mut count = 0usize;
+     for (_, p) in plateaus.range(start..end) {
+         sum = V::add(sum, p.sum);
+-        count += 1;
++        count *= /* ~ changed by cargo-mutants ~ */ 1;
+     }
+     (sum, count)
+ }
+ 
+ // ── Debug-build invariant assertions (Phase 5, ADR-M-037) ───────────
+ 
+ /// Debug-build invariant checks for a contour range decomposition.
+ ///

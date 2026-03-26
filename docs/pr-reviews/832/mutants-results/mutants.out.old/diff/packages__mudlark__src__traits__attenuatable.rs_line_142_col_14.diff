@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/attenuatable.rs
++++ replace * with + in <impl Attenuatable for f64>::attenuate
+@@ -134,11 +134,11 @@
+     fn attenuate(self, factor: f64) -> Self {
+         (f64::from(self) * factor) as Self
+     }
+ }
+ 
+ impl Attenuatable for f64 {
+     #[inline]
+     fn attenuate(self, factor: f64) -> Self {
+-        self * factor
++        self + /* ~ changed by cargo-mutants ~ */ factor
+     }
+ }

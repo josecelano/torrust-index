@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_side_effect_violations_with_config
+@@ -676,17 +676,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_side_effect_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_3_contraction_grandchildren {
++    if  /* ~ changed by cargo-mutants ~ */config.source_3_contraction_grandchildren {
+         return;
+     }
+     push_grandchild_violations(vnodes, node, violations);
+ }
+ 
+ /// Push source-10 violations: grandchildren of the merged node after
+ /// g-contraction + promotion (§IDEA M-11.12).
+ ///

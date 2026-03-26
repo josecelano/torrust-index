@@ -1,0 +1,52 @@
+--- packages/mudlark/src/invariants.rs
++++ replace dump_gtree -> String with String::new()
+@@ -143,48 +143,17 @@
+ 
+ /// Dump the full G-tree structure to a `String` for debugging.
+ ///
+ /// Shows each G-node with its interval, state, parent, children,
+ /// sum, own, V-entry, and basis membership. The tree is printed
+ /// in arena-allocation order (by gnode index).
+ #[allow(dead_code)]
+ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> String {
+-    use std::fmt::Write;
+-    let mut out = String::new();
+-    writeln!(
+-        out,
+-        "═══ G-Tree dump (root=GNodeId({}), {} nodes) ═══",
+-        graph.g_root().index(),
+-        graph.node_count()
+-    )
+-    .unwrap();
+-
+-    for (idx, g) in graph.gnodes().iter_occupied() {
+-        let gnode_id = GNodeId::from_index(idx);
+-        let state = state_label(g.state());
+-        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-        let parent_str = fmt_optional_gnode(g.parent, "None");
+-        let left_str = fmt_optional_gnode(g.left, "_");
+-        let right_str = fmt_optional_gnode(g.right, "_");
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        let basis_str = graph
+-            .plateau_basis()
+-            .plateau_key(gnode_id)
+-            .map_or_else(|| "(not basis)".to_string(), |k| format!("basis={k:?}"));
+-        #[cfg(not(feature = "dynamic-contour-tracking"))]
+-        let basis_str = "";
+-        let lineage = semi_internal_lineage(graph, gnode_id);
+-
+-        writeln!(out,
+-            "  G({idx:>3}) {state} [{:>6.1}, {:>6.1})  d={depth}  par={parent_str}  L={left_str} R={right_str}  sum={:>8.1} own={:>8.1}  {basis_str}{lineage}",
+-            g.lo.to_f64(), g.hi.to_f64(), g.sum.to_f64_approx(), g.own.to_f64_approx(),
+-        ).unwrap();
+-    }
+-    out
++    String::new() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Dump the full plateau map to a `String` for debugging.
+ ///
+ /// Shows each plateau with its basis edge, depth, start/end, sum,
+ /// and all basis elements with their spatial spans and states.
+ /// Also flags P-I3 violations inline.
+ #[cfg(feature = "dynamic-contour-tracking")]

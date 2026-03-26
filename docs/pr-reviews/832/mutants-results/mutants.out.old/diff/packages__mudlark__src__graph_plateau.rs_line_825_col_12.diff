@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ delete ! in GvGraph<C, V, N>::normalize_plateaus
+@@ -817,17 +817,17 @@
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(clippy::too_many_lines)]
+     pub(crate) fn normalize_plateaus(&mut self) {
+         use crate::gnode::GState;
+         use crate::gtree::gnode_depth_from_interval;
+         use crate::plateau::{basis_edge_of, BasisEdge, Plateau};
+ 
+         // ADR-M-031 Phase 4: early return when not dirty.
+-        if !self.plateaus_dirty {
++        if  /* ~ changed by cargo-mutants ~ */self.plateaus_dirty {
+             return;
+         }
+         self.plateaus_dirty = false;
+ 
+         let _span = tracing::debug_span!("normalize_plateaus").entered();
+ 
+         // ── Step 0: capture old total for conservation check ────
+         #[cfg(debug_assertions)]

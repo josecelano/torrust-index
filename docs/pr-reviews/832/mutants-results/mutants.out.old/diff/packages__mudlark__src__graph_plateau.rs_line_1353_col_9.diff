@@ -1,0 +1,65 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_after_observe with ()
+@@ -1345,61 +1345,17 @@
+     // mutation path. When the `plateau` feature is disabled, the
+     // compiler emits a no-op stub and dead-code-eliminates the
+     // call site.
+ 
+     /// Post-observe: delta-propagate plateau sums along the
+     /// receiver → root path.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn plateau_after_observe<O: crate::traits::Observation<V>>(&mut self, g_id: GNodeId, delta: O) {
+-        let value_v: V = O::accumulate(V::zero(), delta);
+-        let mut cur = Some(g_id);
+-        while let Some(id) = cur {
+-            if let Some(key) = self.plateau_basis.plateau_key(id) {
+-                if let Some(p) = self.plateaus.get_mut(&key) {
+-                    p.sum = V::add(p.sum, value_v);
+-                }
+-            }
+-            cur = self.gnodes.get(id.index()).parent;
+-        }
+-
+-        #[cfg(debug_assertions)]
+-        {
+-            let mut cur = Some(g_id);
+-            while let Some(id) = cur {
+-                if let Some(key) = self.plateau_basis.plateau_key(id) {
+-                    let elems: Vec<_> = self
+-                        .plateau_basis
+-                        .basis_elements(&key)
+-                        .iter()
+-                        .map(|&r| {
+-                            let g = self.gnodes.get(r.index());
+-                            (r.index(), g.sum.to_f64_approx(), format!("{:?}", g.state()))
+-                        })
+-                        .collect();
+-                    let expected: V = self
+-                        .plateau_basis
+-                        .basis_elements(&key)
+-                        .iter()
+-                        .map(|&r| self.gnodes.get(r.index()).sum)
+-                        .fold(V::zero(), V::add);
+-                    assert_eq!(
+-                        self.plateaus[&key].sum,
+-                        expected,
+-                        "POST-OBSERVE: plateau sum drift at key {key:?}\n\
+-                         delta={}, g_id=G({}), cur_node=G({})\n\
+-                         basis_elements={elems:?}",
+-                        value_v.to_f64_approx(),
+-                        g_id.index(),
+-                        id.index(),
+-                    );
+-                }
+-                cur = self.gnodes.get(id.index()).parent;
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_observe<O: crate::traits::Observation<V>>(&mut self, _g_id: GNodeId, _delta: O) {}
+ 

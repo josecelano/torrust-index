@@ -1,0 +1,22 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::gnode_depth -> u32 with 0
+@@ -1050,18 +1050,17 @@
+     /// Compute the G-Tree depth of a node by its interval width.
+     ///
+     /// Thin wrapper around [`gtree::gnode_depth_from_interval`] that
+     /// captures the const-generic `N`.
+     #[must_use]
+     #[inline]
+     #[allow(dead_code)] // used by Phase 4 steps 3 and 5 (extraction, decay)
+     pub(crate) fn gnode_depth(&self, gid: GNodeId) -> u32 {
+-        let g = self.gnodes.get(gid.index());
+-        crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // Sampling, point query, and range query methods live in
+     // graph_query.rs — see ADR-M-030 Phase C.
+ 
+     // PEWEI extraction, layer iteration, from_observations, and Extend
+     // live in graph_extract.rs — see ADR-M-030 Phase D.
+ 

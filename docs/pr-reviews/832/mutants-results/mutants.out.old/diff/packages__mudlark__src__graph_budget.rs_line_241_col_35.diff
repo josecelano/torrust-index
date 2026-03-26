@@ -1,0 +1,19 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace || with && in GvGraph<C, V, N>::evict_candidates
+@@ -233,15 +233,15 @@
+             }
+             self.normalize_plateaus();
+ 
+             // Re-run P-I4 repair after normalization.
+             self.repair_p_i4();
+         }
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-EVICT");
+         }
+ 
+         evicted
+     }
+ }

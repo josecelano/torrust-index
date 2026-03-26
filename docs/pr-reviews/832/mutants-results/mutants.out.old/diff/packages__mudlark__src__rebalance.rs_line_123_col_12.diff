@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in <impl fmt::Display for Nd<'_, V>>::fmt
+@@ -115,17 +115,17 @@
+ // unless a subscriber actually captures the formatted output.
+ 
+ /// Compact node label: `v5(S2,42)` or `v3(E,18)` or `v9(DEAD)`.
+ pub struct Nd<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);
+ 
+ impl<V: Accumulator> fmt::Display for Nd<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         let idx = self.1.index();
+-        if !self.0.is_occupied(idx) {
++        if  /* ~ changed by cargo-mutants ~ */self.0.is_occupied(idx) {
+             return write!(f, "v{idx}(DEAD)");
+         }
+         let n = self.0.get(idx);
+         match &n.kind {
+             VKind::Entry { .. } => write!(f, "v{idx}(E,{:?})", n.intensity),
+             VKind::Structural { children, .. } => {
+                 write!(f, "v{idx}(S{},{:?})", children.len(), n.intensity)
+             }

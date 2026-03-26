@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace || with && in skip_promote
+@@ -464,17 +464,17 @@
+     let c_terminal = node_has_evictable(vnodes, c);
+     let s_terminal = node_has_evictable(vnodes, s_id);
+     let u_terminal = node_has_evictable(vnodes, u_id);
+ 
+     // Rewrite g as a 3-node: [c, s, u].
+     let g_node = vnodes.get_mut(g.index());
+     if let VKind::Structural { children, has_evictable } = &mut g_node.kind {
+         *children = PackedChildren::new_3((c, c_int), (s_id, s_int), (u_id, u_int));
+-        *has_evictable = c_terminal || s_terminal || u_terminal;
++        *has_evictable = c_terminal && /* ~ changed by cargo-mutants ~ */ s_terminal || u_terminal;
+     }
+ 
+     // Re-parent c and s to g.
+     vnodes.get_mut(c.index()).parent = Some(g);
+     vnodes.get_mut(s_id.index()).parent = Some(g);
+ 
+     // Invalidate depth cache for c and s subtrees (they moved up one level)
+     invalidate_depth_subtree(vnodes, c);

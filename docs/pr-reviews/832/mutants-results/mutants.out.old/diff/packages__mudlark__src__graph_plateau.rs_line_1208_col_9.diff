@@ -1,0 +1,71 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::repair_p_i4 with ()
+@@ -1200,67 +1200,17 @@
+     /// Convergence: each fix adds exactly one new `BTreeMap` key
+     /// (monotonically increasing plateau count, bounded by node
+     /// count).
+     ///
+     /// Called after eviction batches and legacy promotes — any
+     /// operation that can rearrange plateau boundaries.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn repair_p_i4(&mut self) {
+-        use crate::gnode::GState;
+-        use crate::plateau::BasisEdge;
+-
+-        let span = tracing::debug_span!(
+-            "repair_p_i4",
+-            pending = self.pending_p_i4.len(),
+-            candidates = tracing::field::Empty,
+-        )
+-        .entered();
+-
+-        // Phase 1: one-time scan of all semi-internal basis elements
+-        // to catch violations from tile boundary changes not tracked
+-        // by the place_basis_element work-list.
+-        let mut candidates: Vec<(GNodeId, BasisEdge<C>)> = Vec::new();
+-        for (&key, elements) in self.plateau_basis.iter() {
+-            for &gid in elements {
+-                if self.gnodes.is_occupied(gid.index()) && self.gnodes.get(gid.index()).state() == GState::SemiInternal {
+-                    candidates.push((gid, key));
+-                }
+-            }
+-        }
+-        self.pending_p_i4.extend(candidates);
+-        span.record("candidates", self.pending_p_i4.len());
+-
+-        // Phase 2: drain all candidates.  Each check is O(log P).
+-        // split_for_p_i4 may push new candidates via
+-        // pending_p_i4 — the while-let naturally drains them.
+-        while let Some((gid, pk)) = self.pending_p_i4.pop() {
+-            // Guard: a prior fix may have moved this node to a
+-            // different plateau or changed its state.
+-            if self.plateau_basis.plateau_key(gid) != Some(pk) {
+-                continue;
+-            }
+-            if !self.gnodes.is_occupied(gid.index()) {
+-                continue;
+-            }
+-            let g = self.gnodes.get(gid.index());
+-            if g.state() != GState::SemiInternal {
+-                continue;
+-            }
+-
+-            let Some(child_id) = g.left.or(g.right) else {
+-                continue;
+-            };
+-            let child_lo = self.gnodes.get(child_id.index()).lo;
+-            let child_pk = self.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);
+-
+-            if child_pk == Some(pk) {
+-                self.split_for_p_i4(pk, child_id);
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn repair_p_i4(&mut self) {}
+ 

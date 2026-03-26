@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::consolidate_basis_up
+@@ -741,17 +741,17 @@
+                 tracing::trace!(
+                     from = gid.index(),
+                     parent = parent_id.index(),
+                     right = right.index(),
+                     "consolidate_basis_up: stop — right not in basis"
+                 );
+                 break;
+             };
+-            if left_key != right_key {
++            if left_key == /* ~ changed by cargo-mutants ~ */ right_key {
+                 tracing::trace!(
+                     from = gid.index(),
+                     parent = parent_id.index(),
+                     ?left_key,
+                     ?right_key,
+                     "consolidate_basis_up: stop — children in different plateaus"
+                 );
+                 break;

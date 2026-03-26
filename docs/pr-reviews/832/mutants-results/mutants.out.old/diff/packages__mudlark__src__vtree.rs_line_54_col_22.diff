@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vtree.rs
++++ replace == with != in vtree_remove_leaf
+@@ -46,17 +46,17 @@
+     };
+ 
+     let p = vnodes.get(p_id.index());
+     let p_child_count = match &p.kind {
+         VKind::Structural { children, .. } => children.len(),
+         VKind::Entry { .. } => unreachable!("parent of entry should be structural"),
+     };
+ 
+-    if p_child_count == 3 {
++    if p_child_count != /* ~ changed by cargo-mutants ~ */ 3 {
+         // 3-node → 2-node: just remove the child.
+         span.record("case", "shrink");
+         remove_child_from_structural(vnodes, p_id, v_id);
+         propagate_v_sums_from(vnodes, p_id);
+         propagate_evictable_flags(vnodes, p_id);
+         vnodes.dealloc(v_id.index());
+         return v_root;
+     }

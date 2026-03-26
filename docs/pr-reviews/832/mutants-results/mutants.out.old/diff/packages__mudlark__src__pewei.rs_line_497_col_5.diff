@@ -1,0 +1,99 @@
+--- packages/mudlark/src/pewei.rs
++++ replace descend with ()
+@@ -489,95 +489,17 @@
+     lookup: &RegionLookup<C>,
+     layers: &[Layer<C, V>],
+     start: C,
+     end: C,
+     g_depth: usize,
+     accumulated: V,
+     output: &mut Vec<Span<C, V>>,
+ ) {
+-    match lookup.get(start, g_depth) {
+-        None => {
+-            // Gap — no PEWEI node here. Emit background only.
+-            // Use the current G-depth so consumers see the resolution
+-            // at which the gap was discovered, consistent with the
+-            // truncated-child spans inside the Transition arm.
+-            #[allow(clippy::cast_possible_truncation)]
+-            output.push(Span {
+-                start,
+-                end,
+-                intensity: accumulated,
+-                depth: g_depth as u32,
+-            });
+-        }
+-        Some(NodeRef::Terminal { layer, idx }) => {
+-            let t = &layers[layer as usize].terminals[idx as usize];
+-            output.push(Span {
+-                start,
+-                end,
+-                intensity: V::add(accumulated, t.intensity),
+-                depth: t.depth,
+-            });
+-        }
+-        Some(NodeRef::Transition { layer, idx }) => {
+-            let tr = &layers[layer as usize].transitions[idx as usize];
+-            let baseline = tr.baseline;
+-            let total = tr.total;
+-            let depth = tr.depth;
+-
+-            let mid = C::midpoint(start, end);
+-            let total_bg = V::add(accumulated, baseline);
+-            let half_bg = total_bg.prorate(1, 2);
+-            let child_depth = g_depth + 1;
+-
+-            let left_ref = lookup.get(start, child_depth);
+-            let right_ref = lookup.get(mid, child_depth);
+-
+-            match (left_ref, right_ref) {
+-                (Some(_), Some(_)) => {
+-                    // Both children visible — recurse into each half.
+-                    descend(lookup, layers, start, mid, child_depth, half_bg, output);
+-                    descend(lookup, layers, mid, end, child_depth, half_bg, output);
+-                }
+-                (Some(left_nr), None) => {
+-                    // Left visible, right invisible.
+-                    descend(lookup, layers, start, mid, child_depth, half_bg, output);
+-                    let left_total = node_total(layers, left_nr);
+-                    let remainder = V::sub(V::sub(total, baseline), left_total);
+-                    output.push(Span {
+-                        start: mid,
+-                        end,
+-                        intensity: V::add(half_bg, remainder),
+-                        depth,
+-                    });
+-                }
+-                (None, Some(right_nr)) => {
+-                    // Left invisible, right visible.
+-                    let right_total = node_total(layers, right_nr);
+-                    let remainder = V::sub(V::sub(total, baseline), right_total);
+-                    output.push(Span {
+-                        start,
+-                        end: mid,
+-                        intensity: V::add(half_bg, remainder),
+-                        depth,
+-                    });
+-                    descend(lookup, layers, mid, end, child_depth, half_bg, output);
+-                }
+-                (None, None) => {
+-                    // Fully truncated — emit total.
+-                    output.push(Span {
+-                        start,
+-                        end,
+-                        intensity: V::add(accumulated, total),
+-                        depth,
+-                    });
+-                }
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Layer ────────────────────────────────────────────────────────────
+ 
+ /// One depth-level of the significance hierarchy
+ ///
+ /// Layer 0 contains the dominant energy structures — the most
+ /// significant regions the index has identified. Each subsequent

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f32>::zero -> Self with Default::default()
+@@ -238,17 +238,17 @@
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Coordinate for f32 {
+     const BITS: u32 = 32;
+ 
+     #[inline]
+     fn zero() -> Self {
+-        0.0
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_wrap)]
+     fn domain_max(n: u32) -> Self {
+         2.0_f32.powi(n as i32)
+     }
+ 

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/gtree.rs
++++ replace - with + in gnode_depth_from_interval
+@@ -63,17 +63,17 @@
+     // log2 of a power-of-two width. For integers this is exact;
+     // for floats f64::log2 returns an exact integer for 2^k inputs.
+     //
+     // Cast via i32 (not u32) so that sub-unit float widths
+     // (log2 < 0) produce depths > n instead of saturating to n.
+     #[allow(clippy::cast_possible_truncation)]
+     let log2_width = width_f64.log2() as i32;
+     #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
+-    let depth = (n as i32 - log2_width) as u32;
++    let depth = (n as i32 + /* ~ changed by cargo-mutants ~ */ log2_width) as u32;
+     depth
+ }
+ 
+ /// Recompute `sum = own + left.sum + right.sum` from `start` upward
+ /// to the G-Tree root, directly reasserting G-I1 at each level.
+ ///
+ /// Used by `observe()` on the hot path instead of
+ /// `propagate_g_sums` (moved to tests), avoiding the need for subtraction on

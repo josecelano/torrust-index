@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::v_root -> Option<VNodeId> with Some(Default::default())
+@@ -810,17 +810,17 @@
+     /// # };
+     /// # let g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// // Always present after construction.
+     /// assert!(g.v_root().is_some());
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn v_root(&self) -> Option<VNodeId> {
+-        self.v_root
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Total accumulated value across the entire domain.
+     ///
+     /// Equivalent to the G-root's `sum` field — the aggregate of
+     /// every observation ever applied to the graph.  O(1).
+     ///
+     /// # Examples

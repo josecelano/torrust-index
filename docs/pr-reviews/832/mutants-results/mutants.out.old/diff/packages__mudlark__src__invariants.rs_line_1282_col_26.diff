@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in check_p_i2_basis_minimality
+@@ -1274,17 +1274,17 @@
+         for &gid in gnodes_list {
+             if !graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             // Semi-internal basis elements are not subject to
+             // ancestor-consolidation (their parent subtree always
+             // contains heterogeneous contour depths).
+-            if g.state() == GState::SemiInternal {
++            if g.state() != /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+                 continue;
+             }
+ 
+             // Check: does R's parent also have uniform contour depth ==
+             // expected_depth?  If so, R should have been consolidated
+             // into the parent.
+             if let Some(parent_id) = g.parent {
+                 if let Some(parent_depth) = uniform_contour_depth_of(graph.gnodes(), parent_id, N) {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace > with == in GvGraph<C, V, N>::range_sum_inner
+@@ -354,17 +354,17 @@
+         }
+ 
+         // Fully contained.
+         if query_lo <= node_lo && query_hi >= node_hi {
+             return g.sum;
+         }
+ 
+         // ── Partial overlap: pro-rate own, recurse children ─────
+-        let overlap_lo = if query_lo > node_lo { query_lo } else { node_lo };
++        let overlap_lo = if query_lo == /* ~ changed by cargo-mutants ~ */ node_lo { query_lo } else { node_lo };
+         let overlap_hi = if query_hi < node_hi { query_hi } else { node_hi };
+ 
+         // Pro-rate g.own by overlap/width using f64 ratio arithmetic.
+         let node_width = C::width(node_lo, node_hi).to_f64();
+         let overlap_width = C::width(overlap_lo, overlap_hi).to_f64();
+         let own_prorated = g.own.scale_by(overlap_width / node_width);
+ 
+         // Recurse into children.

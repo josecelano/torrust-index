@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_p_i2_basis_minimality
+@@ -1267,17 +1267,17 @@
+     errors: &mut Vec<String>,
+ ) {
+     let pb = graph.plateau_basis();
+     for (&key, gnodes_list) in pb.iter() {
+         let Some(plateau) = graph.plateaus.get(&key) else { continue };
+         let expected_depth = plateau.depth;
+ 
+         for &gid in gnodes_list {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             // Semi-internal basis elements are not subject to
+             // ancestor-consolidation (their parent subtree always
+             // contains heterogeneous contour depths).
+             if g.state() == GState::SemiInternal {
+                 continue;

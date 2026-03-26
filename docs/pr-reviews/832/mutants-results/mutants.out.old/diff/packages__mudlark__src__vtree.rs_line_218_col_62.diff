@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vtree.rs
++++ replace + with - in v_depth
+@@ -210,17 +210,17 @@
+     // Fast path: cached and valid
+     if cached != DEPTH_STALE {
+         #[cfg(debug_assertions)]
+         assert_eq!(cached, v_depth_uncached(vnodes, id), "cached depth mismatch for VNode {id:?}");
+         return cached;
+     }
+ 
+     // Slow path: recurse to parent, cache on return
+-    let depth = node.parent.map_or(0, |p| v_depth(vnodes, p) + 1);
++    let depth = node.parent.map_or(0, |p| v_depth(vnodes, p) - /* ~ changed by cargo-mutants ~ */ 1);
+     node.cached_depth.store(depth, Ordering::Relaxed);
+     depth
+ }
+ 
+ /// Invalidate cached depth for a subtree rooted at `root`.
+ ///
+ /// Uses early-exit: if a node is already stale, its entire subtree
+ /// must also be stale (ancestor invariant from ADR-M-029).

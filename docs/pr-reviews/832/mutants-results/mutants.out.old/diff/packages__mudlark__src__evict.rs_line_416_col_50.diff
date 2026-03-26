@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace == with != in plateau_after_evict
+@@ -408,17 +408,17 @@
+                     // Siblings along the walk path (parent → ancestor).
+                     for &path_node in &path {
+                         let par = graph
+                             .gnodes
+                             .get(path_node.index())
+                             .parent
+                             .expect("path node must have a parent");
+                         let pg = graph.gnodes.get(par.index());
+-                        let sibling = if pg.left == Some(path_node) { pg.right } else { pg.left };
++                        let sibling = if pg.left != /* ~ changed by cargo-mutants ~ */ Some(path_node) { pg.right } else { pg.left };
+                         if let Some(sib_id) = sibling {
+                             if displaced.contains(&sib_id) {
+                                 continue;
+                             }
+                             if let Some(ok) = graph.plateau_basis.remove(sib_id) {
+                                 graph.fixup_plateau(ok);
+                             }
+                             displaced.push(sib_id);

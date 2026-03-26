@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace || with && in rebalance
+@@ -1435,17 +1435,17 @@
+ 
+     tracing::debug!(iterations, resolved, "rebalance complete");
+ 
+     // Full-tree audit: verify the queue-based loop left no violations
+     // behind.  O(n) scan — guarded by tracing level.
+     // The O(n) scan always runs in debug builds (ensures the assert
+     // fires during `cargo test`) and optionally in release when a
+     // tracing subscriber is active at DEBUG.
+-    if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++    if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+         let remaining = crate::diagnostic::audit_violations(vnodes, violations, "RESIDUAL");
+         assert!(
+             remaining.is_empty(),
+             "rebalance finished with residual violations: {remaining:?}"
+         );
+     }
+ 
+     new_gnodes

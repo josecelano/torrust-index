@@ -1,0 +1,122 @@
+--- packages/mudlark/src/decay.rs
++++ replace GvGraph<C, V, N>::decay_selective with ()
+@@ -196,118 +196,16 @@
+         }
+     }
+ 
+     // ── Selective path (q > 0) ──────────────────────────────────
+ 
+     /// Per-depth factor table, bottom-up G-sum recompute, trailing
+     /// rebalance.
+     fn decay_selective(&mut self, root: GNodeId, att: f64, q: f64, is_global: bool) {
+-        let _span = tracing::debug_span!("decay_selective", root = root.index(), att, q, is_global,).entered();
+-
+-        let d_root = self.gnode_depth(root);
+-        let depth_range = N - d_root;
+-
+-        // 1. Precompute per-depth factor table.
+-        //    factors[d_local] = exp(ln(att) * (1 + q * (2*d_local/D - 1)))
+-        let ln_att = att.ln();
+-        let factors: Vec<f64> = (0..=depth_range)
+-            .map(|d_local| {
+-                let t = if depth_range == 0 {
+-                    0.0
+-                } else {
+-                    2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0
+-                };
+-                (ln_att * q.mul_add(t, 1.0)).exp()
+-            })
+-            .collect();
+-
+-        // 2. DFS walk: collect nodes in pre-order for bottom-up
+-        //    reversal, scale g.own per depth.
+-        let mut order = Vec::new();
+-        let mut stack = vec![root];
+-        while let Some(gid) = stack.pop() {
+-            order.push(gid);
+-
+-            let g = self.gnodes.get(gid.index());
+-            let d_local = self.gnode_depth(gid) - d_root;
+-            let factor = factors[d_local as usize];
+-
+-            // Scale own.
+-            let new_own = g.own.attenuate(factor);
+-            // Drop immutable borrow before mutable access.
+-            let g = self.gnodes.get_mut(gid.index());
+-            g.own = new_own;
+-
+-            // Push children (read from immutable borrow).
+-            let g = self.gnodes.get(gid.index());
+-            if let Some(left) = g.left {
+-                stack.push(left);
+-            }
+-            if let Some(right) = g.right {
+-                stack.push(right);
+-            }
+-        }
+-
+-        // 3. Recompute g.sum bottom-up within subtree.
+-        gtree::recompute_g_sums_subtree(&mut self.gnodes, &order);
+-
+-        // 4. Propagate G-sums above the subtree.
+-        if !is_global {
+-            if let Some(parent) = self.gnodes.get(root.index()).parent {
+-                gtree::recompute_g_sums(&mut self.gnodes, parent);
+-            }
+-        }
+-
+-        // 5. Sync V-entry intensities from g.own.
+-        for &gid in &order {
+-            let g = self.gnodes.get(gid.index());
+-            if let Some(v_id) = g.entry {
+-                let own = g.own;
+-                self.vnodes.get_mut(v_id.index()).intensity = own;
+-            }
+-        }
+-
+-        // 6. Recompute all V-structural intensities bottom-up.
+-        if let Some(v_root) = self.v_root {
+-            vtree::recompute_all_v_intensities(&mut self.vnodes, v_root);
+-        }
+-
+-        // 7. Detect V-I3 violations and rebalance.
+-        //    Selective decay changes relative ordering within the subtree,
+-        //    so rebalance is always needed (even for global).
+-        let _ = is_global; // Both paths rebalance for selective.
+-        self.violations = rebalance::find_violated_nodes(&self.vnodes);
+-        let new_gnodes = rebalance::rebalance(
+-            &mut self.vnodes,
+-            &mut self.gnodes,
+-            &mut self.violations,
+-            self.live_depth_evict,
+-        );
+-        if !new_gnodes.is_empty() {
+-            self.handle_legacy_promotes(&new_gnodes);
+-        }
+-
+-        // 8. Plateau sum recomputation (no-op without `plateau` feature).
+-        self.plateau_recompute_sums("DECAY-SELECTIVE");
+-
+-        // 9. Normalize plateaus after sum changes.
+-        // ADR-M-031 Phase 4: mark dirty so normalize runs.
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        {
+-            self.plateaus_dirty = true;
+-        }
+-        self.normalize_plateaus();
+-
+-        // 10. Re-run P-I4 repair after normalization.
+-        self.repair_p_i4();
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_assert_plateau_mirror_consistency("POST-DECAY-SELECTIVE");
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Tests ───────────────────────────────────────────────────────────
+ 
+ #[cfg(test)]
+ mod tests {}

@@ -1,0 +1,32 @@
+--- packages/mudlark/src/invariants.rs
++++ replace route_to_depth -> u32 with 1
+@@ -1451,28 +1451,10 @@
+         }
+     }
+ }
+ 
+ /// Route from G-root to the terminal containing `x`, returning its
+ /// G-Tree depth (number of edges from root).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>, x: C) -> u32 {
+-    let mut cur = graph.g_root();
+-    for _ in 0..=N + 1 {
+-        let g = graph.gnodes().get(cur.index());
+-        if g.is_terminal() {
+-            return gnode_depth_from_interval(g.lo, g.hi, N);
+-        }
+-        let mid = C::midpoint(g.lo, g.hi);
+-        let next = if x.total_cmp(&mid) == std::cmp::Ordering::Less {
+-            g.left
+-        } else {
+-            g.right
+-        };
+-        match next {
+-            Some(child) => cur = child,
+-            None => return gnode_depth_from_interval(g.lo, g.hi, N),
+-        }
+-    }
+-    let g = graph.gnodes().get(cur.index());
+-    gnode_depth_from_interval(g.lo, g.hi, N)
++    1 /* ~ changed by cargo-mutants ~ */
+ }

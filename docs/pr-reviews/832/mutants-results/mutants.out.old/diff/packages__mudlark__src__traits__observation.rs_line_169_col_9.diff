@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/observation.rs
++++ replace <impl Observation<f32> for f64>::accumulate -> f32 with 0.0
+@@ -161,17 +161,17 @@
+ 
+ impl_observation_f64_to_uint!(u8, u16, u32, u64, u128);
+ 
+ /// `f64` as observation on `f32` (narrowing).
+ impl Observation<f32> for f64 {
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn accumulate(current: f32, delta: Self) -> f32 {
+-        (Self::from(current) + delta) as f32
++        0.0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn scale(current: f32, factor: Self) -> f32 {
+         (Self::from(current) * factor) as f32
+     }
+ }

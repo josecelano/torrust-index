@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::debug_assert_plateau_mirror_consistency
+@@ -100,17 +100,17 @@
+         let rebuilt = self.build_plateaus();
+         if self.plateaus != rebuilt {
+             // Find differing keys
+             let dyn_keys: std::collections::BTreeSet<_> = self.plateaus.keys().collect();
+             let stat_keys: std::collections::BTreeSet<_> = rebuilt.keys().collect();
+             let only_dynamic: Vec<_> = dyn_keys.difference(&stat_keys).collect();
+             let only_static: Vec<_> = stat_keys.difference(&dyn_keys).collect();
+             let both: Vec<_> = dyn_keys.intersection(&stat_keys).collect();
+-            let differing: Vec<_> = both.iter().filter(|&&k| self.plateaus.get(k) != rebuilt.get(k)).collect();
++            let differing: Vec<_> = both.iter().filter(|&&k| self.plateaus.get(k) == /* ~ changed by cargo-mutants ~ */ rebuilt.get(k)).collect();
+ 
+             tracing::error!(
+                 label,
+                 only_dynamic = ?only_dynamic,
+                 only_static = ?only_static,
+                 differing = ?differing,
+                 "PLATEAU DIVERGENCE DETECTED",
+             );

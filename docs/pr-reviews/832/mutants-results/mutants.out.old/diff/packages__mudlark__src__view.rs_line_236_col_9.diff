@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace Cell<C, V>::is_final -> bool with true
+@@ -228,17 +228,17 @@
+     /// // After a single observation with depth_create=3, the cell
+     /// // is still much wider than a unit interval — not final.
+     /// let cell = g.get(42);
+     /// assert!(!cell.is_final(8));
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn is_final(&self, n: u32) -> bool {
+-        C::is_final(self.start, self.end, self.depth, n)
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Node ─────────────────────────────────────────────────────────────
+ 
+ /// Snapshot of any G-node (terminal, semi-internal, or internal)
+ ///
+ /// Unlike [`Cell`] (which captures only leaf nodes), `Node` exposes

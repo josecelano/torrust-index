@@ -1,0 +1,24 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace range_tree_config -> Config<u64> with Config::from_iter([0])
+@@ -146,20 +146,17 @@
+ pub const fn worked_example_config() -> Config<u64> {
+     BASE_U64
+ }
+ 
+ /// Config for `build_range_tree` equivalent: θ=1 forces immediate
+ /// splits.
+ #[must_use]
+ pub const fn range_tree_config() -> Config<u64> {
+-    Config {
+-        split_threshold: 1,
+-        ..BASE_U64
+-    }
++    Config::from_iter([0]) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Config for eviction integration tests: θ=5, `D_create`=3,
+ /// `D_evict`=4.
+ ///
+ /// With `N=8` (domain `[0,256)`), spreading observations triggers
+ /// splits at low depths, producing terminals eligible for eviction
+ /// at the configured `D_evict`.

@@ -1,0 +1,233 @@
+--- packages/mudlark/src/evict.rs
++++ replace plateau_after_evict with ()
+@@ -321,229 +321,17 @@
+ fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &mut GvGraph<C, V, N>,
+     gnode_id: crate::handle::GNodeId,
+     parent_id: crate::handle::GNodeId,
+     parent_state_after: GState,
+     parent_lo: C,
+     parent_hi: C,
+ ) {
+-    let _span = tracing::debug_span!(
+-        "plateau_after_evict",
+-        gnode = gnode_id.index(),
+-        parent = parent_id.index(),
+-        ?parent_state_after,
+-    )
+-    .entered();
+-
+-    // Step 1 — Remove evicted child from basis (if present).
+-    // NOTE: we defer fixup_plateau until AFTER the ancestor walk
+-    // so the BTreeMap tile structure remains stable for the
+-    // tile coverage check.
+-    let evicted_key = graph.plateau_basis.remove(gnode_id);
+-
+-    // Step 2 — Find the covering basis element for the parent's
+-    // region. Collect displaced nodes (thatched elements that
+-    // need their own basis membership).
+-    let mut displaced: Vec<crate::handle::GNodeId> = Vec::new();
+-    let mut displaced_extra: Vec<(crate::handle::GNodeId, u32)> = Vec::new();
+-
+-    let ancestor_key = if let Some(key) = graph.plateau_basis.remove(parent_id) {
+-        // Case (a): parent was the basis element.
+-
+-        // If parent was Internal → SemiInternal, the surviving
+-        // child was covered by the parent and needs its own
+-        // basis element.
+-        if parent_state_after == GState::SemiInternal {
+-            let g = graph.gnodes.get(parent_id.index());
+-            if let Some(sib) = g.left.or(g.right) {
+-                // Remove from current plateau if already a basis element.
+-                if let Some(ok) = graph.plateau_basis.remove(sib) {
+-                    graph.fixup_plateau(ok);
+-                }
+-                displaced.push(sib);
+-            }
+-        }
+-
+-        Some(key)
+-    } else {
+-        // Walk up from parent to find the ancestor basis element
+-        // whose plateau tile actually covers the parent's region.
+-        let mut path: Vec<crate::handle::GNodeId> = vec![parent_id];
+-        let mut cur = graph.gnodes.get(parent_id.index()).parent;
+-        let mut found = None;
+-
+-        // The parent's plateau key (where it wants to live).
+-        let parent_key = {
+-            let pg = graph.gnodes.get(parent_id.index());
+-            crate::plateau::basis_edge_of(pg)
+-        };
+-
+-        while let Some(anc) = cur {
+-            if let Some(&anc_key) = graph.plateau_basis.plateau_key(anc).as_ref() {
+-                // Candidate ancestor found. Check if its tile
+-                // actually covers the parent's basis edge:
+-                // tile = [anc_key, next_key_in_btreemap)
+-                let next_key = graph
+-                    .plateaus
+-                    .range((std::ops::Bound::Excluded(anc_key), std::ops::Bound::Unbounded))
+-                    .next()
+-                    .map(|(&k, _)| k);
+-                let tile_covers = parent_key >= anc_key && next_key.map_or(true, |nk| parent_key < nk);
+-
+-                if tile_covers {
+-                    // Case (b): ancestor's tile covers parent.
+-                    // Now remove it and decompose.
+-                    graph.plateau_basis.remove(anc);
+-
+-                    // Surviving child at parent level.
+-                    if parent_state_after == GState::SemiInternal {
+-                        let g = graph.gnodes.get(parent_id.index());
+-                        if let Some(sib) = g.left.or(g.right) {
+-                            if let Some(ok) = graph.plateau_basis.remove(sib) {
+-                                graph.fixup_plateau(ok);
+-                            }
+-                            displaced.push(sib);
+-                        }
+-                    }
+-
+-                    // Siblings along the walk path (parent → ancestor).
+-                    for &path_node in &path {
+-                        let par = graph
+-                            .gnodes
+-                            .get(path_node.index())
+-                            .parent
+-                            .expect("path node must have a parent");
+-                        let pg = graph.gnodes.get(par.index());
+-                        let sibling = if pg.left == Some(path_node) { pg.right } else { pg.left };
+-                        if let Some(sib_id) = sibling {
+-                            if displaced.contains(&sib_id) {
+-                                continue;
+-                            }
+-                            if let Some(ok) = graph.plateau_basis.remove(sib_id) {
+-                                graph.fixup_plateau(ok);
+-                            }
+-                            displaced.push(sib_id);
+-                        }
+-                    }
+-
+-                    found = Some(anc_key);
+-                    break;
+-                }
+-                // Ancestor is a basis element but its tile doesn't
+-                // cover the parent → skip, continue walking.
+-            }
+-            path.push(anc);
+-            cur = graph.gnodes.get(anc.index()).parent;
+-        }
+-
+-        // Case (c): no covering ancestor found — descendant-covered.
+-        found
+-    };
+-
+-    // Step 3 — Fixup: now that the ancestor walk is complete, we
+-    // can safely fix up the evicted child's old plateau AND the
+-    // ancestor's old plateau (if found).
+-    if let Some(ek) = evicted_key {
+-        graph.fixup_plateau(ek);
+-    }
+-    if let Some(ak) = ancestor_key {
+-        // Don't double-fixup if the ancestor was the same plateau.
+-        if evicted_key != Some(ak) {
+-            graph.fixup_plateau(ak);
+-        }
+-    }
+-
+-    // Step 4+5 combined — Merge parent into displaced list, collect
+-    // all basis elements, sort by BasisEdge, place left-to-right
+-    // (ADR-M-031 §3a).
+-    //
+-    // Before placing, evacuate any existing basis elements whose
+-    // plateau is a right-neighbour of the parent at the same depth.
+-    // Without this, `place_basis_element` can merge the parent with
+-    // an existing right-neighbour before deeper displaced elements
+-    // (which belong *between* them) have been placed — producing a
+-    // plateau that `build_plateaus`'s strict sorted sweep would
+-    // never create.
+-    let parent_depth = match parent_state_after {
+-        GState::Terminal | GState::SemiInternal => crate::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N),
+-        GState::Internal => {
+-            unreachable!("evict_tip: parent cannot remain Internal after eviction")
+-        }
+-    };
+-
+-    let parent_be = crate::plateau::BasisEdge(parent_lo);
+-
+-    // Evacuate right-adjacent same-depth plateaus that could be
+-    // incorrectly merged with the parent during sorted placement.
+-    // We look for plateaus whose BasisEdge is in [parent_hi, ...) and
+-    // at the same depth, that are spatially adjacent (start <= parent_hi).
+-    {
+-        let right_keys: Vec<crate::plateau::BasisEdge<C>> = graph
+-            .plateaus
+-            .range(crate::plateau::BasisEdge(parent_hi)..)
+-            .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
+-            .filter(|(_, p)| p.depth == parent_depth)
+-            .map(|(&k, _)| k)
+-            .collect();
+-        for rk in right_keys {
+-            let members: Vec<crate::handle::GNodeId> = graph.plateau_basis.basis_elements(&rk).iter().copied().collect();
+-            if !members.is_empty() {
+-                tracing::trace!(
+-                    ?rk,
+-                    parent_depth,
+-                    members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
+-                    "evacuating right-adjacent same-depth plateau for evict placement",
+-                );
+-                for &m in &members {
+-                    graph.plateau_basis.remove(m);
+-                }
+-                graph.plateaus.remove(&rk);
+-                for &m in &members {
+-                    graph.collect_subtree_basis_elements(m, &mut displaced_extra);
+-                }
+-            }
+-        }
+-
+-        // Also evacuate left-adjacent same-depth plateaus.
+-        let left_keys: Vec<crate::plateau::BasisEdge<C>> = graph
+-            .plateaus
+-            .range(..parent_be)
+-            .rev()
+-            .take_while(|(_, p)| p.end.total_cmp(&parent_lo) != std::cmp::Ordering::Less)
+-            .filter(|(_, p)| p.depth == parent_depth)
+-            .map(|(&k, _)| k)
+-            .collect();
+-        for lk in left_keys {
+-            let members: Vec<crate::handle::GNodeId> = graph.plateau_basis.basis_elements(&lk).iter().copied().collect();
+-            if !members.is_empty() {
+-                tracing::trace!(
+-                    ?lk,
+-                    parent_depth,
+-                    members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
+-                    "evacuating left-adjacent same-depth plateau for evict placement",
+-                );
+-                for &m in &members {
+-                    graph.plateau_basis.remove(m);
+-                }
+-                graph.plateaus.remove(&lk);
+-                for &m in &members {
+-                    graph.collect_subtree_basis_elements(m, &mut displaced_extra);
+-                }
+-            }
+-        }
+-    }
+-
+-    let mut to_place = Vec::new();
+-    to_place.push((parent_id, parent_depth));
+-    for &sib_id in &displaced {
+-        graph.collect_subtree_basis_elements(sib_id, &mut to_place);
+-    }
+-    to_place.extend(displaced_extra);
+-    graph.place_sorted(&mut to_place);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Scan the V-Tree for eviction candidates (ADR-M-013, ADR-M-015).
+ ///
+ /// Pre-order DFS from the V-root. Prunes subtrees where
+ /// `has_evictable == false`. Collects eligible `VNodeId`s:
+ /// entries with `depth_V > D_evict`, `is_evictable == true`,
+ /// and backing G-node ≠ G-root.

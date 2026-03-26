@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field depth_evict from struct Config expression in evictable_config
+@@ -161,17 +161,17 @@
+ /// `D_evict`=4.
+ ///
+ /// With `N=8` (domain `[0,256)`), spreading observations triggers
+ /// splits at low depths, producing terminals eligible for eviction
+ /// at the configured `D_evict`.
+ #[must_use]
+ pub const fn evictable_config() -> Config<u64> {
+     Config {
+-        depth_evict: 4,
++         /* ~ changed by cargo-mutants ~ */
+         ..BASE_U64
+     }
+ }
+ 
+ // ── f64 presets ─────────────────────────────────────────────────
+ 
+ /// Standard f64 config: θ=5.0, `D_create`=3, `D_evict`=8.
+ #[must_use]

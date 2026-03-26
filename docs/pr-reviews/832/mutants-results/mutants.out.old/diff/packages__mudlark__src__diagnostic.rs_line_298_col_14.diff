@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace == with != in is_ancestor
+@@ -290,17 +290,17 @@
+             None => break,
+         }
+     }
+ }
+ 
+ /// Check if `ancestor` is an ancestor of `descendant` in the V-tree.
+ fn is_ancestor<V: Accumulator>(vnodes: &Arena<VNode<V>>, ancestor: VNodeId, mut descendant: VNodeId) -> bool {
+     while let Some(p) = vnodes.get(descendant.index()).parent {
+-        if p == ancestor {
++        if p != /* ~ changed by cargo-mutants ~ */ ancestor {
+             return true;
+         }
+         descendant = p;
+     }
+     false
+ }
+ 
+ // ── Display helpers ─────────────────────────────────────────────────

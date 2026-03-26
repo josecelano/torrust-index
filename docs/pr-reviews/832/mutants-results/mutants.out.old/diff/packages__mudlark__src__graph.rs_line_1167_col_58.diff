@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ delete ! in GvGraph<C, V, N>::is_ancestor_of
+@@ -1159,17 +1159,17 @@
+     ///         assert!(g.is_ancestor_of(root, node.gnode_id));
+     ///     }
+     /// }
+     /// // A node is not its own proper ancestor.
+     /// assert!(!g.is_ancestor_of(root, root));
+     /// ```
+     #[must_use]
+     pub fn is_ancestor_of(&self, ancestor: GNodeId, descendant: GNodeId) -> bool {
+-        if !self.gnodes.is_occupied(ancestor.index()) || !self.gnodes.is_occupied(descendant.index()) {
++        if !self.gnodes.is_occupied(ancestor.index()) ||  /* ~ changed by cargo-mutants ~ */self.gnodes.is_occupied(descendant.index()) {
+             return false;
+         }
+         let a = self.gnodes.get(ancestor.index());
+         let d = self.gnodes.get(descendant.index());
+         a.lo <= d.lo && a.hi >= d.hi && (a.lo != d.lo || a.hi != d.hi)
+     }
+ }
+ 

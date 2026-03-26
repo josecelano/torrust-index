@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace += with *= in rebalance
+@@ -1350,17 +1350,17 @@
+     let _span = tracing::debug_span!("rebalance", queue = violations.len()).entered();
+ 
+     // Pre-rebalance audit: detect violations not in the queue.
+     if tracing::enabled!(tracing::Level::DEBUG) {
+         crate::diagnostic::audit_violations(vnodes, violations, "PRE-REBALANCE");
+     }
+ 
+     while let Some(c) = violations.pop() {
+-        iterations += 1;
++        iterations *= /* ~ changed by cargo-mutants ~ */ 1;
+         if iterations > max_iterations {
+             tracing::error!(
+                 iterations,
+                 max_iterations,
+                 resolved,
+                 queue = violations.len(),
+                 current = c.index(),
+                 "rebalance safety-net exceeded — dumping queue tail",

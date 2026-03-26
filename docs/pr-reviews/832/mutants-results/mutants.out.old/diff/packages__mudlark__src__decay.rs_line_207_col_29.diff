@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace - with + in GvGraph<C, V, N>::decay_selective
+@@ -199,17 +199,17 @@
+     // ── Selective path (q > 0) ──────────────────────────────────
+ 
+     /// Per-depth factor table, bottom-up G-sum recompute, trailing
+     /// rebalance.
+     fn decay_selective(&mut self, root: GNodeId, att: f64, q: f64, is_global: bool) {
+         let _span = tracing::debug_span!("decay_selective", root = root.index(), att, q, is_global,).entered();
+ 
+         let d_root = self.gnode_depth(root);
+-        let depth_range = N - d_root;
++        let depth_range = N + /* ~ changed by cargo-mutants ~ */ d_root;
+ 
+         // 1. Precompute per-depth factor table.
+         //    factors[d_local] = exp(ln(att) * (1 + q * (2*d_local/D - 1)))
+         let ln_att = att.ln();
+         let factors: Vec<f64> = (0..=depth_range)
+             .map(|d_local| {
+                 let t = if depth_range == 0 {
+                     0.0

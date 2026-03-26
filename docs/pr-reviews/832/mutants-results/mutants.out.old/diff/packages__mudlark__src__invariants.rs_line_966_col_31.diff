@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_plateau_depth_consistency
+@@ -958,17 +958,17 @@
+                              uniform_contour_depth_of returned None — internal basis \
+                              element has non-uniform contour depth",
+                         ));
+                         continue;
+                     };
+                     d
+                 }
+             };
+-            if expected_depth != plateau.depth {
++            if expected_depth == /* ~ changed by cargo-mutants ~ */ plateau.depth {
+                 errors.push(format!(
+                     "Plateau depth: key {key:?}, basis element {gid:?} ({:?}): \
+                      element contributes depth {expected_depth}, plateau.depth={}",
+                     g.state(),
+                     plateau.depth,
+                 ));
+             }
+         }

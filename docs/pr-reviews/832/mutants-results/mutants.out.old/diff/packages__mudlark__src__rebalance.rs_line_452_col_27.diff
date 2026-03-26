@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in skip_promote
+@@ -444,17 +444,17 @@
+     // First find the uncle (sibling of p in g).
+     let (u_id, u_int) = {
+         let g_node = vnodes.get(g.index());
+         match &g_node.kind {
+             VKind::Structural { children, .. } => {
+                 let mut uncle = None;
+                 for i in 0..children.len() {
+                     let (id, int) = children.get(i);
+-                    if id != p {
++                    if id == /* ~ changed by cargo-mutants ~ */ p {
+                         uncle = Some((id, int));
+                         break;
+                     }
+                 }
+                 uncle.expect("skip_promote: uncle not found")
+             }
+             VKind::Entry { .. } => panic!("skip_promote: grandparent must be structural"),
+         }

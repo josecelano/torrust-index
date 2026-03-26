@@ -1,0 +1,48 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i6b_evictable_flag with ()
+@@ -557,44 +557,17 @@
+ }
+ 
+ // ── V-I6b: Evictable flag on entries ────────────────────────────────
+ 
+ fn check_v_i6b_evictable_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        if let VKind::Entry {
+-            gnode,
+-            is_evictable,
+-            is_exposed,
+-            ..
+-        } = &v.kind
+-        {
+-            if !graph.gnodes().is_occupied(gnode.index()) {
+-                continue; // Already caught by V-I6.
+-            }
+-            let g = graph.gnodes().get(gnode.index());
+-            let expected = g.is_terminal();
+-            if *is_evictable != expected {
+-                errors.push(format!(
+-                    "V-I6b violated at V-node {idx}: is_evictable={is_evictable}, \
+-                     expected={expected} (state={:?})",
+-                    g.state()
+-                ));
+-            }
+-            // Implied: is_evictable ⟹ is_exposed
+-            if *is_evictable && !*is_exposed {
+-                errors.push(format!(
+-                    "V-I6b violated at V-node {idx}: is_evictable=true but is_exposed=false"
+-                ));
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I7: Structural has_evictable flag ──────────────────────────
+ 
+ fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

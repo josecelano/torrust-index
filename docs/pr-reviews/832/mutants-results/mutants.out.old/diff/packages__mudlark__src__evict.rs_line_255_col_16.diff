@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ delete ! in evict_tip
+@@ -247,17 +247,17 @@
+         let ctx = crate::diagnostic::EvictionContext {
+             evicted_parent: v_parent,
+             evicted_parent_child_count: child_count,
+             collapse_sibling,
+         };
+         let all_violated = rebalance::find_violated_nodes(&graph.vnodes);
+         let queued: std::collections::HashSet<usize> = graph.violations.iter().map(|v| v.index()).collect();
+         for v in all_violated {
+-            if !queued.contains(&v.index()) {
++            if  /* ~ changed by cargo-mutants ~ */queued.contains(&v.index()) {
+                 crate::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
+             }
+         }
+     }
+ 
+     // ── 7. Deallocate G-node and decrement count ────────────────
+     // Snapshot parent state before deallocation for plateau maintenance.
+     #[cfg(feature = "dynamic-contour-tracking")]

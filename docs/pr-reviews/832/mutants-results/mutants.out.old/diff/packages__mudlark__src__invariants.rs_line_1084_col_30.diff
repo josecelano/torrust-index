@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_p_i1_i_keys_are_contour_steps
+@@ -1076,17 +1076,17 @@
+     for (i, (&(coord, depth), btree_coord)) in steps.iter().zip(btree_keys.iter()).enumerate() {
+         if coord.total_cmp(btree_coord) != std::cmp::Ordering::Equal {
+             errors.push(format!(
+                 "P-I1(i): step {i}: contour step at {coord:?}, BTreeMap key at {btree_coord:?}"
+             ));
+         }
+         // Also verify depth matches.
+         if let Some(plateau) = plateaus.get(&BasisEdge(coord)) {
+-            if plateau.depth != depth {
++            if plateau.depth == /* ~ changed by cargo-mutants ~ */ depth {
+                 errors.push(format!(
+                     "P-I1(i): step {i} at {coord:?}: contour depth={depth}, plateau.depth={}",
+                     plateau.depth
+                 ));
+             }
+         }
+     }
+ 

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ delete ! in GvGraph<C, V, N>::evict_candidates
+@@ -166,17 +166,17 @@
+             if let Some(limit) = stop_at {
+                 if evicted as usize >= limit {
+                     break;
+                 }
+             }
+ 
+             // Re-verify eligibility: the slot may have been
+             // invalidated by a prior eviction in this batch.
+-            if !self.vnodes.is_occupied(v_id.index()) {
++            if  /* ~ changed by cargo-mutants ~ */self.vnodes.is_occupied(v_id.index()) {
+                 continue;
+             }
+             match &self.vnodes.get(v_id.index()).kind {
+                 crate::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+                     if !is_evictable {
+                         continue;
+                     }
+                     if *gnode == self.g_root {

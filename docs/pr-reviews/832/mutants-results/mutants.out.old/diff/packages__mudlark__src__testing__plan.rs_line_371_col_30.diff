@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace << with >> in Plan<C, V>::nested_bursts
+@@ -363,17 +363,17 @@
+     /// Same dyadic midpoint sequence as
+     /// [`fractal_spray`](Self::fractal_spray), but each point gets
+     /// `burst_per_level` repeated observations, creating sustained
+     /// violations at every V-Tree depth simultaneously.
+     #[must_use]
+     pub fn nested_bursts(mut self, domain: u64, delta: V, levels: u32, burst_per_level: usize) -> Self {
+         for level in 0..levels {
+             let denom = 1u64 << (level + 1);
+-            let count = 1u64 << level;
++            let count = 1u64 >> /* ~ changed by cargo-mutants ~ */ level;
+             for j in 0..count {
+                 let coord = (2 * j + 1) * domain / denom;
+                 if coord < domain {
+                     self.observations
+                         .extend(std::iter::repeat((C::from_u64(coord), delta)).take(burst_per_level));
+                 }
+             }
+         }

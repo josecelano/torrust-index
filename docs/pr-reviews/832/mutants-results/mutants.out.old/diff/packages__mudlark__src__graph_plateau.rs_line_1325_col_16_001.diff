@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace > with < in GvGraph<C, V, N>::find_boundary_node
+@@ -1317,17 +1317,17 @@
+     /// `basis_edge > parent_pk`.  Prefers the leftmost such node
+     /// (to split as close to the parent as possible).
+     #[cfg(feature = "dynamic-contour-tracking")]
+     fn find_boundary_node(&self, gid: GNodeId, parent_pk: crate::plateau::BasisEdge<C>) -> Option<GNodeId> {
+         use crate::plateau::basis_edge_of;
+ 
+         let g = self.gnodes.get(gid.index());
+         let key = basis_edge_of(g);
+-        if key > parent_pk {
++        if key < /* ~ changed by cargo-mutants ~ */ parent_pk {
+             return Some(gid);
+         }
+         // The node's basis_edge <= parent_pk. Try children.
+         if let Some(left) = g.left {
+             if let Some(found) = self.find_boundary_node(left, parent_pk) {
+                 return Some(found);
+             }
+         }

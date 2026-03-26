@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::plateau_after_legacy_promote
+@@ -1576,17 +1576,17 @@
+     pub(crate) fn plateau_after_legacy_promote(&mut self, new_gid: GNodeId) {
+         use crate::gnode::GState;
+ 
+         let ng = self.gnodes.get(new_gid.index());
+         let parent_id = ng.parent.expect("legacy_promote child must have a parent");
+         let child_depth = crate::gtree::gnode_depth_from_interval(ng.lo, ng.hi, N);
+ 
+         let pg = self.gnodes.get(parent_id.index());
+-        let existing_child_id = if pg.left == Some(new_gid) { pg.right } else { pg.left };
++        let existing_child_id = if pg.left != /* ~ changed by cargo-mutants ~ */ Some(new_gid) { pg.right } else { pg.left };
+ 
+         if let Some(old_key) = self.plateau_basis.remove(parent_id) {
+             self.fixup_plateau(old_key);
+         }
+ 
+         // Collect both elements, sort, place left-to-right (ADR-M-031 §2b).
+         let mut to_place = Vec::new();
+         if let Some(ec_id) = existing_child_id {

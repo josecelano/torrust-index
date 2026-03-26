@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace > with < in GvGraph<C, V, N>::decompose_basis
+@@ -634,17 +634,17 @@
+         // CR-I4 and double-counts energy.
+         //
+         // The guard cannot fire for single-plateau ranges (§CR.8.4).
+         let left_absent = g.left.is_none();
+         let right_absent = g.right.is_none();
+         if left_absent != right_absent {
+             // Exactly one child absent ⇒ semi-internal.
+             // Check if both halves overlap the query range.
+-            let l_lo = if query_lo > g.lo { query_lo } else { g.lo };
++            let l_lo = if query_lo < /* ~ changed by cargo-mutants ~ */ g.lo { query_lo } else { g.lo };
+             let l_hi = if query_hi < mid { query_hi } else { mid };
+             let r_lo = if query_lo > mid { query_lo } else { mid };
+             let r_hi = if query_hi < g.hi { query_hi } else { g.hi };
+             if l_lo < l_hi && r_lo < r_hi {
+                 // Both halves overlap — select the node directly.
+                 // Coverage: g's interval clipped to the query range (§CR.2.2).
+                 basis.push(BasisElement {
+                     gnode_id: gid,

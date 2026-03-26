@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace && with || in escalate_after_promote
+@@ -1110,17 +1110,17 @@
+ fn escalate_after_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId, violations: &mut Vec<VNodeId>) {
+     let heaviest = match &vnodes.get(p.index()).kind {
+         VKind::Structural { children, .. } if children.len() == 3 => children.get(children.heaviest_child_index()).0,
+         _ => return,
+     };
+ 
+     let h_direct = is_violated(vnodes, heaviest);
+     let h_indirect = !h_direct && any_child_violated(vnodes, heaviest);
+-    if !h_direct && !h_indirect {
++    if !h_direct || /* ~ changed by cargo-mutants ~ */ !h_indirect {
+         return;
+     }
+ 
+     let Some(g) = vnodes.get(p.index()).parent else {
+         return;
+     };
+     let _span = tracing::debug_span!(
+         "escalate",

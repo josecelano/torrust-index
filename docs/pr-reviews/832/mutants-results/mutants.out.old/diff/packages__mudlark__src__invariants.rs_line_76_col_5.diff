@@ -1,0 +1,28 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_plateau_only with ()
+@@ -68,24 +68,17 @@
+ 
+ /// Check only plateau-related invariants. Used for debugging.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ #[allow(dead_code)]
+ pub fn check_plateau_only<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    check_plateau_btreemap_key_consistency(graph, errors);
+-    check_plateau_basis_consistency(graph, errors);
+-    check_p_i1_i_keys_are_contour_steps(graph, errors);
+-    check_p_i1_ii_tile_contiguity(graph, errors);
+-    check_p_i1_iii_run_contains_tile(graph, errors);
+-    check_p_i2_basis_minimality(graph, errors);
+-    check_p_i3_basis_disjointness(graph, errors);
+-    check_p_i4_thatch_one_hop(graph, errors);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Check only P-I3 basis disjointness. Used for debugging.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ #[allow(dead_code)]
+ pub fn check_p_i3_only<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,

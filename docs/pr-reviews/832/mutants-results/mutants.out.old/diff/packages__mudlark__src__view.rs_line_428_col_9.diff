@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace Node<C, V>::refinement -> V with Default::default()
+@@ -420,17 +420,17 @@
+     ///     }
+     ///     // For any node: refinement + own == sum.
+     ///     assert_eq!(node.refinement() + node.own, node.sum);
+     /// }
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn refinement(&self) -> V {
+-        V::sub(self.sum, self.own)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Width of this node's interval: `end - start`.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph};

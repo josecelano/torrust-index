@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace == with != in GvGraph<C, V, N>::evict_candidates
+@@ -174,17 +174,17 @@
+             if !self.vnodes.is_occupied(v_id.index()) {
+                 continue;
+             }
+             match &self.vnodes.get(v_id.index()).kind {
+                 crate::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+                     if !is_evictable {
+                         continue;
+                     }
+-                    if *gnode == self.g_root {
++                    if *gnode != /* ~ changed by cargo-mutants ~ */ self.g_root {
+                         continue;
+                     }
+                     // Depth may have changed due to V-tree mutations.
+                     let depth = vtree::v_depth(&self.vnodes, v_id);
+                     if depth <= self.live_depth_evict {
+                         continue;
+                     }
+                 }

@@ -1,0 +1,64 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i4_thatch_one_hop with ()
+@@ -1348,60 +1348,17 @@
+ 
+ /// Every semi-internal basis element's surviving child must be covered
+ /// by a *different* plateau.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i4_thatch_one_hop<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-    for (&key, gnodes) in pb.iter() {
+-        for &gid in gnodes {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            if g.state() != GState::SemiInternal {
+-                continue;
+-            }
+-
+-            // Find the surviving child.
+-            let child = g.left.or(g.right);
+-            let Some(child_id) = child else {
+-                errors.push(format!("P-I4: semi-internal {gid:?} in plateau {key:?} has no children"));
+-                continue;
+-            };
+-
+-            // The child (or a descendant at child.lo) must be a basis
+-            // element of a different plateau.
+-            let child_g = graph.gnodes().get(child_id.index());
+-            let child_lo = child_g.lo;
+-
+-            // Route through the BTreeMap to find which plateau covers
+-            // child.lo.
+-            let child_plateau_key = graph.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);
+-
+-            match child_plateau_key {
+-                Some(ck) if ck == key => {
+-                    errors.push(format!(
+-                        "P-I4 thatch one-hop: semi-internal {gid:?} in plateau {key:?} \
+-                         thatches child {child_id:?}, but child's plateau key {ck:?} == parent's"
+-                    ));
+-                }
+-                None => {
+-                    errors.push(format!(
+-                        "P-I4 thatch one-hop: semi-internal {gid:?} in plateau {key:?}: \
+-                         no plateau found covering child {child_id:?} at lo={child_lo:?}"
+-                    ));
+-                }
+-                Some(_) => {} // OK — different plateau.
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── P-I5: Thatch depth bound ───────────────────────────────────────
+ 
+ /// At each basis element's `lo` coordinate, the number of plateaus
+ /// covering that point (thatch depth) must be ≤ `d_geo(x) + 1`.
+ ///
+ /// `d_geo(x)` = depth of the terminal G-node reached by routing `x`.

@@ -1,0 +1,26 @@
+--- packages/mudlark/src/view.rs
++++ replace Cell<C, V>::to_span -> Span<C, V> with Default::default()
+@@ -164,22 +164,17 @@
+     /// let cell = g.get(42);
+     /// let span = cell.to_span();
+     /// assert_eq!(span.start, cell.start);
+     /// assert_eq!(span.intensity, cell.intensity);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub const fn to_span(self) -> Span<C, V> {
+-        Span {
+-            start: self.start,
+-            end: self.end,
+-            intensity: self.intensity,
+-            depth: self.depth,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Width of this cell: `end - start`.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph};

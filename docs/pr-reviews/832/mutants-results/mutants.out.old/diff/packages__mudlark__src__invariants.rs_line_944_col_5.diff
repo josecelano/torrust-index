@@ -1,0 +1,52 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_plateau_depth_consistency with ()
+@@ -936,48 +936,17 @@
+ /// - Terminal: `gnode_depth == p.depth`.
+ /// - Internal (balanced): `gnode_depth + 1 == p.depth` (contour is children's depth).
+ /// - Semi-internal: `gnode_depth == p.depth` (uncovered half at parent's depth).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-    for (&key, plateau) in &graph.plateaus {
+-        for &gid in pb.basis_elements(&key) {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                continue; // Liveness already checked above.
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-            let expected_depth = match g.state() {
+-                GState::Terminal | GState::SemiInternal => g_depth,
+-                GState::Internal => {
+-                    let Some(d) = crate::graph::uniform_contour_depth_of(graph.gnodes(), gid, N) else {
+-                        errors.push(format!(
+-                            "Plateau depth: key {key:?}, basis element {gid:?} (Internal): \
+-                             uniform_contour_depth_of returned None — internal basis \
+-                             element has non-uniform contour depth",
+-                        ));
+-                        continue;
+-                    };
+-                    d
+-                }
+-            };
+-            if expected_depth != plateau.depth {
+-                errors.push(format!(
+-                    "Plateau depth: key {key:?}, basis element {gid:?} ({:?}): \
+-                     element contributes depth {expected_depth}, plateau.depth={}",
+-                    g.state(),
+-                    plateau.depth,
+-                ));
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── P-I1: Deterministic tiling ─────────────────────────────────────
+ 
+ /// Compute the contour tile of a basis element: the interval of the
+ /// domain that this element covers in the contour step function.
+ ///
+ /// - Terminal / balanced internal: full `[lo, hi)`.

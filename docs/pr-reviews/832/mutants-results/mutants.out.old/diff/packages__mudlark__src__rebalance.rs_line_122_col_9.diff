@@ -1,0 +1,31 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace <impl fmt::Display for Nd<'_, V>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -114,27 +114,17 @@
+ // They borrow the arena and format on demand — no heap allocation
+ // unless a subscriber actually captures the formatted output.
+ 
+ /// Compact node label: `v5(S2,42)` or `v3(E,18)` or `v9(DEAD)`.
+ pub struct Nd<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);
+ 
+ impl<V: Accumulator> fmt::Display for Nd<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        let idx = self.1.index();
+-        if !self.0.is_occupied(idx) {
+-            return write!(f, "v{idx}(DEAD)");
+-        }
+-        let n = self.0.get(idx);
+-        match &n.kind {
+-            VKind::Entry { .. } => write!(f, "v{idx}(E,{:?})", n.intensity),
+-            VKind::Structural { children, .. } => {
+-                write!(f, "v{idx}(S{},{:?})", children.len(), n.intensity)
+-            }
+-        }
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// Bracketed children list: `[v1(18), v2(15)]` or `∅` for entries.
+ struct Ch<'a, V: Accumulator>(&'a Arena<VNode<V>>, VNodeId);
+ 
+ impl<V: Accumulator> fmt::Display for Ch<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in dump_plateaus
+@@ -231,17 +231,17 @@
+         )
+         .unwrap();
+ 
+         let elements = graph.plateau_basis().basis_elements(key);
+         let raw_ids: Vec<usize> = elements.iter().map(|g| g.index()).collect();
+         writeln!(out, "    basis_elements (raw): {raw_ids:?}").unwrap();
+ 
+         for &gid in elements {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 writeln!(out, "    !! DANGLING GNodeId({}) — slot deallocated !!", gid.index()).unwrap();
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let state = state_label(g.state());
+             let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+             let contour_depth = match g.state() {
+                 GState::Terminal | GState::SemiInternal => g_depth,

@@ -1,0 +1,26 @@
+--- packages/mudlark/src/plateau.rs
++++ replace Plateau<C, V>::to_span -> Span<C, V> with Default::default()
+@@ -274,22 +274,17 @@
+     /// assert_eq!(span.start, plateau.start);
+     /// assert_eq!(span.end, plateau.end);
+     /// assert_eq!(span.intensity, plateau.sum);
+     /// assert_eq!(span.depth, plateau.depth);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub const fn to_span(self) -> Span<C, V> {
+-        Span {
+-            start: self.start,
+-            end: self.end,
+-            intensity: self.sum,
+-            depth: self.depth,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── PlateauBasis ─────────────────────────────────────────────────────
+ 
+ /// Internal bookkeeping for plateau ↔ basis element associations.
+ ///
+ /// Maintains the bidirectional mapping that satisfies P-I1 through

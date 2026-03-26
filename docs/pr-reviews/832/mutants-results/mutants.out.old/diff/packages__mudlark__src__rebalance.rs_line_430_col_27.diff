@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in skip_promote
+@@ -422,17 +422,17 @@
+     // Find the sibling of c under p.
+     let (s_id, s_int) = {
+         let p_node = vnodes.get(p.index());
+         match &p_node.kind {
+             VKind::Structural { children, .. } => {
+                 let mut sib = None;
+                 for i in 0..children.len() {
+                     let (id, int) = children.get(i);
+-                    if id != c {
++                    if id == /* ~ changed by cargo-mutants ~ */ c {
+                         sib = Some((id, int));
+                         break;
+                     }
+                 }
+                 sib.expect("skip_promote: sibling not found")
+             }
+             VKind::Entry { .. } => panic!("skip_promote: parent must be structural"),
+         }

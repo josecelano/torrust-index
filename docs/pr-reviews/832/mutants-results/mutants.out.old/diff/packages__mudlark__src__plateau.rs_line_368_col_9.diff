@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with None
+@@ -360,17 +360,17 @@
+     }
+ 
+     /// Look up which basis edge key a basis element belongs to.
+     ///
+     /// Returns `None` if `gnode` is not a basis element of any
+     /// plateau.
+     #[inline]
+     pub(crate) fn plateau_key(&self, gnode: GNodeId) -> Option<BasisEdge<C>> {
+-        self.back.get(&gnode).copied()
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The basis elements for the plateau at `key`.
+     ///
+     /// Returns an empty set reference if the key has no entry
+     /// (should not happen in a well-maintained graph; defensive).
+     pub(crate) fn basis_elements(&self, key: &BasisEdge<C>) -> &HashSet<GNodeId> {
+         static EMPTY: OnceLock<HashSet<GNodeId>> = OnceLock::new();

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ replace || with && in GvGraph<C, V, N>::observe
+@@ -95,17 +95,17 @@
+         split::attempt_split(self, g_id);
+ 
+         // Post-split audit: check for untracked violations.
+         if tracing::enabled!(tracing::Level::DEBUG) {
+             crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-SPLIT");
+         }
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-SPLIT");
+         }
+ 
+         // 6. Drain violation queue.
+         let new_gnodes = rebalance::rebalance(
+             &mut self.vnodes,
+             &mut self.gnodes,
+             &mut self.violations,

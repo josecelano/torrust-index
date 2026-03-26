@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace - with / in Config<V>::validate
+@@ -250,17 +250,17 @@
+             self.depth_create
+         );
+         assert!(
+             self.alpha_relax > 0.0 && self.alpha_relax < 1.0,
+             "Config: alpha_relax ({}) must be in (0.0, 1.0)",
+             self.alpha_relax
+         );
+         if let Some(budget) = self.budget {
+-            let buffer = self.depth_evict - self.depth_create;
++            let buffer = self.depth_evict / /* ~ changed by cargo-mutants ~ */ self.depth_create;
+             let headroom = 3usize.pow(buffer + 1);
+             let convergence = 2 * (self.depth_create as usize).saturating_sub(1);
+             let required = headroom.max(convergence);
+             assert!(
+                 budget > required,
+                 "Config: budget ({budget}) must be > max(3^(buffer+1), 2*(D_c-1)) \
+                  = {required} (ADR-M-018: budget must exceed required headroom \
+                  for hard ceiling guarantee)"

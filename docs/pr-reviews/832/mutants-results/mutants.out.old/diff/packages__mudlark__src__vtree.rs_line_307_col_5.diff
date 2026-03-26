@@ -1,0 +1,30 @@
+--- packages/mudlark/src/vtree.rs
++++ replace recompute_structural_intensity with ()
+@@ -299,26 +299,17 @@
+             }
+         }
+     }
+     unreachable!("sole_sibling: child not found in parent");
+ }
+ 
+ /// Recompute a structural node's intensity from its children.
+ pub fn recompute_structural_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId) {
+-    let node = vnodes.get(id.index());
+-    if let VKind::Structural { children, .. } = &node.kind {
+-        let mut total = V::zero();
+-        for i in 0..children.len() {
+-            total = V::add(total, children.intensities[i]);
+-        }
+-        // Must drop borrow before mutating.
+-        let _ = node;
+-        vnodes.get_mut(id.index()).intensity = total;
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Propagate V-sums starting at `start` (inclusive) then upward.
+ fn propagate_v_sums_from<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+     recompute_structural_intensity(vnodes, start);
+     let new_int = vnodes.get(start.index()).intensity;
+     update_parent_cached_intensity(vnodes, start, new_int);
+     propagate_v_sums(vnodes, start);

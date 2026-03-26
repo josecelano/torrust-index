@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace == with != in Node<C, V>::to_cell
+@@ -349,17 +349,17 @@
+     ///     assert_eq!(cell.intensity, node.own);
+     /// } else {
+     ///     assert!(node.to_cell().is_none());
+     /// }
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn to_cell(self) -> Option<Cell<C, V>> {
+-        if self.state == GState::Terminal {
++        if self.state != /* ~ changed by cargo-mutants ~ */ GState::Terminal {
+             Some(Cell {
+                 start: self.start,
+                 end: self.end,
+                 intensity: self.own,
+                 depth: self.depth,
+             })
+         } else {
+             None

@@ -1,0 +1,23 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace GvGraph<C, V, N>::from_observations -> Self with Default::default()
+@@ -203,19 +203,17 @@
+     /// assert_eq!(g.total_sum(), 6);
+     /// ```
+     #[must_use]
+     pub fn from_observations<O, I>(config: Config<V>, iter: I) -> Self
+     where
+         O: crate::traits::Observation<V>,
+         I: IntoIterator<Item = (C, O)>,
+     {
+-        let mut graph = Self::new(config);
+-        graph.extend(iter);
+-        graph
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// Bulk-insert observations from an iterator
+ ///
+ /// Each `(coordinate, observation)` pair is fed to
+ /// [`GvGraph::observe`] in order.  This is the idiomatic way to
+ /// populate a graph from a collection or stream of data.

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace Cell<C, V>::width -> C with Default::default()
+@@ -194,17 +194,17 @@
+     /// # let mut g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// # g.observe(42, 10u64);
+     /// let cell = g.get(42);
+     /// assert_eq!(cell.width(), cell.end - cell.start);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn width(&self) -> C {
+-        C::width(self.start, self.end)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Whether this cell is at the finest possible resolution for
+     /// an `N`-bit domain
+     ///
+     /// A "final" cell covers a single unit interval and cannot be
+     /// subdivided further. For integer coordinates in an 8-bit domain
+     /// (`N = 8`) that means `width() == 1` — a single point in

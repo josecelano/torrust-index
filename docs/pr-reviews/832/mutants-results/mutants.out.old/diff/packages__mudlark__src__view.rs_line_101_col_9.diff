@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace Span<C, V>::width -> C with Default::default()
+@@ -93,17 +93,17 @@
+     /// # let mut g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// # g.observe(42, 10u64);
+     /// let span = g.get(42).to_span();
+     /// assert_eq!(span.width(), span.end - span.start);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn width(&self) -> C {
+-        C::width(self.start, self.end)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Cell ─────────────────────────────────────────────────────────────
+ 
+ /// Snapshot of a terminal G-node (leaf cell)
+ ///
+ /// `Cell` is the most common query result — returned by

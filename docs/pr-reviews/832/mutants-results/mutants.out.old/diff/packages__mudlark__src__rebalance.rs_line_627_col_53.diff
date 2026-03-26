@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace || with && in legacy_promote
+@@ -619,17 +619,17 @@
+     let c_evictable = false;
+     let p_evictable = node_has_evictable(vnodes, p);
+     let u_evictable = node_has_evictable(vnodes, u_id);
+ 
+     let p_int = vnodes.get(p.index()).intensity;
+     let g_node = vnodes.get_mut(g.index());
+     if let VKind::Structural { children, has_evictable } = &mut g_node.kind {
+         *children = PackedChildren::new_3((c, c_int), (p, p_int), (u_id, u_int));
+-        *has_evictable = c_evictable || p_evictable || u_evictable;
++        *has_evictable = c_evictable || p_evictable && /* ~ changed by cargo-mutants ~ */ u_evictable;
+     }
+ 
+     vnodes.get_mut(c.index()).parent = Some(g);
+     // c moved up one level: update its depth
+     let new_c_depth = if c_depth == DEPTH_STALE { DEPTH_STALE } else { c_depth - 1 };
+     vnodes.get(c.index()).cached_depth.store(new_c_depth, Ordering::Relaxed);
+ 
+     // ── Freeze c: gnode now has 2 G-children ────────────────────

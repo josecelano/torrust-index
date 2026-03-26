@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in dump_plateaus
+@@ -270,17 +270,17 @@
+     back_entries.sort_by_key(|(idx, _)| *idx);
+     for (idx, key) in &back_entries {
+         writeln!(out, "    G({idx}) → {key:?}").unwrap();
+     }
+ 
+     // Append P-I3 check inline.
+     let mut p_i3_errors = Vec::new();
+     check_p_i3_basis_disjointness(graph, &mut p_i3_errors);
+-    if !p_i3_errors.is_empty() {
++    if  /* ~ changed by cargo-mutants ~ */p_i3_errors.is_empty() {
+         writeln!(out, "  ─── P-I3 violations ───").unwrap();
+         for e in &p_i3_errors {
+             writeln!(out, "    !! {e}").unwrap();
+         }
+     }
+ 
+     // Append P-I4 check.
+     let mut p_i4_errors = Vec::new();

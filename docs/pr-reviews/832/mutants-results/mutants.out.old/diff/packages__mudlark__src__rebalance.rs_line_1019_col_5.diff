@@ -1,0 +1,57 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_children_violations with ()
+@@ -1011,53 +1011,17 @@
+ /// and source 9 (collapse cousins).
+ fn push_children_violations<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     source: &str,
+     violations: &mut Vec<VNodeId>,
+ ) {
+     // Only structural nodes have children to check.
+-    let children: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+-        VKind::Structural { children, .. } => (0..children.len()).map(|i| children.get(i).0).collect(),
+-        VKind::Entry { .. } => {
+-            tracing::debug!(
+-                node = node.index(),
+-                source,
+-                "push_children_violations: node is entry, no children",
+-            );
+-            return;
+-        }
+-    };
+-
+-    tracing::debug!(
+-        node = node.index(),
+-        children = ?children.iter().map(|c| c.index()).collect::<Vec<_>>(),
+-        source,
+-        "push_children_violations: checking children",
+-    );
+-
+-    for child_id in children {
+-        let violated = is_violated(vnodes, child_id);
+-        tracing::debug!(
+-            child = child_id.index(),
+-            violated,
+-            source,
+-            "push_children_violations: child check",
+-        );
+-        if violated {
+-            tracing::trace!(
+-                child = %Nd(vnodes, child_id),
+-                parent = %Nd(vnodes, node),
+-                source,
+-                "sibling-removal violation",
+-            );
+-            violations.push(child_id);
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Internal helpers ─────────────────────────────────────────────────
+ 
+ /// Whether a V-node carries the evictable flag (entry or structural).
+ fn node_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> bool {
+     match &vnodes.get(id.index()).kind {
+         VKind::Entry { is_evictable, .. } => *is_evictable,

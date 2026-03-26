@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::adversarial_zigzag
+@@ -122,17 +122,17 @@
+     /// Left-biased zigzag with **escalating** intensity.
+     /// Alternates between `lo` and `hi`, but the `lo` side gets
+     /// `base + i * step` intensity while `hi` stays at `base`.
+     /// Forces asymmetric growth and repeated contraction
+     /// preprocessing.
+     #[must_use]
+     pub fn adversarial_zigzag(mut self, lo: C, hi: C, base: V, step: V, n: usize) -> Self {
+         for i in 0..n {
+-            if i % 2 == 0 {
++            if i + /* ~ changed by cargo-mutants ~ */ 2 == 0 {
+                 #[allow(clippy::cast_precision_loss)]
+                 let delta = V::from_f64((i as f64).mul_add(step.to_f64_approx(), base.to_f64_approx()));
+                 self.observations.push((lo, delta));
+             } else {
+                 self.observations.push((hi, base));
+             }
+         }
+         self

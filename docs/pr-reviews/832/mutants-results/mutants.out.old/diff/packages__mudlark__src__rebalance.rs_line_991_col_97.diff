@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in push_cousin_violations_with_config
+@@ -983,17 +983,17 @@
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+     if !config.source_9_collapse_cousins {
+         return;
+     }
+     // Get the OTHER children of grandparent (excluding sole, which was just promoted)
+     let cousins: Vec<VNodeId> = match &vnodes.get(grandparent.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != sole).collect(),
++        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id == /* ~ changed by cargo-mutants ~ */ sole).collect(),
+         VKind::Entry { .. } => return,
+     };
+ 
+     tracing::debug!(
+         sole = sole.index(),
+         grandparent = grandparent.index(),
+         cousins = ?cousins.iter().map(|c| c.index()).collect::<Vec<_>>(),
+         "push_cousin_violations: checking cousins' children (source 9)",

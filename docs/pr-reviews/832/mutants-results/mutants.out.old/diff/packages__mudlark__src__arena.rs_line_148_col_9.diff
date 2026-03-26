@@ -1,0 +1,25 @@
+--- packages/mudlark/src/arena.rs
++++ replace <impl fmt::Debug for Arena<T>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -140,21 +140,17 @@
+ impl<T: Default> Default for Arena<T> {
+     fn default() -> Self {
+         Self::new()
+     }
+ }
+ 
+ impl<T: Default + fmt::Debug> fmt::Debug for Arena<T> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        f.debug_struct("Arena")
+-            .field("count", &self.count)
+-            .field("capacity", &self.slots.len())
+-            .field("free_list_len", &self.free.len())
+-            .finish_non_exhaustive()
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<T: Default + Clone> Clone for Arena<T> {
+     fn clone(&self) -> Self {
+         Self {
+             slots: self.slots.clone(),
+             occupied: self.occupied.clone(),

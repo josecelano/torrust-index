@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in sibling_of
+@@ -501,17 +501,17 @@
+ ///
+ /// Panics if `parent` is not structural, or if `child` is not found.
+ fn sibling_of<V: Accumulator>(vnodes: &Arena<VNode<V>>, parent: VNodeId, child: VNodeId) -> (VNodeId, V) {
+     let p_node = vnodes.get(parent.index());
+     match &p_node.kind {
+         VKind::Structural { children, .. } => {
+             for i in 0..children.len() {
+                 let (id, int) = children.get(i);
+-                if id != child {
++                if id == /* ~ changed by cargo-mutants ~ */ child {
+                     return (id, int);
+                 }
+             }
+             panic!("sibling_of: child not found in parent");
+         }
+         VKind::Entry { .. } => panic!("sibling_of: parent must be structural"),
+     }
+ }

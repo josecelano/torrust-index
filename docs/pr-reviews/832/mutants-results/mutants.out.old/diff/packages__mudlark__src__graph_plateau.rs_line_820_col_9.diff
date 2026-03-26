@@ -1,0 +1,193 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::normalize_plateaus with ()
+@@ -812,189 +812,17 @@
+     ///
+     /// ADR-M-031: gated behind `plateaus_dirty` flag.  After sorted
+     /// placement was introduced for observe-path callers, this
+     /// function is only needed for batch-eviction and decay paths.
+     /// Early-returns O(1) when the flag is not set.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(clippy::too_many_lines)]
+     pub(crate) fn normalize_plateaus(&mut self) {
+-        use crate::gnode::GState;
+-        use crate::gtree::gnode_depth_from_interval;
+-        use crate::plateau::{basis_edge_of, BasisEdge, Plateau};
+-
+-        // ADR-M-031 Phase 4: early return when not dirty.
+-        if !self.plateaus_dirty {
+-            return;
+-        }
+-        self.plateaus_dirty = false;
+-
+-        let _span = tracing::debug_span!("normalize_plateaus").entered();
+-
+-        // ── Step 0: capture old total for conservation check ────
+-        #[cfg(debug_assertions)]
+-        let old_total: f64 = {
+-            let build = self.build_plateaus();
+-            build.values().map(|p| p.sum.to_f64_approx()).sum()
+-        };
+-
+-        // ── Step 1: DFS collection ──────────────────────────────
+-        //    Internal nodes with non-uniform contour depth are
+-        //    decomposed into their descendant terminals / balanced
+-        //    internals (mirroring build_plateaus's DFS logic).
+-        //
+-        //    A `seen` set prevents double-collection when a
+-        //    SemiInternal's DFS recurses into a node that is also
+-        //    a top-level old basis element.
+-        let mut elems: Vec<(GNodeId, BasisEdge<C>, u32, C, C, V)> = Vec::new();
+-        let mut seen = std::collections::HashSet::new();
+-        let basis_ids: Vec<GNodeId> = self.plateau_basis.back_map().keys().copied().collect();
+-        for gid in basis_ids {
+-            let mut stack = vec![gid];
+-            while let Some(nid) = stack.pop() {
+-                if !seen.insert(nid) {
+-                    continue; // already collected by an ancestor's DFS
+-                }
+-                let g = self.gnodes.get(nid.index());
+-                match g.state() {
+-                    GState::Terminal => {
+-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+-                    }
+-                    GState::SemiInternal => {
+-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+-                        // Recurse into child subtree for its own
+-                        // basis elements.
+-                        if let Some(left) = g.left {
+-                            stack.push(left);
+-                        }
+-                        if let Some(right) = g.right {
+-                            stack.push(right);
+-                        }
+-                    }
+-                    GState::Internal => {
+-                        if let Some(ud) = uniform_contour_depth_of(&self.gnodes, nid, N) {
+-                            // Uniform subtree: keep as single basis
+-                            // element.
+-                            elems.push((nid, basis_edge_of(g), ud, g.lo, g.hi, g.sum));
+-                        } else {
+-                            // Non-uniform subtree: decompose into
+-                            // children (like build_plateaus).
+-                            if let Some(left) = g.left {
+-                                stack.push(left);
+-                            }
+-                            if let Some(right) = g.right {
+-                                stack.push(right);
+-                            }
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-        elems.sort_by_key(|e| e.1);
+-
+-        // ── Step 1 assert: no duplicate GNodeIds ────────────────
+-        #[cfg(debug_assertions)]
+-        {
+-            let mut ids: Vec<usize> = elems.iter().map(|e| e.0.index()).collect();
+-            ids.sort_unstable();
+-            for w in ids.windows(2) {
+-                debug_assert_ne!(
+-                    w[0], w[1],
+-                    "normalize_plateaus step 1: duplicate GNodeId({}) in DFS collection",
+-                    w[0],
+-                );
+-            }
+-        }
+-
+-        // ── Step 2: left-to-right sweep ─────────────────────────
+-        let mut new_plateaus: std::collections::BTreeMap<BasisEdge<C>, Plateau<C, V>> = std::collections::BTreeMap::new();
+-        let mut assignments: Vec<(BasisEdge<C>, GNodeId)> = Vec::with_capacity(elems.len());
+-
+-        for (gid, be, depth, lo, hi, sum) in &elems {
+-            let merge_key = new_plateaus
+-                .range(..*be)
+-                .next_back()
+-                .filter(|(_, p)| p.depth == *depth)
+-                .map(|(&k, _)| k);
+-
+-            let key = if let Some(mk) = merge_key {
+-                let p = new_plateaus.get_mut(&mk).unwrap();
+-                if hi.total_cmp(&p.end) == std::cmp::Ordering::Greater {
+-                    p.end = *hi;
+-                }
+-                if lo.total_cmp(&p.start) == std::cmp::Ordering::Less {
+-                    p.start = *lo;
+-                }
+-                p.sum = V::add(p.sum, *sum);
+-                mk
+-            } else {
+-                new_plateaus.insert(
+-                    *be,
+-                    Plateau {
+-                        basis_edge: *be,
+-                        start: *lo,
+-                        end: *hi,
+-                        depth: *depth,
+-                        sum: *sum,
+-                    },
+-                );
+-                *be
+-            };
+-            assignments.push((key, *gid));
+-        }
+-
+-        // ── Step 2 assert: sweep sum == element sum per key ─────
+-        #[cfg(debug_assertions)]
+-        {
+-            // Group collected element sums by assigned plateau key.
+-            let mut key_sums: std::collections::BTreeMap<BasisEdge<C>, f64> = std::collections::BTreeMap::new();
+-            for (i, (key, _gid)) in assignments.iter().enumerate() {
+-                *key_sums.entry(*key).or_default() += elems[i].5.to_f64_approx();
+-            }
+-            for (key, elem_sum) in &key_sums {
+-                let sweep_sum = new_plateaus[key].sum.to_f64_approx();
+-                debug_assert!(
+-                    (sweep_sum - elem_sum).abs() < 1e-9,
+-                    "normalize_plateaus step 2: sweep sum {sweep_sum} != \
+-                     element sum {elem_sum} for plateau {key:?}",
+-                );
+-            }
+-        }
+-
+-        // ── Step 3: swap maps ───────────────────────────────────
+-        self.plateaus = new_plateaus;
+-        self.plateau_basis.rebuild(assignments);
+-
+-        // ── Step 3 assert: every plateau sum == Σ basis.sum ─────
+-        #[cfg(debug_assertions)]
+-        self.debug_check_plateau_sums("normalize step 3 (post-rebuild)");
+-
+-        // ── Step 4: consolidation pass (P-I2 minimality) ────────
+-        self.consolidate_all_basis();
+-
+-        // ── Step 4 assert: sums still consistent after merges ───
+-        #[cfg(debug_assertions)]
+-        self.debug_check_plateau_sums("normalize step 4 (post-consolidate)");
+-
+-        // ── Conservation: total plateau energy unchanged ─────────
+-        #[cfg(debug_assertions)]
+-        {
+-            let new_total: f64 = {
+-                let build = self.build_plateaus();
+-                build.values().map(|p| p.sum.to_f64_approx()).sum()
+-            };
+-            debug_assert!(
+-                (old_total - new_total).abs() < 1e-9,
+-                "normalize_plateaus: total plateau energy changed: \
+-                 old={old_total}, new={new_total}, delta={}",
+-                new_total - old_total,
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn normalize_plateaus(&mut self) {}
+ 

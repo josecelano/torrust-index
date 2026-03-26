@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ delete ! in GvGraph<C, V, N>::evict_candidates
+@@ -212,17 +212,17 @@
+         // Trailing rebalance to resolve any absorption violations.
+         if evicted > 0 {
+             let new_gnodes = rebalance::rebalance(
+                 &mut self.vnodes,
+                 &mut self.gnodes,
+                 &mut self.violations,
+                 self.live_depth_evict,
+             );
+-            if !new_gnodes.is_empty() {
++            if  /* ~ changed by cargo-mutants ~ */new_gnodes.is_empty() {
+                 self.handle_legacy_promotes(&new_gnodes);
+             }
+ 
+             // Repair P-I4 thatch-hop violations introduced by
+             // eviction plateau merges or legacy promote placements.
+             self.repair_p_i4();
+ 
+             // ADR-M-031 Phase 4: mark dirty for batch eviction

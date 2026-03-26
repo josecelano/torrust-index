@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace == with != in uniform_contour_depth_of
+@@ -286,17 +286,17 @@
+     use crate::gtree::gnode_depth_from_interval;
+     let g = gnodes.get(gid.index());
+     match g.state() {
+         GState::Terminal => Some(gnode_depth_from_interval(g.lo, g.hi, n)),
+         GState::SemiInternal => None,
+         GState::Internal => {
+             let ld = g.left.and_then(|l| uniform_contour_depth_of(gnodes, l, n))?;
+             let rd = g.right.and_then(|r| uniform_contour_depth_of(gnodes, r, n))?;
+-            if ld == rd {
++            if ld != /* ~ changed by cargo-mutants ~ */ rd {
+                 Some(ld)
+             } else {
+                 None
+             }
+         }
+     }
+ }
+ 

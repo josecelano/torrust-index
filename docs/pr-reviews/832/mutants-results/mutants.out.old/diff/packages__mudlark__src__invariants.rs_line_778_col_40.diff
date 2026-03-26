@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with == in check_hard_budget
+@@ -770,17 +770,17 @@
+ 
+ // ── Hard budget (ADR-M-018) ───────────────────────────────────────────
+ 
+ fn check_hard_budget<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     if let Some(budget) = graph.config().budget {
+-        if graph.node_count() as usize > budget {
++        if graph.node_count() as usize == /* ~ changed by cargo-mutants ~ */ budget {
+             errors.push(format!(
+                 "Hard budget violated (ADR-M-018): node_count ({}) > budget ({})",
+                 graph.node_count(),
+                 budget
+             ));
+         }
+     }
+ }

@@ -1,0 +1,31 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::fractal_spray -> Self with Default::default()
+@@ -339,27 +339,17 @@
+     /// Level 0: `domain/2`.
+     /// Level 1: `domain/4`, `3·domain/4`.
+     /// Level k: `(2j+1) · domain / 2^(k+1)` for `j = 0..2^k`.
+     ///
+     /// Builds a balanced V-Tree top-down, creating splits at every
+     /// level.
+     #[must_use]
+     pub fn fractal_spray(mut self, domain: u64, delta: V, depth: u32) -> Self {
+-        for d in 0..depth {
+-            let denom = 1u64 << (d + 1);
+-            let count = 1u64 << d;
+-            for k in 0..count {
+-                let coord = (2 * k + 1) * domain / denom;
+-                if coord < domain {
+-                    self.observations.push((C::from_u64(coord), delta));
+-                }
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Nested bursts: multi-scale fractal bursts at progressively
+     /// finer spatial resolution.
+     ///
+     /// Same dyadic midpoint sequence as
+     /// [`fractal_spray`](Self::fractal_spray), but each point gets
+     /// `burst_per_level` repeated observations, creating sustained

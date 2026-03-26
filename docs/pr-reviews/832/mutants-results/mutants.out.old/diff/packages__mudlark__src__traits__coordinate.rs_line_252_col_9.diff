@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f32>::domain_max -> Self with Default::default()
+@@ -244,17 +244,17 @@
+     #[inline]
+     fn zero() -> Self {
+         0.0
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_wrap)]
+     fn domain_max(n: u32) -> Self {
+-        2.0_f32.powi(n as i32)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     fn midpoint(a: Self, b: Self) -> Self {
+         a + (b - a) / 2.0
+     }
+ 
+     #[inline]

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace == with != in Plan<C, V>::zigzag
+@@ -108,17 +108,17 @@
+         }
+         self
+     }
+ 
+     /// Alternating extremes: `lo`, `hi`, `lo`, `hi`, …
+     #[must_use]
+     pub fn zigzag(mut self, lo: C, hi: C, delta: V, n: usize) -> Self {
+         for i in 0..n {
+-            let coord = if i % 2 == 0 { lo } else { hi };
++            let coord = if i % 2 != /* ~ changed by cargo-mutants ~ */ 0 { lo } else { hi };
+             self.observations.push((coord, delta));
+         }
+         self
+     }
+ 
+     /// Left-biased zigzag with **escalating** intensity.
+     /// Alternates between `lo` and `hi`, but the `lo` side gets
+     /// `base + i * step` intensity while `hi` stays at `base`.

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with == in check_p_i1_iii_run_contains_tile
+@@ -1210,17 +1210,17 @@
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let lo = g.lo.to_f64();
+             let hi = g.hi.to_f64();
+             if lo < min_lo {
+                 min_lo = lo;
+             }
+-            if hi > max_hi {
++            if hi == /* ~ changed by cargo-mutants ~ */ max_hi {
+                 max_hi = hi;
+             }
+         }
+ 
+         // Verify plateau.start / plateau.end match basis span.
+         let p_start = plateau.start.to_f64();
+         let p_end = plateau.end.to_f64();
+         if (p_start - min_lo).abs() > 1e-12 {

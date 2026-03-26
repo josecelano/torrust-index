@@ -1,0 +1,22 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::update_intensity with ()
+@@ -226,18 +226,17 @@
+         self.intensities[2] = V::default();
+         self.len = 2;
+         removed
+     }
+ 
+     /// Update the cached intensity at `index`.
+     #[inline]
+     pub fn update_intensity(&mut self, index: usize, new: V) {
+-        debug_assert!(index < self.len());
+-        self.intensities[index] = new;
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Default impls ────────────────────────────────────────────────────
+ 
+ impl<V: Default> Default for VNode<V> {
+     fn default() -> Self {
+         Self {

@@ -1,0 +1,203 @@
+
+*** packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()])))
+
+*** mutation diff:
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()])))
+@@ -556,46 +556,17 @@
+     /// // Arbitrary coordinates → lattice-aligned contour range endpoints.
+     /// if let Some((start, end)) = g.select_plateaus(10, 60) {
+     ///     let cr = g.contour_range(start, end).unwrap();
+     ///     assert!(cr.basis.len() >= 1);
+     /// }
+     /// ```
+     #[must_use]
+     pub fn select_plateaus(&self, lo: C, hi: C) -> Option<(BasisEdge<C>, BasisEdge<C>)> {
+-        use std::ops::Bound;
+-
+-        if lo >= hi {
+-            return None;
+-        }
+-
+-        let plateaus = self.plateaus();
+-        if plateaus.is_empty() {
+-            return None;
+-        }
+-
+-        // §CR.12: find the largest a_j ≤ lo  (floor index)
+-        let start_entry = plateaus.range(..=BasisEdge(lo)).next_back().map(|(k, _)| *k)?;
+-
+-        // §CR.12: find the last plateau whose basis edge is < hi.
+-        let last_plateau_key = plateaus.range(..BasisEdge(hi)).next_back().map(|(k, _)| *k)?;
+-
+-        // The end endpoint is the next key after last_plateau_key,
+-        // or the domain sentinel 2^N.
+-        let end = plateaus
+-            .range((Bound::Excluded(last_plateau_key), Bound::Unbounded))
+-            .next()
+-            .map_or_else(|| BasisEdge(C::domain_max(N)), |(k, _)| *k);
+-
+-        // Sanity: start < end (should always hold given the above logic).
+-        if start_entry >= end {
+-            return None;
+-        }
+-
+-        Some((start_entry, end))
++        Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Recursive G-Tree descent for basis set collection (§CR.8.1).
+     ///
+     /// Collects the minimal G-node cover of `[query_lo, query_hi)`.
+     /// Semi-internal nodes with an uncovered half overlapping the
+     /// range are flagged as boundary thatching elements (§CR.3.2).
+     fn decompose_basis(&self, gid: GNodeId, query_lo: C, query_hi: C, basis: &mut Vec<BasisElement<C, V>>) {
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh cfg-if v1.0.4
+       Fresh shlex v1.3.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh once_cell v1.21.3
+       Fresh regex-syntax v0.8.9
+       Fresh autocfg v1.5.0
+       Fresh either v1.15.0
+       Fresh pin-project-lite v0.2.16
+       Fresh plotters-backend v0.3.7
+       Fresh anstyle v1.0.13
+       Fresh clap_lex v1.0.0
+       Fresh memchr v2.8.0
+       Fresh itoa v1.0.17
+       Fresh ciborium-io v0.2.2
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh cast v0.3.0
+       Fresh same-file v1.0.6
+       Fresh rand_core v0.10.0
+       Fresh oorandom v11.1.5
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh cc v1.2.56
+       Fresh itertools v0.13.0
+       Fresh plotters-svg v0.3.7
+       Fresh clap_builder v4.5.59
+       Fresh walkdir v2.5.0
+       Fresh thread_local v1.1.9
+       Fresh sharded-slab v0.1.7
+       Fresh smallvec v1.15.1
+       Fresh anes v0.1.6
+       Fresh nu-ansi-term v0.50.3
+       Fresh quote v1.0.44
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh zmij v1.0.21
+       Fresh libc v0.2.182
+       Fresh matchers v0.2.0
+       Fresh criterion-plot v0.8.2
+       Fresh regex v1.12.3
+       Fresh clap v4.5.59
+       Fresh tracing-log v0.2.0
+       Fresh syn v2.0.116
+       Fresh crossbeam-epoch v0.9.18
+       Fresh num-traits v0.2.19
+       Fresh serde_json v1.0.149
+       Fresh page_size v0.6.0
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh tracing-attributes v0.1.31
+       Fresh crossbeam-deque v0.8.6
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh tracing v0.1.44
+       Fresh rayon-core v1.13.0
+       Fresh half v2.7.1
+       Fresh rayon v1.11.0
+       Fresh tinytemplate v1.2.1
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+       Fresh ciborium-ll v0.2.2
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+error[E0599]: no function or associated item named `new` found for struct `BasisEdge<C>` in the current scope
+   --> packages/mudlark/src/graph_query.rs:564:26
+    |
+564 |         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |                          ^^^ function or associated item not found in `BasisEdge<_>`
+    |
+   ::: packages/mudlark/src/plateau.rs:98:1
+    |
+ 98 | pub struct BasisEdge<C: Coordinate>(pub C);
+    | ----------------------------------- function or associated item `new` not found for this struct
+    |
+help: there is a method `ne` with a similar name
+    |
+564 -         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+564 +         Some((BasisEdge::ne(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |
+
+error[E0599]: no function or associated item named `from_iter` found for struct `BasisEdge<C>` in the current scope
+   --> packages/mudlark/src/graph_query.rs:564:62
+    |
+564 |         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |                                                              ^^^^^^^^^ function or associated item not found in `BasisEdge<_>`
+    |
+   ::: packages/mudlark/src/plateau.rs:98:1
+    |
+ 98 | pub struct BasisEdge<C: Coordinate>(pub C);
+    | ----------------------------------- function or associated item `from_iter` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `from_iter`, perhaps you need to implement it:
+            candidate #1: `FromIterator`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error[E0599]: no function or associated item named `new` found for struct `plateau::BasisEdge<C>` in the current scope
+   --> packages/mudlark/src/graph_query.rs:564:26
+    |
+564 |         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |                          ^^^ function or associated item not found in `plateau::BasisEdge<_>`
+    |
+   ::: packages/mudlark/src/plateau.rs:98:1
+    |
+ 98 | pub struct BasisEdge<C: Coordinate>(pub C);
+    | ----------------------------------- function or associated item `new` not found for this struct
+    |
+help: there is a method `ne` with a similar name
+    |
+564 -         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+564 +         Some((BasisEdge::ne(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |
+
+error[E0599]: no function or associated item named `from_iter` found for struct `plateau::BasisEdge<C>` in the current scope
+   --> packages/mudlark/src/graph_query.rs:564:62
+    |
+564 |         Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+    |                                                              ^^^^^^^^^ function or associated item not found in `plateau::BasisEdge<_>`
+    |
+   ::: packages/mudlark/src/plateau.rs:98:1
+    |
+ 98 | pub struct BasisEdge<C: Coordinate>(pub C);
+    | ----------------------------------- function or associated item `from_iter` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `from_iter`, perhaps you need to implement it:
+            candidate #1: `FromIterator`
+
+error: could not compile `torrust-mudlark` (lib test) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

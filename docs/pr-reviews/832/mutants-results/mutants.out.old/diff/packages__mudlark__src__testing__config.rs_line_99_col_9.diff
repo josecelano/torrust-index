@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field split_threshold from struct Config expression in cascade_config
+@@ -91,17 +91,17 @@
+         ..BASE_U64
+     }
+ }
+ 
+ /// Medium threshold for cascade testing: θ=3.
+ #[must_use]
+ pub const fn cascade_config() -> Config<u64> {
+     Config {
+-        split_threshold: 3,
++         /* ~ changed by cargo-mutants ~ */
+         depth_create: 4,
+         depth_evict: 8,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Deep config for escalation testing: θ=2, `D_create`=5, `D_evict`=10.
+ #[must_use]

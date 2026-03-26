@@ -1,0 +1,24 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace structural_child_count -> usize with 0
+@@ -1062,20 +1062,17 @@
+     match &vnodes.get(id.index()).kind {
+         VKind::Entry { is_evictable, .. } => *is_evictable,
+         VKind::Structural { has_evictable, .. } => *has_evictable,
+     }
+ }
+ 
+ /// Get the child count of a structural node.  Returns 0 for entries.
+ fn structural_child_count<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> usize {
+-    match &vnodes.get(id.index()).kind {
+-        VKind::Structural { children, .. } => children.len(),
+-        VKind::Entry { .. } => 0,
+-    }
++    0 /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Whether any direct child of `node` is violated (V-I3).
+ ///
+ /// Used by escalation: if a grandchild of `p` through the heaviest
+ /// child `h` is violated, resolving it would contract `p` (undoing
+ /// the promote) and create a merged node whose standard-promote
+ /// recreates the 3-node — an infinite cycle.

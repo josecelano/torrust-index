@@ -1,0 +1,32 @@
+--- packages/mudlark/src/gtree.rs
++++ replace recompute_g_sums with ()
+@@ -77,28 +77,17 @@
+ ///
+ /// Used by `observe()` on the hot path instead of
+ /// `propagate_g_sums` (moved to tests), avoiding the need for subtraction on
+ /// `Accumulator`. See ADR-M-012 for the full analysis.
+ ///
+ /// Cost: `O(depth_geo)`, with one extra sibling read per level vs
+ /// delta propagation.
+ pub fn recompute_g_sums<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, start: GNodeId) {
+-    let mut current = Some(start);
+-    while let Some(id) = current {
+-        let (left_sum, right_sum) = {
+-            let g = gnodes.get(id.index());
+-            let l = g.left.map_or_else(V::zero, |l| gnodes.get(l.index()).sum);
+-            let r = g.right.map_or_else(V::zero, |r| gnodes.get(r.index()).sum);
+-            (l, r)
+-        };
+-        let g = gnodes.get_mut(id.index());
+-        g.sum = V::add(g.own, V::add(left_sum, right_sum));
+-        current = g.parent;
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Recompute `g.sum` for every G-node in a subtree, bottom-up.
+ ///
+ /// `preorder` must list nodes in pre-order (root first). The function
+ /// iterates in reverse (post-order: leaves first) so each node's
+ /// children are already correct when it is visited.
+ ///

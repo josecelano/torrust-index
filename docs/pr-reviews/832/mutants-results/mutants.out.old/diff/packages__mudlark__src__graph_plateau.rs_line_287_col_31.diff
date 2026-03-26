@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::build_plateaus
+@@ -279,17 +279,17 @@
+         // 2. Sort by basis edge (left-to-right spatial order).
+         basis.sort_by_key(|a| a.0);
+ 
+         // 3. Left-to-right sweep: merge adjacent same-depth entries.
+         //    Matches `place_basis_element`'s left-neighbour merge rule.
+         let mut result: BTreeMap<BasisEdge<C>, Plateau<C, V>> = BTreeMap::new();
+         for (be, depth, lo, hi, sum) in basis {
+             let merged = if let Some((_, prev)) = result.iter_mut().next_back() {
+-                if prev.depth == depth {
++                if prev.depth != /* ~ changed by cargo-mutants ~ */ depth {
+                     if hi.total_cmp(&prev.end) == std::cmp::Ordering::Greater {
+                         prev.end = hi;
+                     }
+                     if lo.total_cmp(&prev.start) == std::cmp::Ordering::Less {
+                         prev.start = lo;
+                     }
+                     prev.sum = V::add(prev.sum, sum);
+                     true

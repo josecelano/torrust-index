@@ -1,0 +1,24 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_source_10_violations_with_config with ()
+@@ -699,20 +699,17 @@
+ /// Configurable variant of [`push_source_10_violations`].
+ #[inline]
+ pub fn push_source_10_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_10_g_contraction_promotion {
+-        return;
+-    }
+-    push_grandchild_violations(vnodes, node, violations);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Shared grandchild-scan logic used by sources 3 and 10.
+ fn push_grandchild_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {
+     let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+         VKind::Entry { .. } => return,
+     };

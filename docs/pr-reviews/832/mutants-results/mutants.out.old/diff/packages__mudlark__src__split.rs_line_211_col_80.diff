@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace + with - in catalytic_split
+@@ -203,17 +203,17 @@
+ 
+     // V-Tree: create entries for children.
+     let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, left_id);
+     let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, right_id);
+ 
+     // Get parent's depth to compute s_depth
+     let p_depth = graph.vnodes.get(p_id.index()).cached_depth.load(Ordering::Relaxed);
+     let s_depth = if p_depth == DEPTH_STALE { DEPTH_STALE } else { p_depth + 1 };
+-    let child_depth = if s_depth == DEPTH_STALE { DEPTH_STALE } else { s_depth + 1 };
++    let child_depth = if s_depth == DEPTH_STALE { DEPTH_STALE } else { s_depth - /* ~ changed by cargo-mutants ~ */ 1 };
+ 
+     // V-Tree: structural wrapping the entries.
+     let s = VNode {
+         intensity: V::zero(),
+         parent: Some(p_id),
+         cached_depth: AtomicU32::new(s_depth),
+         kind: VKind::Structural {
+             children: PackedChildren::new_2((le_id, V::zero()), (re_id, V::zero())),

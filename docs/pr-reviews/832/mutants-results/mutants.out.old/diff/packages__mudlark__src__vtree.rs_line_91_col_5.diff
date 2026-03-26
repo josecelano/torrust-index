@@ -1,0 +1,28 @@
+--- packages/mudlark/src/vtree.rs
++++ replace propagate_v_sums with ()
+@@ -83,24 +83,17 @@
+     vnodes.dealloc(v_id.index());
+     new_root
+ }
+ 
+ /// Propagate V-Tree sum intensities upward from `start`.
+ ///
+ /// Implements §IDEA M-8.9.1 `propagate_v_sums`.
+ pub fn propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+-    tracing::trace!(start = start.index(), "propagate_v_sums");
+-    let mut current = vnodes.get(start.index()).parent;
+-    while let Some(id) = current {
+-        recompute_structural_intensity(vnodes, id);
+-        let new_int = vnodes.get(id.index()).intensity;
+-        update_parent_cached_intensity(vnodes, id, new_int);
+-        current = vnodes.get(id.index()).parent;
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Recompute all V-structural intensities bottom-up from `v_root`.
+ ///
+ /// Assumes V-entry intensities are already correct (synced from
+ /// `g.own`). Restores V-I1 for every structural node by post-order
+ /// traversal: each structural node's `PackedChildren::intensities`
+ /// and `intensity` are recomputed from its children's current values.

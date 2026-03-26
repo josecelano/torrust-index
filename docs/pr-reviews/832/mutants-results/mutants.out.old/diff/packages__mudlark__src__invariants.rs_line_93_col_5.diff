@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i3_only with ()
+@@ -85,17 +85,17 @@
+ 
+ /// Check only P-I3 basis disjointness. Used for debugging.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ #[allow(dead_code)]
+ pub fn check_p_i3_only<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    check_p_i3_basis_disjointness(graph, errors);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Diagnostic dump ─────────────────────────────────────────────────
+ 
+ /// Describe this node's semi-internal lineage (is it a child of a
+ /// semi-internal, or does it have a grandparent that is a semi-internal
+ /// child, etc.).
+ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field split_threshold from struct Config expression in range_tree_config
+@@ -147,17 +147,17 @@
+     BASE_U64
+ }
+ 
+ /// Config for `build_range_tree` equivalent: θ=1 forces immediate
+ /// splits.
+ #[must_use]
+ pub const fn range_tree_config() -> Config<u64> {
+     Config {
+-        split_threshold: 1,
++         /* ~ changed by cargo-mutants ~ */
+         ..BASE_U64
+     }
+ }
+ 
+ /// Config for eviction integration tests: θ=5, `D_create`=3,
+ /// `D_evict`=4.
+ ///
+ /// With `N=8` (domain `[0,256)`), spreading observations triggers

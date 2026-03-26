@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace * with / in GvGraph<C, V, N>::decay_selective
+@@ -211,17 +211,17 @@
+         let ln_att = att.ln();
+         let factors: Vec<f64> = (0..=depth_range)
+             .map(|d_local| {
+                 let t = if depth_range == 0 {
+                     0.0
+                 } else {
+                     2.0 * f64::from(d_local) / f64::from(depth_range) - 1.0
+                 };
+-                (ln_att * q.mul_add(t, 1.0)).exp()
++                (ln_att / /* ~ changed by cargo-mutants ~ */ q.mul_add(t, 1.0)).exp()
+             })
+             .collect();
+ 
+         // 2. DFS walk: collect nodes in pre-order for bottom-up
+         //    reversal, scale g.own per depth.
+         let mut order = Vec::new();
+         let mut stack = vec![root];
+         while let Some(gid) = stack.pop() {

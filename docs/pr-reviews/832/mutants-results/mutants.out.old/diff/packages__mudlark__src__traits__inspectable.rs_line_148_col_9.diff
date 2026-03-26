@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/inspectable.rs
++++ replace <impl Inspectable for f32>::from_f64 -> Self with Default::default()
+@@ -140,17 +140,17 @@
+     #[inline]
+     fn to_f64_approx(self) -> f64 {
+         f64::from(self)
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn from_f64(v: f64) -> Self {
+-        v as Self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Inspectable for f64 {
+     #[inline]
+     fn to_f64_approx(self) -> f64 {
+         self
+     }

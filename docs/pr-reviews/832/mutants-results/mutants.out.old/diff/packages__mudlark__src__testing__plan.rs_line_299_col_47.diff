@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with / in Plan<C, V>::phase_shifted_oscillation
+@@ -291,17 +291,17 @@
+     ///
+     /// Unlike [`oscillating_hotspot`](Self::oscillating_hotspot) which
+     /// fully alternates, here both points always receive *some*
+     /// observations, maintaining concurrent growth in the same V-Tree
+     /// neighborhood.
+     #[must_use]
+     pub fn phase_shifted_oscillation(mut self, a: C, b: C, high: V, low: V, burst_len: usize, cycles: usize) -> Self {
+         for cycle in 0..cycles {
+-            let (a_delta, b_delta) = if cycle % 2 == 0 { (high, low) } else { (low, high) };
++            let (a_delta, b_delta) = if cycle / /* ~ changed by cargo-mutants ~ */ 2 == 0 { (high, low) } else { (low, high) };
+             for _ in 0..burst_len {
+                 self.observations.push((a, a_delta));
+                 self.observations.push((b, b_delta));
+             }
+         }
+         self
+     }
+ 

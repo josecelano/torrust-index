@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_source_10_violations with ()
+@@ -688,17 +688,17 @@
+ }
+ 
+ /// Push source-10 violations: grandchildren of the merged node after
+ /// g-contraction + promotion (§IDEA M-11.12).
+ ///
+ /// Same grandchild scan as source 3, but gated by `source_10` for
+ /// independent test coverage.  In production, both sources are enabled.
+ pub fn push_source_10_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {
+-    push_source_10_violations_with_config(vnodes, node, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Configurable variant of [`push_source_10_violations`].
+ #[inline]
+ pub fn push_source_10_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     violations: &mut Vec<VNodeId>,

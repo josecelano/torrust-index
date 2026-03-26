@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::hotspot -> Self with Default::default()
+@@ -48,17 +48,17 @@
+     pub fn observe_n(mut self, coord: C, delta: V, n: usize) -> Self {
+         self.observations.extend(std::iter::repeat((coord, delta)).take(n));
+         self
+     }
+ 
+     /// Concentrated hotspot: `n` observations at a single `coord`.
+     #[must_use]
+     pub fn hotspot(self, coord: C, delta: V, n: usize) -> Self {
+-        self.observe_n(coord, delta, n)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Append another plan's observations after this one.
+     #[must_use]
+     pub fn then(mut self, other: Self) -> Self {
+         self.observations.extend(other.observations);
+         self
+     }

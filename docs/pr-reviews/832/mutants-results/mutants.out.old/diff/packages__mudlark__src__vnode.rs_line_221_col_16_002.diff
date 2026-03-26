@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace < with <= in PackedChildren<V>::remove_child
+@@ -213,17 +213,17 @@
+     ///
+     /// Panics if not a 3-node or if `id` is not found.
+     pub fn remove_child(&mut self, id: VNodeId) -> (VNodeId, V) {
+         assert!(self.len == 3, "remove_child: not a 3-node");
+         let idx = self.find_index(id).expect("remove_child: id not found");
+         let removed = self.get(idx);
+ 
+         // Shift the last child into the removed slot if needed.
+-        if idx < 2 {
++        if idx <= /* ~ changed by cargo-mutants ~ */ 2 {
+             self.ids[idx] = self.ids[2];
+             self.intensities[idx] = self.intensities[2];
+         }
+         self.ids[2] = None;
+         self.intensities[2] = V::default();
+         self.len = 2;
+         removed
+     }

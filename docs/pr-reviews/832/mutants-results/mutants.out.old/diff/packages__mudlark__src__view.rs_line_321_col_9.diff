@@ -1,0 +1,26 @@
+--- packages/mudlark/src/view.rs
++++ replace Node<C, V>::to_span -> Span<C, V> with Default::default()
+@@ -313,22 +313,17 @@
+     /// let (_layer, node) = g.layers().next().unwrap();
+     /// let span = node.to_span();
+     /// assert_eq!(span.start, node.start);
+     /// assert_eq!(span.intensity, node.sum);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub const fn to_span(self) -> Span<C, V> {
+-        Span {
+-            start: self.start,
+-            end: self.end,
+-            intensity: self.sum,
+-            depth: self.depth,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Try to convert to a [`Cell`]. Returns `Some` only for terminal
+     /// nodes (where `own == sum`).
+     ///
+     /// # Examples
+     ///
+     /// ```

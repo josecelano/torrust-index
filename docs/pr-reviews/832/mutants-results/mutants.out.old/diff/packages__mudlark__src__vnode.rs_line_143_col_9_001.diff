@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::is_empty -> bool with false
+@@ -135,17 +135,17 @@
+         self.len as usize
+     }
+ 
+     /// Returns `true` if there are no children. (Always false for a valid node.)
+     #[must_use]
+     #[inline]
+     #[allow(dead_code)]
+     pub const fn is_empty(&self) -> bool {
+-        self.len == 0
++        false /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Get the `(id, intensity)` pair at `index`.
+     ///
+     /// # Panics
+     ///
+     /// Panics if `index >= self.len()`.
+     #[must_use]

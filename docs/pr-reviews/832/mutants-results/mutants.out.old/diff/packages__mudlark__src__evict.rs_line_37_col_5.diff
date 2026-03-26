@@ -1,0 +1,278 @@
+--- packages/mudlark/src/evict.rs
++++ replace evict_tip with ()
+@@ -29,274 +29,17 @@
+ /// 7. Deallocate G-node; decrement `node_count`.
+ ///
+ /// # Panics
+ ///
+ /// - If the V-entry is not backed by a terminal G-node.
+ /// - If the G-node has no parent (G-root eviction is forbidden).
+ #[allow(clippy::too_many_lines)] // Plateau maintenance adds ~40 lines.
+ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, v_id: VNodeId) {
+-    let span = tracing::debug_span!(
+-        "evict_tip",
+-        v_id = v_id.index(),
+-        gnode = tracing::field::Empty,
+-        parent = tracing::field::Empty,
+-    )
+-    .entered();
+-
+-    // Read the backing G-node from the V-entry.
+-    let gnode_id = match &graph.vnodes.get(v_id.index()).kind {
+-        VKind::Entry { gnode, is_evictable, .. } => {
+-            debug_assert!(*is_evictable, "evict_tip: V-entry {} is not evictable", v_id.index());
+-            *gnode
+-        }
+-        VKind::Structural { .. } => panic!("evict_tip: V-node {} is structural, not an entry", v_id.index()),
+-    };
+-    span.record("gnode", gnode_id.index());
+-
+-    // Safety: G-root must never be evicted.
+-    assert_ne!(gnode_id, graph.g_root, "evict_tip: cannot evict the G-root");
+-
+-    let parent_id = graph
+-        .gnodes
+-        .get(gnode_id.index())
+-        .parent
+-        .expect("evict_tip: terminal G-node must have a parent");
+-    span.record("parent", parent_id.index());
+-
+-    // ── 1. Absorption: parent.own += child.sum (ADR-M-014) ────────
+-    let child_sum = graph.gnodes.get(gnode_id.index()).sum;
+-    let parent_sum_before = graph.gnodes.get(parent_id.index()).sum;
+-
+-    graph.gnodes.get_mut(parent_id.index()).own = V::add(graph.gnodes.get(parent_id.index()).own, child_sum);
+-
+-    // ── 2. Unlink child from parent ─────────────────────────────
+-    {
+-        let p = graph.gnodes.get_mut(parent_id.index());
+-        if p.left == Some(gnode_id) {
+-            p.left = None;
+-        } else if p.right == Some(gnode_id) {
+-            p.right = None;
+-        } else {
+-            panic!(
+-                "evict_tip: G-node {} is not a child of parent {}",
+-                gnode_id.index(),
+-                parent_id.index()
+-            );
+-        }
+-    }
+-
+-    // Verify G-sum invariant: parent.sum should be unchanged (ADR-M-014 proof).
+-    // Recompute to assert: sum = own_new + remaining_child.sum
+-    {
+-        let p = graph.gnodes.get(parent_id.index());
+-        let left_sum = p.left.map_or_else(V::zero, |l| graph.gnodes.get(l.index()).sum);
+-        let right_sum = p.right.map_or_else(V::zero, |r| graph.gnodes.get(r.index()).sum);
+-        let recomputed = V::add(p.own, V::add(left_sum, right_sum));
+-        debug_assert!(
+-            (recomputed.to_f64_approx() - parent_sum_before.to_f64_approx()).abs() < 1e-9,
+-            "evict_tip: G-sum invariant violation after absorption: \
+-             recomputed={}, expected={}",
+-            recomputed.to_f64_approx(),
+-            parent_sum_before.to_f64_approx()
+-        );
+-        // Write it back to ensure exact bit-level correctness.
+-        graph.gnodes.get_mut(parent_id.index()).sum = recomputed;
+-    }
+-
+-    // ── 3. Update parent's V-entry intensity ────────────────────
+-    let p_entry_id = graph
+-        .gnodes
+-        .get(parent_id.index())
+-        .entry
+-        .expect("evict_tip: parent must have V-entry (has dependents)");
+-    {
+-        let p_own = graph.gnodes.get(parent_id.index()).own;
+-        graph.vnodes.get_mut(p_entry_id.index()).intensity = p_own;
+-        vtree::update_parent_cached_intensity(&mut graph.vnodes, p_entry_id, p_own);
+-        vtree::propagate_v_sums(&mut graph.vnodes, p_entry_id);
+-
+-        // ── 4. Ancestor-walk violation check (ADR-M-003 pattern) ──
+-        let mut check_id = Some(p_entry_id);
+-        while let Some(id) = check_id {
+-            if rebalance::is_violated(&graph.vnodes, id) {
+-                graph.violations.push(id);
+-            }
+-            check_id = graph.vnodes.get(id.index()).parent;
+-        }
+-    }
+-
+-    // ── 5. Update exposed/evictable flags ───────────────────────
+-    // Parent may transition Internal → SemiInternal or Terminal.
+-    {
+-        let p = graph.gnodes.get(parent_id.index());
+-        let parent_is_exposed = p.uncovered_range().is_some();
+-        let parent_is_evictable = p.is_terminal();
+-        let p_entry_id = p.entry.expect("evict_tip: parent must have V-entry (has dependents)");
+-        if let VKind::Entry {
+-            is_exposed,
+-            is_evictable,
+-            ..
+-        } = &mut graph.vnodes.get_mut(p_entry_id.index()).kind
+-        {
+-            *is_exposed = parent_is_exposed;
+-            *is_evictable = parent_is_evictable;
+-        }
+-        vtree::propagate_evictable_flags(&mut graph.vnodes, p_entry_id);
+-    }
+-
+-    // ── 6. Remove V-entry via vtree_remove_leaf() ───────────────
+-    // Save the structural change point before removal: the parent
+-    // survives in the 3→2 case; in the 2-node collapse case the
+-    // parent is destroyed and the grandparent becomes the change point.
+-    //
+-    // Also capture the surviving sibling in the 2-node collapse case
+-    // for source-7 violation checking (§IDEA M-11.11.3).
+-    let v_parent = graph.vnodes.get(v_id.index()).parent;
+-    let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
+-        let count = match &graph.vnodes.get(p.index()).kind {
+-            VKind::Structural { children, .. } => children.len(),
+-            VKind::Entry { .. } => 0,
+-        };
+-        match count {
+-            3 => (3, Some(p), None), // 3→2: parent survives
+-            2 => {
+-                // 2-node collapse: find the surviving sibling.
+-                let sibling = match &graph.vnodes.get(p.index()).kind {
+-                    VKind::Structural { children, .. } => {
+-                        // Find the child that is NOT v_id.
+-                        let (c0, _) = children.get(0);
+-                        let (c1, _) = children.get(1);
+-                        if c0 == v_id {
+-                            Some(c1)
+-                        } else {
+-                            Some(c0)
+-                        }
+-                    }
+-                    VKind::Entry { .. } => None,
+-                };
+-                (2, graph.vnodes.get(p.index()).parent, sibling) // collapse: grandparent
+-            }
+-            _ => (count, None, None),
+-        }
+-    });
+-
+-    graph.v_root = vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gnodes, v_id, graph.v_root);
+-
+-    // ── 6b. Leaf-removal violation walk (§IDEA M-11.11.3, source 6) ─────
+-    // The intensity decrease propagates to all ancestors; at each
+-    // level the decreased ancestor may be a weaker uncle.  Walk
+-    // from the change point to the root, checking siblings' children.
+-    if let Some(start) = change_point {
+-        rebalance::push_leaf_removal_violations(&graph.vnodes, start, &mut graph.violations);
+-    }
+-
+-    // ── 6c. Sibling-removal violation checks (sources 7 & 8) ────
+-    // When a sibling is removed, the remaining siblings' children lose
+-    // that sibling as a potential uncle. Two cases:
+-    //
+-    // - 2-node collapse (source 7, §IDEA M-11.11.3): The surviving sibling is
+-    //   re-parented to the grandparent. Its children now have entirely
+-    //   different uncles.
+-    //
+-    // - 2-node collapse cousins (source 9, §IDEA M-11.11.3): The OTHER children
+-    //   of the grandparent have their children potentially violated
+-    //   because those children's uncle changed from v_parent to sole.
+-    //
+-    // - 3→2 transition (source 8, §IDEA M-11.11.3): The remaining siblings'
+-    //   children lose the removed entry as a potential uncle. Their
+-    //   max_uncle may decrease.
+-    match child_count {
+-        2 => {
+-            // Collapse: check the surviving sibling's children (source 7).
+-            if let Some(sole) = collapse_sibling {
+-                tracing::debug!(sole = sole.index(), "evict_tip: calling push_collapse_violations");
+-                rebalance::push_collapse_violations(&graph.vnodes, sole, &mut graph.violations);
+-
+-                // Also check the cousins' children (source 9).
+-                // change_point is the grandparent in the collapse case.
+-                if let Some(grandparent) = change_point {
+-                    tracing::debug!(
+-                        sole = sole.index(),
+-                        grandparent = grandparent.index(),
+-                        "evict_tip: calling push_cousin_violations (source 9)",
+-                    );
+-                    rebalance::push_cousin_violations(&graph.vnodes, sole, grandparent, &mut graph.violations);
+-                }
+-            }
+-        }
+-        3 => {
+-            // 3→2: check all remaining children of the parent.
+-            // v_id is already removed from the parent's children list,
+-            // so we check all current children.
+-            if let Some(p) = v_parent {
+-                tracing::debug!(parent = p.index(), "evict_tip: calling push_remaining_sibling_violations");
+-                rebalance::push_remaining_sibling_violations(
+-                    &graph.vnodes,
+-                    p,
+-                    v_id, // already removed, so filter is a no-op
+-                    &mut graph.violations,
+-                );
+-            }
+-        }
+-        _ => {}
+-    }
+-
+-    // ── 6d. Violation source diagnosis ──────────────────────────
+-    // For any missed violations, analyze exactly why they became
+-    // violated to identify the missing source.
+-    if tracing::enabled!(tracing::Level::ERROR) {
+-        let ctx = crate::diagnostic::EvictionContext {
+-            evicted_parent: v_parent,
+-            evicted_parent_child_count: child_count,
+-            collapse_sibling,
+-        };
+-        let all_violated = rebalance::find_violated_nodes(&graph.vnodes);
+-        let queued: std::collections::HashSet<usize> = graph.violations.iter().map(|v| v.index()).collect();
+-        for v in all_violated {
+-            if !queued.contains(&v.index()) {
+-                crate::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
+-            }
+-        }
+-    }
+-
+-    // ── 7. Deallocate G-node and decrement count ────────────────
+-    // Snapshot parent state before deallocation for plateau maintenance.
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    let parent_snapshot = {
+-        let pg = graph.gnodes.get(parent_id.index());
+-        (pg.state(), pg.lo, pg.hi)
+-    };
+-
+-    graph.gnodes.dealloc(gnode_id.index());
+-    graph.node_count -= 1;
+-    // The evicted node was a terminal: −1.
+-    // If the parent is now terminal (both children gone): +1 → net 0.
+-    graph.terminal_count -= 1;
+-    if graph.gnodes.get(parent_id.index()).is_terminal() {
+-        graph.terminal_count += 1;
+-    }
+-
+-    // 8. Plateau maintenance (no-op without `plateau` feature).
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    {
+-        let (parent_state_after, parent_lo, parent_hi) = parent_snapshot;
+-        plateau_after_evict(graph, gnode_id, parent_id, parent_state_after, parent_lo, parent_hi);
+-
+-        if tracing::enabled!(tracing::Level::DEBUG) {
+-            crate::diagnostic::audit_plateau_consistency(
+-                graph,
+-                "POST-EVICT",
+-                Some(&crate::diagnostic::PlateauAuditContext {
+-                    parent_id,
+-                    parent_state: parent_state_after,
+-                }),
+-            );
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Plateau maintenance after evicting a terminal G-node.
+ ///
+ /// The evicted terminal may or may not have been a basis element.
+ /// If it was covered by an ancestor balanced internal, that
+ /// ancestor is the basis element and must be decomposed (same
+ /// pattern as `catalytic_split`'s ancestor walk).

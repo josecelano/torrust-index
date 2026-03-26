@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/weighable.rs
++++ replace <impl Weighable for f64>::weight -> f64 with 1.0
+@@ -120,11 +120,11 @@
+     fn weight(self) -> f64 {
+         f64::from(self)
+     }
+ }
+ 
+ impl Weighable for f64 {
+     #[inline]
+     fn weight(self) -> f64 {
+-        self
++        1.0 /* ~ changed by cargo-mutants ~ */
+     }
+ }

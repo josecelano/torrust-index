@@ -1,0 +1,28 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::phase_shifted_oscillation -> Self with Default::default()
+@@ -290,24 +290,17 @@
+     /// burst, `b` gets a trickle, and vice versa.
+     ///
+     /// Unlike [`oscillating_hotspot`](Self::oscillating_hotspot) which
+     /// fully alternates, here both points always receive *some*
+     /// observations, maintaining concurrent growth in the same V-Tree
+     /// neighborhood.
+     #[must_use]
+     pub fn phase_shifted_oscillation(mut self, a: C, b: C, high: V, low: V, burst_len: usize, cycles: usize) -> Self {
+-        for cycle in 0..cycles {
+-            let (a_delta, b_delta) = if cycle % 2 == 0 { (high, low) } else { (low, high) };
+-            for _ in 0..burst_len {
+-                self.observations.push((a, a_delta));
+-                self.observations.push((b, b_delta));
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Dense neighborhood burst: `n` observations within
+     /// `[center − radius, center + radius] ∩ [0, domain)` with
+     /// intensity proportional to proximity to `center`.
+     ///
+     /// Creates a dense cluster of violations in a small spatial
+     /// region, forcing multiple concurrent violations with shared

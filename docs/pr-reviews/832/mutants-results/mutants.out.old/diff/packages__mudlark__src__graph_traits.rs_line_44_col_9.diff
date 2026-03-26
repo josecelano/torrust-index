@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_traits.rs
++++ replace <impl crate::traits::TemporalDecay for GvGraph<C, V, N>>::decay with ()
+@@ -36,17 +36,17 @@
+ }
+ 
+ // ── TemporalDecay impl ──────────────────────────────────────────────
+ 
+ impl<C: Coordinate, V: Accumulator + crate::traits::Attenuatable + Inspectable, const N: u32> crate::traits::TemporalDecay
+     for GvGraph<C, V, N>
+ {
+     fn decay(&mut self, root: crate::handle::GNodeId, attenuation: f64, q: f64) {
+-        self.decay(root, attenuation, q);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── WeightedSampler impl ─────────────────────────────────────────────
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable + crate::traits::Weighable, const N: u32> crate::traits::WeightedSampler
+     for GvGraph<C, V, N>
+ {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace ^ with | in Plan<C, V>::bit_flip_walk
+@@ -486,17 +486,17 @@
+     /// one bit, meaning each step crosses exactly one sibling boundary
+     /// in the V-Tree.  Systematically exercises every ancestor
+     /// relationship.
+     #[must_use]
+     pub fn bit_flip_walk(mut self, domain: u64, delta: V, n: usize) -> Self {
+         for i in 0..n {
+             let raw = i as u64 % domain;
+             // Gray code: G(n) = n ^ (n >> 1)
+-            let gray = raw ^ (raw >> 1);
++            let gray = raw | /* ~ changed by cargo-mutants ~ */ (raw >> 1);
+             self.observations.push((C::from_u64(gray % domain), delta));
+         }
+         self
+     }
+ 
+     /// Sibling flood: flood one half of the domain, then abruptly
+     /// flood the other half with (potentially different) intensity.
+     ///

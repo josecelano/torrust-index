@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace == with != in audit_plateau_consistency
+@@ -109,17 +109,17 @@
+             map_len,
+             basis_len,
+             "plateaus.len() != plateau_basis.plateau_count()",
+         );
+     }
+ 
+     // 3. P-I4 spot-check (only when context is provided).
+     if let Some(ctx) = context {
+-        if ctx.parent_state == GState::SemiInternal {
++        if ctx.parent_state != /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+             let g = graph.gnodes.get(ctx.parent_id.index());
+             let surviving = g.left.or(g.right);
+             if let Some(surviving_id) = surviving {
+                 let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);
+                 if let Some(pk) = parent_plateau {
+                     if let Some(ck) = graph.plateau_basis.plateau_key(surviving_id) {
+                         if pk == ck {
+                             tracing::debug!(

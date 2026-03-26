@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::new(Default::default())))
+@@ -851,17 +851,17 @@
+     /// Read-only access to the G-node arena.
+     ///
+     /// `pub(crate)` — Surface 3 (Emulsion). External consumers use
+     /// the public query surface (`get`, `range_sum`, `plateaus`,
+     /// `sample`, `extract`, `layers`) instead.
+     #[must_use]
+     #[inline]
+     pub(crate) const fn gnodes(&self) -> &Arena<GNode<C, V>> {
+-        &self.gnodes
++        Box::leak(Box::new(Arena::new(Default::default()))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Read-only access to the V-node arena.
+     ///
+     /// `pub(crate)` — Surface 3 (Emulsion).
+     #[must_use]
+     #[inline]
+     pub(crate) const fn vnodes(&self) -> &Arena<VNode<V>> {

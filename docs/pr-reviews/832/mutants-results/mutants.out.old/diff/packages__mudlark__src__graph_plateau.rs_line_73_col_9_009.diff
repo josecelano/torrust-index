@@ -1,0 +1,29 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateaus -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> with Cow::Owned(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]).to_owned())
+@@ -65,25 +65,17 @@
+     ///
+     /// // Floor-key lookup: find the plateau containing coordinate 42.
+     /// let hit = p.range(..=BasisEdge(42u64)).next_back();
+     /// assert!(hit.is_some());
+     /// ```
+     #[must_use]
+     #[allow(clippy::missing_const_for_fn)] // Cow::Borrowed is not const-compatible
+     pub fn plateaus(&self) -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> {
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        {
+-            self.debug_assert_plateau_mirror_consistency("plateaus()");
+-            Cow::Borrowed(&self.plateaus)
+-        }
+-        #[cfg(not(feature = "dynamic-contour-tracking"))]
+-        {
+-            Cow::Owned(self.build_plateaus())
+-        }
++        Cow::Owned(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]).to_owned()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Mirror consistency check ────────────────────────────────
+ 
+     /// Assert that the dynamically-maintained plateau mirror matches
+     /// a freshly-built version from the G-tree state.
+     ///
+     /// Only compiled in debug builds with `dynamic-contour-tracking`.

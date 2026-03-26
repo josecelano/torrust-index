@@ -1,0 +1,126 @@
+
+*** packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new()))))
+
+*** mutation diff:
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new()))))
+@@ -396,17 +396,17 @@
+         self.back.len()
+     }
+ 
+     /// Iterator over all (key, basis-elements) pairs, in key order.
+     ///
+     /// Used by `assert_invariants` for the full O(n) sweep.
+     #[allow(unused)] // Available for future use; not called yet.
+     pub(crate) fn iter(&self) -> impl Iterator<Item = (&BasisEdge<C>, &HashSet<GNodeId>)> {
+-        self.forward.iter()
++        ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new())))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Reference to the back-pointer map.
+     ///
+     /// Used by `assert_invariants` for cross-checking.
+     pub(crate) const fn back_map(&self) -> &HashMap<GNodeId, BasisEdge<C>> {
+         &self.back
+     }
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh shlex v1.3.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh once_cell v1.21.3
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh cc v1.2.56
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh plotters-backend v0.3.7
+       Fresh itoa v1.0.17
+       Fresh memchr v2.8.0
+       Fresh anstyle v1.0.13
+       Fresh clap_lex v1.0.0
+       Fresh pin-project-lite v0.2.16
+       Fresh ciborium-io v0.2.2
+       Fresh ciborium-ll v0.2.2
+       Fresh tracing v0.1.44
+       Fresh clap_builder v4.5.59
+       Fresh serde_json v1.0.149
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh log v0.4.29
+       Fresh lazy_static v1.5.0
+       Fresh cast v0.3.0
+       Fresh same-file v1.0.6
+       Fresh walkdir v2.5.0
+       Fresh criterion-plot v0.8.2
+       Fresh sharded-slab v0.1.7
+       Fresh tracing-log v0.2.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh alloca v0.4.0
+       Fresh plotters v0.3.7
+       Fresh tinytemplate v1.2.1
+       Fresh clap v4.5.59
+       Fresh ciborium v0.2.2
+       Fresh regex v1.12.3
+       Fresh matchers v0.2.0
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh nu-ansi-term v0.50.3
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0277]: the trait bound `BasisEdge<_>: Default` is not satisfied
+   --> packages/mudlark/src/plateau.rs:404:63
+    |
+404 |         ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new())))) /* ~ changed by cargo-mutants ~ */
+    |                                                               ^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Default` is not implemented for `BasisEdge<_>`
+   --> packages/mudlark/src/plateau.rs:98:1
+    |
+ 98 | pub struct BasisEdge<C: Coordinate>(pub C);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0271]: expected `Once<(&mut BasisEdge<_>, &mut HashSet<_>)>` to be an iterator that yields `(&BasisEdge<C>, &HashSet<GNodeId>)`, but it yields `(&mut BasisEdge<_>, &mut HashSet<_>)`
+   --> packages/mudlark/src/plateau.rs:403:34
+    |
+403 |     pub(crate) fn iter(&self) -> impl Iterator<Item = (&BasisEdge<C>, &HashSet<GNodeId>)> {
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ types differ in mutability
+    |
+    = note: expected tuple `(&BasisEdge<C>, &HashSet<GNodeId>)`
+               found tuple `(&mut BasisEdge<_>, &mut HashSet<_>)`
+
+Some errors have detailed explanations: E0271, E0277.
+For more information about an error, try `rustc --explain E0271`.
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

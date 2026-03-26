@@ -1,0 +1,40 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::collect_subtree_basis_elements with ()
+@@ -576,36 +576,17 @@
+     /// 4. `normalize_plateaus` (called at the end of every
+     ///    `observe`) rebuilds from scratch with a `seen` set,
+     ///    correcting any transient inconsistency.
+     ///
+     /// ADR-M-031 Phase 1a: enables callers to collect elements, sort by
+     /// `BasisEdge`, and place left-to-right via `place_sorted`.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn collect_subtree_basis_elements(&self, gid: GNodeId, out: &mut Vec<(GNodeId, u32)>) {
+-        use crate::gnode::GState;
+-        let g = self.gnodes.get(gid.index());
+-        match g.state() {
+-            GState::Terminal | GState::SemiInternal => {
+-                let depth = crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N);
+-                out.push((gid, depth));
+-            }
+-            GState::Internal => {
+-                if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
+-                    out.push((gid, ud));
+-                } else {
+-                    if let Some(l) = g.left {
+-                        self.collect_subtree_basis_elements(l, out);
+-                    }
+-                    if let Some(r) = g.right {
+-                        self.collect_subtree_basis_elements(r, out);
+-                    }
+-                }
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Sort collected `(GNodeId, u32)` pairs by `BasisEdge` and place
+     /// left-to-right.  With sorted placement the existing
+     /// left-neighbour merge in `place_basis_element` is sufficient to
+     /// produce the correct partition — no post-hoc normalize is needed.
+     ///
+     /// ADR-M-031 Phase 1b.

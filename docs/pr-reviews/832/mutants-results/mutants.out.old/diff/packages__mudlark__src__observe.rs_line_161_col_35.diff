@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ replace || with && in GvGraph<C, V, N>::observe
+@@ -153,17 +153,17 @@
+         self.repair_p_i4();
+ 
+         // Post-observe audit: catch violations missed by any pipeline
+         // stage.
+         //
+         // The O(n) scan always runs in debug builds (ensures the assert
+         // fires during `cargo test`) and optionally in release when a
+         // tracing subscriber is active at DEBUG.
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             let remaining = crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-OBSERVE");
+             debug_assert!(remaining.is_empty(), "POST-OBSERVE: residual violations: {remaining:?}");
+         }
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-OBSERVE");
+         }

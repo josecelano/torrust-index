@@ -397,15 +397,15 @@ improves navigability and is worth proposing to the author as a follow-up.
 
 ### Phase 5 Verdict
 
-| Check                                            | Result                                               |
-| ------------------------------------------------ | ---------------------------------------------------- |
-| Author's 1,311 tests pass                        | ✅                                                   |
-| Independent line coverage ≥ 86%                  | ✅ (86.96%)                                          |
-| Integration tests (reviewer-written)             | ✅ 10 pass                                           |
-| Snapshot tests (reviewer-written)                | ✅ 4 scenarios                                       |
-| Mutation kill rate                               | ⚠️ 60.1% — borderline, re-run needed after #12 fixed |
-| **Finding #12: post-evict `debug_assert` fires** | ❗ Blocks all eviction test paths                    |
-| Complexity: `plateau_after_evict` CC=39/Cog=95   | ⚠️ Highest-priority refactor target                  |
+| Check                                            | Result                                              |
+| ------------------------------------------------ | --------------------------------------------------- |
+| Author's 1,311 tests pass                        | ✅                                                  |
+| Independent line coverage ≥ 86%                  | ✅ (86.96%)                                         |
+| Integration tests (reviewer-written)             | ✅ 10 pass                                          |
+| Snapshot tests (reviewer-written)                | ✅ 4 scenarios                                      |
+| Mutation kill rate                               | ✅ 93.2% (1004/1077) — re-run 2026-03-26; 72 missed |
+| **Finding #12: post-evict `debug_assert` fires** | ❗ Blocks all eviction test paths                   |
+| Complexity: `plateau_after_evict` CC=39/Cog=95   | ⚠️ Highest-priority refactor target                 |
 
 ---
 
@@ -442,18 +442,18 @@ _Pending_
 
 ### Finding Status After Cameron's Replies
 
-| #   | Finding                              | Status                                                                                  |
-| --- | ------------------------------------ | --------------------------------------------------------------------------------------- |
-| 1   | MSRV bump (workspace-wide)           | ✅ PR description now says "MSRV 1.85, inherited from workspace" — addressed in PR #833 |
-| 2   | `src/ui/proxy.rs` regression         | ✅ **Fixed in PR #833** (merged) — `render-text-as-image` now internal                  |
-| 3   | `torrust-sentinel` in machete ignore | ⬜ Not mentioned — still needs explanation or comment                                   |
-| 4   | `docs/api.md` out of date            | ✅ **Full API audit done** — three-test procedure; API redesigned                       |
-| 5   | `debug_plateau_basis()` visibility   | ✅ Likely addressed in API audit (Primary test: diagnostics-only → hidden)              |
-| 6   | `AGENTS.md` scope                    | ⬜ Not mentioned — mudlark-specific conventions still in root AGENTS.md                 |
-| 7   | Methods missing from api.md          | ✅ **API redesigned** — some removed from public surface, others documented             |
-| 8   | `GNodeInfo` not in docs              | ✅ **Merged into `Node`** — `gnode_info()` now returns `Node`                           |
-| 9   | [BUG] f64 plateau drift              | ❗ **OPEN — confirmed still fires on rebased code** (`graph_plateau.rs:1387`)           |
-| —   | Mutation kill rate 60.1%             | ✅ Test count 868→1,311 (+443) — re-run needed to measure new kill rate                 |
+| #   | Finding                              | Status                                                                                                                                                                          |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | MSRV bump (workspace-wide)           | ✅ PR description now says "MSRV 1.85, inherited from workspace" — addressed in PR #833                                                                                         |
+| 2   | `src/ui/proxy.rs` regression         | ✅ **Fixed in PR #833** (merged) — `render-text-as-image` now internal                                                                                                          |
+| 3   | `torrust-sentinel` in machete ignore | ⬜ Not mentioned — still needs explanation or comment                                                                                                                           |
+| 4   | `docs/api.md` out of date            | ✅ **Full API audit done** — three-test procedure; API redesigned                                                                                                               |
+| 5   | `debug_plateau_basis()` visibility   | ✅ Likely addressed in API audit (Primary test: diagnostics-only → hidden)                                                                                                      |
+| 6   | `AGENTS.md` scope                    | ⬜ Not mentioned — mudlark-specific conventions still in root AGENTS.md                                                                                                         |
+| 7   | Methods missing from api.md          | ✅ **API redesigned** — some removed from public surface, others documented                                                                                                     |
+| 8   | `GNodeInfo` not in docs              | ✅ **Merged into `Node`** — `gnode_info()` now returns `Node`                                                                                                                   |
+| 9   | [BUG] f64 plateau drift              | ❗ **OPEN — confirmed still fires on rebased code** (`graph_plateau.rs:1387`)                                                                                                   |
+| —   | Mutation kill rate 60.1%             | ✅ Re-run 2026-03-26: **93.2%** (1004 caught / 72 missed / 627 unviable / 1077 viable). 72 surviving mutants remain, mostly in `graph_plateau.rs`, `diagnostic.rs`, `decay.rs`. |
 
 ### Comment — da2ce7, 5 days ago (#issuecomment-4096212408)
 
@@ -515,7 +515,7 @@ Both use `harness = false`. Running `cargo test -p torrust-mudlark --test pedago
 
 **README rewritten** — Quick Start and Advanced Usage sections are now runnable doc-tests (`include_str!` in `lib.rs`). If the prose drifts from reality, CI catches it.
 
-Cameron has asked to see the new mutation kill rate. **Action:** re-run `cargo mutants -p torrust-mudlark` and record the result.
+Cameron has asked to see the new mutation kill rate. **Result (2026-03-26):** Re-run of `cargo mutants -p torrust-mudlark` with 1,311 tests yields **93.2% kill rate** (1004 caught / 72 missed / 1 timeout / 627 unviable / 1077 viable). Well above the 80% target.
 
 ### Remaining Open Items
 
@@ -524,4 +524,4 @@ After Cameron's three responses, the following are still unresolved:
 1. **`torrust-sentinel` in machete ignore** — Intent undocumented. Low priority but a stale forward reference.
 2. **`AGENTS.md` scope** — Mudlark-specific cross-reference conventions still in root `AGENTS.md`. Low priority.
 3. **Finding #9 (`graph_plateau.rs` `assert_eq!`) — CONFIRMED OPEN.** Verified 2026-03-24: `bug_f64_plateau_drift_after_split` panics at `graph_plateau.rs:1387` on the rebased code. Delta ≈ 7.8e-15 (~1 ULP). Cameron's ADR-M-038 fix (decay depth panic) did not resolve this. **This needs to be reported to Cameron.** The fix options from the original finding still apply: approximate equality check, accumulate by fresh recompute, or guarantee bit-identical accumulation order.
-4. **New mutation kill rate** — Re-run `cargo mutants -p torrust-mudlark` to measure improvement from Cameron's +443 tests.
+4. **New mutation kill rate** — ✅ Re-run 2026-03-26: **93.2%** (1004/1077). Well above 80% target. 72 surviving mutants remain (see `mutants-results/mutants.out/missed.txt`).

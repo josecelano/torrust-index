@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ delete match arm (Some(l), Some(r)) in GvGraph<C, V, N>::consolidate_basis_up
+@@ -705,17 +705,17 @@
+                     parent_state = ?self.gnodes.get(parent_id.index()).state(),
+                     "consolidate_basis_up: stop — parent not Internal",
+                 );
+                 break;
+             }
+             let (left, right) = {
+                 let pg = self.gnodes.get(parent_id.index());
+                 match (pg.left, pg.right) {
+-                    (Some(l), Some(r)) => (l, r),
++                     /* ~ changed by cargo-mutants ~ */
+                     _ => break,
+                 }
+             };
+ 
+             // Semi-internals break uniformity — cannot consolidate.
+             if self.gnodes.get(left.index()).state() == GState::SemiInternal
+                 || self.gnodes.get(right.index()).state() == GState::SemiInternal
+             {

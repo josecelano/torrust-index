@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_p_i1_iii_run_contains_tile
+@@ -1232,17 +1232,17 @@
+             errors.push(format!(
+                 "P-I1(iii): plateau {key:?}: end={p_end}, expected max(basis.hi)={max_hi}"
+             ));
+         }
+ 
+         // Verify run ⊇ tile range: [key, next_start).
+         let tile_lo = key.0.to_f64();
+         let tile_hi = next_start.to_f64();
+-        if p_start - tile_lo > 1e-12 {
++        if p_start - tile_lo < /* ~ changed by cargo-mutants ~ */ 1e-12 {
+             errors.push(format!(
+                 "P-I1(iii): plateau {key:?}: run start {p_start} > tile start {tile_lo}"
+             ));
+         }
+         if tile_hi - p_end > 1e-12 {
+             errors.push(format!("P-I1(iii): plateau {key:?}: run end {p_end} < tile end {tile_hi}"));
+         }
+     }

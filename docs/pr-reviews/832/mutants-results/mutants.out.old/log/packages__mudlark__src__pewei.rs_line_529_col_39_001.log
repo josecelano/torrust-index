@@ -1,0 +1,353 @@
+
+*** packages/mudlark/src/pewei.rs:529:39: replace + with * in descend
+
+*** mutation diff:
+--- packages/mudlark/src/pewei.rs
++++ replace + with * in descend
+@@ -521,17 +521,17 @@
+             let tr = &layers[layer as usize].transitions[idx as usize];
+             let baseline = tr.baseline;
+             let total = tr.total;
+             let depth = tr.depth;
+ 
+             let mid = C::midpoint(start, end);
+             let total_bg = V::add(accumulated, baseline);
+             let half_bg = total_bg.prorate(1, 2);
+-            let child_depth = g_depth + 1;
++            let child_depth = g_depth * /* ~ changed by cargo-mutants ~ */ 1;
+ 
+             let left_ref = lookup.get(start, child_depth);
+             let right_ref = lookup.get(mid, child_depth);
+ 
+             match (left_ref, right_ref) {
+                 (Some(_), Some(_)) => {
+                     // Both children visible — recurse into each half.
+                     descend(lookup, layers, start, mid, child_depth, half_bg, output);
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh find-msvc-tools v0.1.9
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh once_cell v1.21.3
+       Fresh autocfg v1.5.0
+       Fresh tracing-core v0.1.36
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh anstyle v1.0.13
+       Fresh ciborium-io v0.2.2
+       Fresh plotters-backend v0.3.7
+       Fresh pin-project-lite v0.2.16
+       Fresh clap_lex v1.0.0
+       Fresh itoa v1.0.17
+       Fresh memchr v2.8.0
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh tracing v0.1.44
+       Fresh rayon-core v1.13.0
+       Fresh ciborium-ll v0.2.2
+       Fresh itertools v0.13.0
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh serde_json v1.0.149
+       Fresh libc v0.2.182
+       Fresh clap_builder v4.5.59
+       Fresh same-file v1.0.6
+       Fresh tracing-log v0.2.0
+       Fresh ciborium v0.2.2
+       Fresh plotters v0.3.7
+       Fresh criterion-plot v0.8.2
+       Fresh rayon v1.11.0
+       Fresh sharded-slab v0.1.7
+       Fresh alloca v0.4.0
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh tinytemplate v1.2.1
+       Fresh page_size v0.6.0
+       Fresh clap v4.5.59
+       Fresh walkdir v2.5.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh smallvec v1.15.1
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh rand_core v0.10.0
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name plateau --edition=2021 packages/mudlark/tests/plateau.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=1a81ad230836981e -C extra-filename=-95c10d44796810e3 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name sentinel_api --edition=2021 packages/mudlark/tests/sentinel_api.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=0d6da5b4d16a653e -C extra-filename=-e043ed6af08a051d --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name cross_type --edition=2021 packages/mudlark/tests/cross_type.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=c0316b9c5750aa24 -C extra-filename=-fb6c0ffda789ef4f --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction_p_i2 --edition=2021 packages/mudlark/tests/eviction_p_i2.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=bdf9ebf07bc4d368 -C extra-filename=-f5b89f0593c4e035 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction --edition=2021 packages/mudlark/tests/eviction.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=7eeaf5aa54ce35a2 -C extra-filename=-98ebe6e26f87dc3c --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_sample --edition=2021 packages/mudlark/tests/graph_sample.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=a66e6e9a2cda7dcc -C extra-filename=-c6a709e623f7f78b --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_terminal --edition=2021 packages/mudlark/tests/graph_terminal.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=873f10d433e6a265 -C extra-filename=-8a5121f63c2a986f --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name budget --edition=2021 packages/mudlark/tests/budget.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=d185f511541ecdb1 -C extra-filename=-91d630018a862f2d --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name stress_patterns --edition=2021 packages/mudlark/tests/stress_patterns.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=14764f75c28bef0d -C extra-filename=-1950621664b2aea6 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name buffer_oscillation --edition=2021 packages/mudlark/tests/buffer_oscillation.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=f994ea8eeff6da5a -C extra-filename=-7e4325a17bf6aa7b --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name bench_mirrors --edition=2021 packages/mudlark/tests/bench_mirrors.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=dc002b68751a8890 -C extra-filename=-5f5980eef58ce333 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_point --edition=2021 packages/mudlark/tests/graph_point.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=21c9d3fc1140995f -C extra-filename=-63f77be8101a0f50 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name contour_range --edition=2021 packages/mudlark/tests/contour_range.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5167658e6c2f1d22 -C extra-filename=-582eb105357d39f1 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction_debug --edition=2021 packages/mudlark/tests/eviction_debug.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=843d28e9ff2c972c -C extra-filename=-d641a01490593b9b --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_layers --edition=2021 packages/mudlark/tests/graph_layers.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b7179a97d74fc7cb -C extra-filename=-e9634184f1d16844 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_range --edition=2021 packages/mudlark/tests/graph_range.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b5de1fad1c5929ee -C extra-filename=-f5b59f9fc103957a --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name cascade --edition=2021 packages/mudlark/tests/cascade.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=bfb8c49d0594805d -C extra-filename=-af8281252aae4d3a --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name hex_binary_tree_mapping --edition=2021 packages/mudlark/tests/hex_binary_tree_mapping.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=d0f221a62df9e95b -C extra-filename=-9f1c0412caadf3e5 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_extract --edition=2021 packages/mudlark/tests/graph_extract.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b25b4d8d0ae86ac4 -C extra-filename=-d8ea3bb8ff779647 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+    Finished `test` profile [optimized + debuginfo] target(s) in 5.84s
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/torrust_mudlark-d93ef5a1599fb788`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/bench_mirrors-5f5980eef58ce333`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/budget-91d630018a862f2d`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/buffer_oscillation-7e4325a17bf6aa7b`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/cascade-af8281252aae4d3a`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/contour_range-582eb105357d39f1`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/cross_type-fb6c0ffda789ef4f`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/eviction-98ebe6e26f87dc3c`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/eviction_debug-d641a01490593b9b`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/eviction_p_i2-f5b89f0593c4e035`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_extract-d8ea3bb8ff779647`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_layers-e9634184f1d16844`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_point-63f77be8101a0f50`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_range-f5b59f9fc103957a`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_sample-c6a709e623f7f78b`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/graph_terminal-8a5121f63c2a986f`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/hex_binary_tree_mapping-9f1c0412caadf3e5`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/plateau-95c10d44796810e3`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/sentinel_api-e043ed6af08a051d`
+  Executable `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/stress_patterns-1950621664b2aea6`
+
+*** result: Success
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh cfg-if v1.0.4
+       Fresh regex-syntax v0.8.9
+       Fresh once_cell v1.21.3
+       Fresh autocfg v1.5.0
+       Fresh proc-macro2 v1.0.106
+       Fresh shlex v1.3.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh quote v1.0.44
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh cc v1.2.56
+       Fresh either v1.15.0
+       Fresh zmij v1.0.21
+       Fresh ciborium-io v0.2.2
+       Fresh itoa v1.0.17
+       Fresh syn v2.0.116
+       Fresh crossbeam-epoch v0.9.18
+       Fresh memchr v2.8.0
+       Fresh plotters-backend v0.3.7
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh clap_lex v1.0.0
+       Fresh itertools v0.13.0
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh tracing-attributes v0.1.31
+       Fresh crossbeam-deque v0.8.6
+       Fresh clap_builder v4.5.59
+       Fresh plotters-svg v0.3.7
+       Fresh libc v0.2.182
+       Fresh serde_json v1.0.149
+       Fresh num-traits v0.2.19
+       Fresh log v0.4.29
+       Fresh lazy_static v1.5.0
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh rayon-core v1.13.0
+       Fresh tracing v0.1.44
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh plotters v0.3.7
+       Fresh clap v4.5.59
+       Fresh alloca v0.4.0
+       Fresh sharded-slab v0.1.7
+       Fresh page_size v0.6.0
+       Fresh tracing-log v0.2.0
+       Fresh half v2.7.1
+       Fresh criterion-plot v0.8.2
+       Fresh walkdir v2.5.0
+       Fresh tinytemplate v1.2.1
+       Fresh rayon v1.11.0
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh ciborium-ll v0.2.2
+       Fresh anes v0.1.6
+       Fresh tracing-subscriber v0.3.22
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+       Fresh torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.14s
+     Running `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/torrust_mudlark-d93ef5a1599fb788`
+
+running 346 tests
+test tests::arena::alloc_and_get ... ok
+test tests::arena::dealloc_and_reuse ... ok
+test tests::arena::bitset_grows_correctly ... ok
+test tests::arena::multiple_alloc_dealloc_cycles ... ok
+test tests::arena::get_stale_handle_panics_in_debug - should panic ... ok
+test tests::decay::decay_amplification_above_one ... ok
+test tests::decay::decay_energy_conservation_uniform ... ok
+test tests::decay::decay_energy_conservation_selective ... ok
+test tests::decay::decay_composition_k_steps ... ok
+test tests::decay::decay_noop_at_attenuation_one ... ok
+test tests::decay::decay_panics_nan_attenuation - should panic ... ok
+test tests::decay::decay_multiple_selective_preserves_invariants ... ok
+test tests::decay::decay_multiple_uniform_preserves_invariants ... ok
+test tests::decay::decay_panics_negative_attenuation - should panic ... ok
+test tests::decay::decay_panics_nan_q - should panic ... ok
+test tests::decay::decay_selective_preserves_invariants ... ok
+test tests::decay::decay_preserves_plateau_structure ... ok
+test tests::decay::decay_selective_coarse_persists_fine_fades ... ok
+test tests::decay::decay_panics_negative_q - should panic ... ok
+test tests::decay::decay_f64_tree ... ok
+test tests::decay::decay_selective_midpoint_matches_attenuation ... ok
+test tests::decay::decay_panics_zero_attenuation - should panic ... ok
+test tests::decay::decay_selective_subtree_leaves_other_half_unchanged ... ok
+test tests::decay::decay_single_node_selective ... ok
+test tests::decay::decay_single_node_tree ... ok
+test tests::decay::decay_selective_q1_root_undecayed ... ok
+test tests::decay::decay_panics_q_above_one - should panic ... ok
+test tests::decay::decay_selective_subtree_preserves_invariants ... ok
+test tests::decay::decay_then_extract_roundtrip ... ok
+test tests::decay::decay_uniform_global_preserves_invariants ... ok
+test tests::decay::decay_uniform_global_all_own_scaled ... ok
+test tests::decay::decay_uniform_global_scales_all_nodes ... ok
+test tests::decay_f64_depth::f64_depth_saturates_at_n ... ok
+test tests::decay::decay_uniform_subtree_preserves_invariants ... ok
+test tests::decay::decay_updates_plateau_sums ... ok
+test tests::decay::decay_uniform_subtree_scales_only_target ... ok
+test tests::decay_f64_depth::trace_f64_depth_inconsistency_step_by_step ... ok
+test tests::diagnostic::audit_violations_returns_empty_when_no_violations ... ok
+test tests::diagnostic::audit_violations_returns_empty_after_observe ... ok
+test tests::diagnostic::audit_plateau_consistency_passes_on_healthy_graph ... ok
+test tests::diagnostic::catalytic_split_creates_span ... ok
+test tests::diagnostic::decay_creates_span ... ok
+test tests::diagnostic::gn_display_after_split ... ok
+test tests::diagnostic::gn_display_dead_node ... ok
+test tests::diagnostic::gn_display_for_root ... ok
+test tests::diagnostic::normalize_plateaus_creates_span ... ok
+test tests::diagnostic::observe_creates_observe_span ... ok
+test tests::diagnostic::eviction_pipeline_creates_spans ... ok
+test tests::diagnostic::evict_tip_creates_span ... ok
+test tests::diagnostic::observe_emits_spans ... ok
+test tests::diagnostic::observe_emits_debug_events ... ok
+test tests::diagnostic::observe_runs_post_observe_audit_without_tracing ... ok
+test tests::diagnostic::plateau_mirror_consistency_runs_without_tracing ... ok
+test tests::diagnostic::plateau_sum_check_runs_without_tracing ... ok
+test tests::diagnostic::rebalance_runs_residual_audit_without_tracing ... ok
+test tests::diagnostic::rebalance_creates_span ... ok
+test tests::diagnostic::split_creates_bootstrap_split_span ... ok
+test tests::evict::evict_after_observations_conserves_energy ... ok
+test tests::evict::evict_both_children_makes_parent_terminal ... ok
+test tests::evict::evict_single_terminal_child ... ok
+test tests::evict::evict_to_semi_internal_creates_thatch ... ok
+test tests::evict::evict_to_terminal_destroys_thatch ... ok
+test tests::evict::finds_candidates_past_d_evict ... ok
+test tests::evict::no_candidates_when_within_d_evict ... ok
+test tests::evict::prunes_subtrees_without_evictable ... ok
+test tests::gnode::gnode_size ... ok
+test tests::diagnostic::vtree_remove_leaf_creates_span ... ok
+test tests::gnode::has_dependents_matches_state ... ok
+test tests::gnode::is_semi_internal_matches_state ... ok
+test tests::gnode::state_internal ... ok
+test tests::gnode::state_semi_internal_left ... ok
+test tests::gnode::state_semi_internal_right ... ok
+test tests::gnode::state_terminal ... ok
+test tests::gnode::uncovered_range_internal ... ok
+test tests::gnode::uncovered_range_semi_left ... ok
+test tests::gnode::uncovered_range_semi_right ... ok
+test tests::gnode::uncovered_range_terminal ... ok
+test tests::graph::check_evictions_noop_when_none_eligible ... ok
+test tests::graph::check_evictions_bounded_respects_limit ... ok
+test tests::graph::check_evictions_return_value_matches_count_delta ... ok
+test tests::graph::check_evictions_trailing_rebalance_clears_violations ... ok
+test tests::graph::config_rejects_budget_at_headroom - should panic ... ok
+test tests::graph::config_rejects_budget_below_headroom - should panic ... ok
+test tests::graph::check_evictions_unbounded_evicts_all ... ok
+test tests::graph::config_validates_alpha_relax_one - should panic ... ok
+test tests::graph::config_validates_alpha_relax_zero - should panic ... ok
+test tests::graph::config_validates_depth_create_zero - should panic ... ok
+test tests::graph::config_validates_depth_gate - should panic ... ok
+test tests::graph::dead_zone_no_change ... ok
+test tests::graph::di3_maintained_through_full_tighten_relax_cycle ... ok
+test tests::graph::floor_prevents_excessive_tightening ... ok
+test tests::graph::get_semi_internal_depth_is_trimmed_depth ... ok
+test tests::graph::get_semi_internal_left_child_trims_right ... ok
+test tests::graph::gnode_depth_method_matches_free_function ... ok
+test tests::graph::no_ceiling_relax_above_initial ... ok
+test tests::graph::get_semi_internal_right_child_trims_left ... ok
+test tests::graph::noop_when_budget_is_none ... ok
+test tests::graph::relax_when_under_alpha_budget ... ok
+test tests::graph::shadow_fields_match_config_on_construction ... ok
+test tests::graph::soft_limit_computed_correctly ... ok
+test tests::graph::tighten_when_over_budget ... ok
+test tests::graph_init::initialize_full_domain ... ok
+test tests::graph_init::initialize_single_root ... ok
+test tests::gtree::depth_f64_half_n4 ... ok
+test tests::gtree::depth_f64_quarter_n4 ... ok
+test tests::gtree::depth_f64_root_n4 ... ok
+test tests::gtree::depth_f64_sub_unit_n4 ... ok
+test tests::gtree::depth_half_n8 ... ok
+test tests::gtree::depth_leaf_n8 ... ok
+test tests::gtree::depth_n32_root ... ok
+test tests::gtree::depth_quarter_n8 ... ok
+test tests::gtree::depth_root_n8 ... ok
+test tests::gtree::propagate_sums_upward ... ok
+test tests::gtree::recompute_semi_internal ... ok
+test tests::gtree::recompute_single_node ... ok
+test tests::gtree::recompute_with_two_children ... ok
+test tests::gtree::route_semi_internal ... ok
+test tests::gtree::route_single_node ... ok
+test tests::gtree::route_with_children ... ok
+test tests::handle::gnode_id_overflow - should panic ... ok
+test tests::handle::handle_round_trip ... ok
+test tests::handle::niche_optimization ... ok
+test tests::handle::vnode_id_overflow - should panic ... ok
+test tests::observe::cascading_splits ... ok
+test tests::observe::observe_accumulates_additively ... ok
+test tests::observe::observe_accumulates_own ... ok
+test tests::observe::observe_no_split_below_threshold ... ok
+test tests::observe::observe_preserves_plateau_structure ... ok
+test tests::observe::observe_propagates_g_sums_correctly ... 
+thread 'ok
+tests::pewei::reconstruct_both_children_visible' (772647) has overflowed its stack
+fatal runtime error: stack overflow, aborting
+error: test failed, to rerun pass `-p torrust-mudlark --lib`
+
+Caused by:
+  process didn't exit successfully: `/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/torrust_mudlark-d93ef5a1599fb788` (signal: 6, SIGABRT: process abort signal)
+
+*** result: Failure(101)

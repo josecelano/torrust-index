@@ -1,0 +1,24 @@
+--- packages/mudlark/src/invariants.rs
++++ replace tile_of -> (C, C) with (Default::default(), Default::default())
+@@ -979,20 +979,17 @@
+ 
+ /// Compute the contour tile of a basis element: the interval of the
+ /// domain that this element covers in the contour step function.
+ ///
+ /// - Terminal / balanced internal: full `[lo, hi)`.
+ /// - Semi-internal: the uncovered half-interval.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn tile_of<C: Coordinate, V: Accumulator>(g: &crate::gnode::GNode<C, V>) -> (C, C) {
+-    match g.state() {
+-        GState::Terminal | GState::Internal => (g.lo, g.hi),
+-        GState::SemiInternal => g.uncovered_range().expect("semi-internal must have uncovered range"),
+-    }
++    (Default::default(), Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Walk the G-tree contour and return the sorted step coordinates
+ /// where the contour depth changes.  The first step is always 0
+ /// (domain start).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<(C, u32)> {
+     use crate::gtree::gnode_depth_from_interval;

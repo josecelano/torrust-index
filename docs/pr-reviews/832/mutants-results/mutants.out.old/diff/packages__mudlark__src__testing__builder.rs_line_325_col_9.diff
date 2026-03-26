@@ -1,0 +1,15 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<f64, f64>::deep_f64 -> Self with Default::default()
+@@ -317,11 +317,11 @@
+     #[must_use]
+     pub const fn default_f64() -> Self {
+         Self::new(super::config::f64_default_config())
+     }
+ 
+     /// Start building with `f64_deep_config()`.
+     #[must_use]
+     pub const fn deep_f64() -> Self {
+-        Self::new(super::config::f64_deep_config())
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }

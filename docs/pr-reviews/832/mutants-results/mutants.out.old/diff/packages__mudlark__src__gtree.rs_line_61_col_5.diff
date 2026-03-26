@@ -1,0 +1,32 @@
+--- packages/mudlark/src/gtree.rs
++++ replace gnode_depth_from_interval -> u32 with 0
+@@ -53,28 +53,17 @@
+ /// `N` for convenience.
+ ///
+ /// # Panics
+ ///
+ /// Panics if `width` is zero (degenerate interval).
+ #[must_use]
+ #[inline]
+ pub fn gnode_depth_from_interval<C: Coordinate>(lo: C, hi: C, n: u32) -> u32 {
+-    let width_f64 = C::width(lo, hi).to_f64();
+-    debug_assert!(width_f64 > 0.0, "gnode_depth_from_interval: zero-width interval");
+-    // log2 of a power-of-two width. For integers this is exact;
+-    // for floats f64::log2 returns an exact integer for 2^k inputs.
+-    //
+-    // Cast via i32 (not u32) so that sub-unit float widths
+-    // (log2 < 0) produce depths > n instead of saturating to n.
+-    #[allow(clippy::cast_possible_truncation)]
+-    let log2_width = width_f64.log2() as i32;
+-    #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
+-    let depth = (n as i32 - log2_width) as u32;
+-    depth
++    0 /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Recompute `sum = own + left.sum + right.sum` from `start` upward
+ /// to the G-Tree root, directly reasserting G-I1 at each level.
+ ///
+ /// Used by `observe()` on the hot path instead of
+ /// `propagate_g_sums` (moved to tests), avoiding the need for subtraction on
+ /// `Accumulator`. See ADR-M-012 for the full analysis.

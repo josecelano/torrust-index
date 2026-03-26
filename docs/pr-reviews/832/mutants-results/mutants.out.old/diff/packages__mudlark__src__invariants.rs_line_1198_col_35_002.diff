@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace < with <= in check_p_i1_iii_run_contains_tile
+@@ -1190,17 +1190,17 @@
+ ) {
+     let plateaus = &graph.plateaus;
+     let pb = graph.plateau_basis();
+     let keys: Vec<BasisEdge<C>> = plateaus.keys().copied().collect();
+     let domain_max = C::domain_max(N);
+ 
+     for (i, &key) in keys.iter().enumerate() {
+         let plateau = &plateaus[&key];
+-        let next_start = if i + 1 < keys.len() { keys[i + 1].0 } else { domain_max };
++        let next_start = if i + 1 <= /* ~ changed by cargo-mutants ~ */ keys.len() { keys[i + 1].0 } else { domain_max };
+ 
+         let elements = pb.basis_elements(&key);
+         if elements.is_empty() {
+             continue; // Already caught by P-I1(ii).
+         }
+ 
+         // Compute run from basis spans.
+         let mut min_lo = f64::INFINITY;

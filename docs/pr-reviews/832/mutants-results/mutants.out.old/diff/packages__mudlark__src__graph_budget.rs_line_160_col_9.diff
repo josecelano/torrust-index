@@ -1,0 +1,100 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace GvGraph<C, V, N>::evict_candidates -> u32 with 0
+@@ -152,96 +152,11 @@
+     /// Two-phase collect-then-evict (ADR-M-015):
+     /// 1. `scan_for_candidates()` — snapshot of eligible `VNodeId`s.
+     /// 2. Iterate, re-verify eligibility (slot occupied, still
+     ///    evictable, depth still exceeds `D_evict`, not G-root),
+     ///    then call `evict_tip()`.
+     /// 3. Trailing `rebalance()` if any evictions occurred.
+     #[allow(clippy::too_many_lines)]
+     fn evict_candidates(&mut self, stop_at: Option<usize>) -> u32 {
+-        let candidates = evict::scan_for_candidates(self);
+-        let _span = tracing::debug_span!("evict_batch", candidate_count = candidates.len(),).entered();
+-        let mut evicted: u32 = 0;
+-
+-        for v_id in candidates {
+-            // Budget-bounded early exit.
+-            if let Some(limit) = stop_at {
+-                if evicted as usize >= limit {
+-                    break;
+-                }
+-            }
+-
+-            // Re-verify eligibility: the slot may have been
+-            // invalidated by a prior eviction in this batch.
+-            if !self.vnodes.is_occupied(v_id.index()) {
+-                continue;
+-            }
+-            match &self.vnodes.get(v_id.index()).kind {
+-                crate::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+-                    if !is_evictable {
+-                        continue;
+-                    }
+-                    if *gnode == self.g_root {
+-                        continue;
+-                    }
+-                    // Depth may have changed due to V-tree mutations.
+-                    let depth = vtree::v_depth(&self.vnodes, v_id);
+-                    if depth <= self.live_depth_evict {
+-                        continue;
+-                    }
+-                }
+-                crate::vnode::VKind::Structural { .. } => continue,
+-            }
+-
+-            evict::evict_tip(self, v_id);
+-            evicted += 1;
+-
+-            // Post-eviction audit: find violations not in the queue.
+-            if tracing::enabled!(tracing::Level::DEBUG) {
+-                crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-EVICT");
+-            }
+-
+-            // Per-eviction mirror check — pinpoints which eviction
+-            // in a batch caused a divergence (the batch-level
+-            // POST-EVICT check at the end only reports *that* the
+-            // batch diverged, not *which* eviction).
+-            #[cfg(feature = "dynamic-contour-tracking")]
+-            if cfg!(debug_assertions) {
+-                self.debug_assert_plateau_mirror_consistency(&format!("POST-EVICT-SINGLE-{evicted}"));
+-            }
+-        }
+-
+-        // Trailing rebalance to resolve any absorption violations.
+-        if evicted > 0 {
+-            let new_gnodes = rebalance::rebalance(
+-                &mut self.vnodes,
+-                &mut self.gnodes,
+-                &mut self.violations,
+-                self.live_depth_evict,
+-            );
+-            if !new_gnodes.is_empty() {
+-                self.handle_legacy_promotes(&new_gnodes);
+-            }
+-
+-            // Repair P-I4 thatch-hop violations introduced by
+-            // eviction plateau merges or legacy promote placements.
+-            self.repair_p_i4();
+-
+-            // ADR-M-031 Phase 4: mark dirty for batch eviction
+-            // interaction and normalize if needed.
+-            #[cfg(feature = "dynamic-contour-tracking")]
+-            {
+-                self.plateaus_dirty = true;
+-            }
+-            self.normalize_plateaus();
+-
+-            // Re-run P-I4 repair after normalization.
+-            self.repair_p_i4();
+-        }
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_assert_plateau_mirror_consistency("POST-EVICT");
+-        }
+-
+-        evicted
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ }

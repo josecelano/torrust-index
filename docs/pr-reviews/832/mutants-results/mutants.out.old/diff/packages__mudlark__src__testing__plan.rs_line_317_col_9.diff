@@ -1,0 +1,32 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::neighborhood_burst -> Self with Default::default()
+@@ -309,28 +309,17 @@
+     /// `[center − radius, center + radius] ∩ [0, domain)` with
+     /// intensity proportional to proximity to `center`.
+     ///
+     /// Creates a dense cluster of violations in a small spatial
+     /// region, forcing multiple concurrent violations with shared
+     /// ancestors.
+     #[must_use]
+     pub fn neighborhood_burst(mut self, center: u64, radius: u64, base: V, n: usize) -> Self {
+-        let lo = center.saturating_sub(radius);
+-        let hi = center + radius;
+-        let width = hi - lo + 1;
+-        for i in 0..n {
+-            let offset = i as u64 % width;
+-            let coord = C::from_u64(lo + offset);
+-            let dist = (lo + offset).abs_diff(center);
+-            #[allow(clippy::cast_precision_loss)]
+-            let delta = V::from_f64(base.to_f64_approx() * (1.0 + (radius as f64 - dist as f64)));
+-            self.observations.push((coord, delta));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Deep / structural patterns ──────────────────────────────
+     //
+     // Exercise V-Tree depth, multi-level splitting, and restructuring
+     // at various scales.
+ 
+     /// Fractal spray: one observation at each dyadic midpoint of

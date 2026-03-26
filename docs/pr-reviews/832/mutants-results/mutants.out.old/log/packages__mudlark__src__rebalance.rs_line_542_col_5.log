@@ -1,0 +1,264 @@
+
+*** packages/mudlark/src/rebalance.rs:542:5: replace legacy_promote -> GNodeId with Default::default()
+
+*** mutation diff:
+--- packages/mudlark/src/rebalance.rs
++++ replace legacy_promote -> GNodeId with Default::default()
+@@ -534,136 +534,17 @@
+ ///
+ /// Panics if `c` is not an entry, if its G-node is not semi-internal,
+ /// or if `c` has no parent or grandparent.
+ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     c: VNodeId,
+ ) -> GNodeId {
+-    let p = vnodes.get(c.index()).parent.expect("legacy_promote: c must have a parent");
+-    let g = vnodes
+-        .get(p.index())
+-        .parent
+-        .expect("legacy_promote: p must have a grandparent");
+-
+-    let gnode_id = match &vnodes.get(c.index()).kind {
+-        VKind::Entry { gnode, .. } => *gnode,
+-        VKind::Structural { .. } => panic!("legacy_promote: c must be an entry"),
+-    };
+-
+-    debug_assert!(
+-        gnodes.get(gnode_id.index()).is_semi_internal(),
+-        "legacy_promote: backing G-node must be semi-internal"
+-    );
+-
+-    let _span = tracing::debug_span!(
+-        "legacy_promote",
+-        c = %Nd(vnodes, c),
+-        p = p.index(),
+-        g = g.index(),
+-        gnode = gnode_id.index(),
+-    )
+-    .entered();
+-
+-    // ── G-Tree: create the missing child ────────────────────────
+-    let gn = gnodes.get(gnode_id.index());
+-    let (new_lo, new_hi) = gn
+-        .uncovered_range()
+-        .expect("legacy_promote: semi-internal must have uncovered range");
+-    let new_child = GNode {
+-        lo: new_lo,
+-        hi: new_hi,
+-        sum: V::zero(),
+-        own: V::zero(),
+-        left: None,
+-        right: None,
+-        parent: Some(gnode_id),
+-        entry: None,
+-    };
+-    let new_child_id = GNodeId::from_index(gnodes.alloc(new_child));
+-
+-    // Link into parent's empty slot.
+-    {
+-        let gn = gnodes.get_mut(gnode_id.index());
+-        if gn.left.is_none() {
+-            gn.left = Some(new_child_id);
+-        } else {
+-            debug_assert!(gn.right.is_none(), "legacy_promote: expected empty right slot");
+-            gn.right = Some(new_child_id);
+-        }
+-    }
+-
+-    // ── V-Tree: create entry for new child ──────────────────────
+-    // ne takes c's place at the same depth
+-    let c_depth = vnodes.get(c.index()).cached_depth.load(Ordering::Relaxed);
+-    let ne = VNode {
+-        intensity: V::zero(),
+-        parent: Some(p),
+-        cached_depth: AtomicU32::new(c_depth), // Same depth as c was
+-        kind: VKind::Entry {
+-            gnode: new_child_id,
+-            is_exposed: true,   // new terminal: on the contour
+-            is_evictable: true, // new terminal: no dependents
+-        },
+-    };
+-    let ne_id = VNodeId::from_index(vnodes.alloc(ne));
+-    gnodes.get_mut(new_child_id.index()).entry = Some(ne_id);
+-
+-    // ── V-Tree: replace c with ne in p's children ───────────────
+-    let c_int = vnodes.get(c.index()).intensity;
+-    replace_child_in_parent(vnodes, p, c, ne_id, V::zero());
+-
+-    // ── V-Tree: lift c to g (g becomes 3-node) ─────────────────
+-    let (u_id, u_int) = sibling_of(vnodes, g, p);
+-
+-    // c is about to become frozen (internal, 2 G-children) → not evictable.
+-    let c_evictable = false;
+-    let p_evictable = node_has_evictable(vnodes, p);
+-    let u_evictable = node_has_evictable(vnodes, u_id);
+-
+-    let p_int = vnodes.get(p.index()).intensity;
+-    let g_node = vnodes.get_mut(g.index());
+-    if let VKind::Structural { children, has_evictable } = &mut g_node.kind {
+-        *children = PackedChildren::new_3((c, c_int), (p, p_int), (u_id, u_int));
+-        *has_evictable = c_evictable || p_evictable || u_evictable;
+-    }
+-
+-    vnodes.get_mut(c.index()).parent = Some(g);
+-    // c moved up one level: update its depth
+-    let new_c_depth = if c_depth == DEPTH_STALE { DEPTH_STALE } else { c_depth - 1 };
+-    vnodes.get(c.index()).cached_depth.store(new_c_depth, Ordering::Relaxed);
+-
+-    // ── Freeze c: gnode now has 2 G-children ────────────────────
+-    if let VKind::Entry {
+-        is_exposed,
+-        is_evictable,
+-        ..
+-    } = &mut vnodes.get_mut(c.index()).kind
+-    {
+-        *is_exposed = false; // internal: fully shielded
+-        *is_evictable = false; // has dependents
+-    }
+-
+-    // ── Recompute p's intensity ─────────────────────────────────
+-    recompute_structural_intensity(vnodes, p);
+-    let new_p_int = vnodes.get(p.index()).intensity;
+-    update_parent_cached_intensity(vnodes, p, new_p_int);
+-
+-    // ── Propagate evictable flags ───────────────────────────────
+-    propagate_evictable_flags(vnodes, p);
+-    propagate_evictable_flags(vnodes, g);
+-
+-    tracing::debug!(
+-        new_gnode = new_child_id.index(),
+-        new_ventry = ne_id.index(),
+-        "legacy_promote complete: c lifted to g, new child created",
+-    );
+-
+-    new_child_id
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Violation queue helpers (§IDEA M-11.11) ────────────────────────
+ 
+ /// Push grandchildren of `node` that are newly violated.
+ ///
+ /// After restructuring at `node`, its grandchildren may have weakened
+ /// uncle shields.  See §IDEA M-11.11.1.
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh once_cell v1.21.3
+       Fresh shlex v1.3.0
+       Fresh regex-syntax v0.8.9
+       Fresh autocfg v1.5.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh itoa v1.0.17
+       Fresh ciborium-io v0.2.2
+       Fresh plotters-backend v0.3.7
+       Fresh anstyle v1.0.13
+       Fresh memchr v2.8.0
+       Fresh pin-project-lite v0.2.16
+       Fresh clap_lex v1.0.0
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh serde_json v1.0.149
+       Fresh plotters-svg v0.3.7
+       Fresh ciborium-ll v0.2.2
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh cast v0.3.0
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh tracing-log v0.2.0
+       Fresh sharded-slab v0.1.7
+       Fresh walkdir v2.5.0
+       Fresh criterion-plot v0.8.2
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh clap v4.5.59
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh anes v0.1.6
+       Fresh smallvec v1.15.1
+       Fresh rand_core v0.10.0
+       Fresh oorandom v11.1.5
+       Fresh nu-ansi-term v0.50.3
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): the file `packages/mudlark/src/rebalance.rs` has changed (1773696805.624820882s, 24s after last build at 1773696781.650730700s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error: unused imports: `recompute_structural_intensity`, `replace_child_in_parent`, and `update_parent_cached_intensity`
+  --> packages/mudlark/src/rebalance.rs:54:58
+   |
+54 |     invalidate_depth_subtree, propagate_evictable_flags, recompute_structural_intensity, replace_child_in_parent,
+   |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^
+55 |     update_parent_cached_intensity, v_depth,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_imports)]`
+
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+error[E0277]: the trait bound `GNodeId: Default` is not satisfied
+   --> packages/mudlark/src/rebalance.rs:542:5
+    |
+542 |     Default::default() /* ~ changed by cargo-mutants ~ */
+    |     ^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Default` is not implemented for `GNodeId`
+   --> packages/mudlark/src/handle.rs:146:1
+    |
+146 | pub struct GNodeId(NonZeroU32);
+    | ^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error[E0277]: the trait bound `handle::GNodeId: Default` is not satisfied
+   --> packages/mudlark/src/rebalance.rs:542:5
+    |
+542 |     Default::default() /* ~ changed by cargo-mutants ~ */
+    |     ^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Default` is not implemented for `handle::GNodeId`
+   --> packages/mudlark/src/handle.rs:146:1
+    |
+146 | pub struct GNodeId(NonZeroU32);
+    | ^^^^^^^^^^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib test) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

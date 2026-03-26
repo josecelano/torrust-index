@@ -1,0 +1,28 @@
+--- packages/mudlark/src/vtree.rs
++++ replace update_parent_cached_intensity with ()
+@@ -249,24 +249,17 @@
+ ///
+ /// After mutating a V-entry's intensity directly, this function
+ /// synchronizes the parent's cached copy so that subsequent
+ /// `propagate_v_sums` (which reads `PackedChildren::intensities`)
+ /// produces correct results.
+ ///
+ /// No-op if `child_id` has no parent (i.e. it is the V-root).
+ pub fn update_parent_cached_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, child_id: VNodeId, new_intensity: V) {
+-    let parent = vnodes.get(child_id.index()).parent;
+-    let Some(p_id) = parent else { return };
+-    let p = vnodes.get_mut(p_id.index());
+-    if let VKind::Structural { children, .. } = &mut p.kind {
+-        if let Some(idx) = children.find_index(child_id) {
+-            children.update_intensity(idx, new_intensity);
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Internal helpers ─────────────────────────────────────────────────
+ 
+ /// Replace a child in a structural parent's `PackedChildren`.
+ pub fn replace_child_in_parent<V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     parent: VNodeId,

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace == with != in Plan<C, V>::pincer
+@@ -567,17 +567,17 @@
+         while left <= right {
+             for _ in 0..burst_per_step {
+                 self.observations.push((C::from_u64(left), delta));
+                 if left != right {
+                     self.observations.push((C::from_u64(right), delta));
+                 }
+             }
+             left += 1;
+-            if right == 0 {
++            if right != /* ~ changed by cargo-mutants ~ */ 0 {
+                 break;
+             }
+             right -= 1;
+         }
+         self
+     }
+ 
+     /// Repulsion walk: two hotspots start at the same coordinate and

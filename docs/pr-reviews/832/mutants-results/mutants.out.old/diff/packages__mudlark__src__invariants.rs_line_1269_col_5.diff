@@ -1,0 +1,56 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i2_basis_minimality with ()
+@@ -1261,52 +1261,17 @@
+ /// not captured by their descendants' `sum` fields.
+ ///
+ /// See §IDEA M-5.6.1 conditions 1–3 and P-I2.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i2_basis_minimality<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-    for (&key, gnodes_list) in pb.iter() {
+-        let Some(plateau) = graph.plateaus.get(&key) else { continue };
+-        let expected_depth = plateau.depth;
+-
+-        for &gid in gnodes_list {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            // Semi-internal basis elements are not subject to
+-            // ancestor-consolidation (their parent subtree always
+-            // contains heterogeneous contour depths).
+-            if g.state() == GState::SemiInternal {
+-                continue;
+-            }
+-
+-            // Check: does R's parent also have uniform contour depth ==
+-            // expected_depth?  If so, R should have been consolidated
+-            // into the parent.
+-            if let Some(parent_id) = g.parent {
+-                if let Some(parent_depth) = uniform_contour_depth_of(graph.gnodes(), parent_id, N) {
+-                    if parent_depth == expected_depth {
+-                        errors.push(format!(
+-                            "P-I2 minimality: basis element G({}) in plateau {key:?} \
+-                             has parent G({}) with uniform contour depth {parent_depth} \
+-                             == plateau depth {expected_depth} — parent should be the \
+-                             basis element instead",
+-                            gid.index(),
+-                            parent_id.index(),
+-                        ));
+-                    }
+-                }
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── P-I3: Tile disjointness ─────────────────────────────────────────
+ 
+ /// Tiles of basis elements from different plateaus must not overlap.
+ ///
+ /// Uses `tile(R)` — the contour-contributing interval — for all basis
+ /// elements, including semi-internals (whose tile is the uncovered

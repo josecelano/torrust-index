@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/accumulator.rs
++++ replace + with - in <impl Accumulator for f32>::add
+@@ -249,17 +249,17 @@
+ impl Accumulator for f32 {
+     #[inline]
+     fn zero() -> Self {
+         0.0
+     }
+ 
+     #[inline]
+     fn add(self, other: Self) -> Self {
+-        self + other
++        self - /* ~ changed by cargo-mutants ~ */ other
+     }
+ 
+     #[inline]
+     fn sub(self, other: Self) -> Self {
+         self - other
+     }
+ }
+ 

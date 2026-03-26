@@ -1,0 +1,31 @@
+--- packages/mudlark/src/split.rs
++++ replace alloc_v_structural_2 -> VNodeId with Default::default()
+@@ -304,27 +304,13 @@
+     };
+     let e_id = VNodeId::from_index(vnodes.alloc(e));
+     gnodes.get_mut(gnode.index()).entry = Some(e_id);
+     e_id
+ }
+ 
+ /// Allocate a structural 2-node wrapping two V-children and parent them.
+ fn alloc_v_structural_2<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, a: VNodeId, b: VNodeId) -> VNodeId {
+-    let a_int = vnodes.get(a.index()).intensity;
+-    let b_int = vnodes.get(b.index()).intensity;
+-    let s = VNode {
+-        intensity: V::add(a_int, b_int),
+-        parent: None,
+-        cached_depth: AtomicU32::new(DEPTH_STALE), // Caller sets depth
+-        kind: VKind::Structural {
+-            children: PackedChildren::new_2((a, a_int), (b, b_int)),
+-            has_evictable: true, // new entries are always exposed (terminal → evictable)
+-        },
+-    };
+-    let s_id = VNodeId::from_index(vnodes.alloc(s));
+-    vnodes.get_mut(a.index()).parent = Some(s_id);
+-    vnodes.get_mut(b.index()).parent = Some(s_id);
+-    s_id
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

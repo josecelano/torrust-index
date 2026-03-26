@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace <impl PartialOrd for BasisEdge<C>>::partial_cmp -> Option<Ordering> with Some(Default::default())
+@@ -100,17 +100,17 @@
+ impl<C: Coordinate> Ord for BasisEdge<C> {
+     fn cmp(&self, other: &Self) -> Ordering {
+         self.0.total_cmp(&other.0)
+     }
+ }
+ 
+ impl<C: Coordinate> PartialOrd for BasisEdge<C> {
+     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+-        Some(self.cmp(other))
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<C: Coordinate> PartialEq for BasisEdge<C> {
+     fn eq(&self, other: &Self) -> bool {
+         self.cmp(other) == Ordering::Equal
+     }
+ }

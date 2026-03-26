@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vtree.rs
++++ replace == with != in invalidate_depth_subtree
+@@ -225,17 +225,17 @@
+ /// Uses early-exit: if a node is already stale, its entire subtree
+ /// must also be stale (ancestor invariant from ADR-M-029).
+ pub fn invalidate_depth_subtree<V: Accumulator>(vnodes: &Arena<VNode<V>>, root: VNodeId) {
+     let mut stack = vec![root];
+     while let Some(id) = stack.pop() {
+         let node = vnodes.get(id.index());
+ 
+         // Already stale → subtree also stale (invariant)
+-        if node.cached_depth.load(Ordering::Relaxed) == DEPTH_STALE {
++        if node.cached_depth.load(Ordering::Relaxed) != /* ~ changed by cargo-mutants ~ */ DEPTH_STALE {
+             continue;
+         }
+ 
+         node.cached_depth.store(DEPTH_STALE, Ordering::Relaxed);
+ 
+         if let VKind::Structural { children, .. } = &node.kind {
+             for i in 0..children.len() {
+                 stack.push(children.get(i).0);

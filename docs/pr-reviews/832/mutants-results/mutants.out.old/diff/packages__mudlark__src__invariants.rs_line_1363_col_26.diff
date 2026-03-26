@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_p_i4_thatch_one_hop
+@@ -1355,17 +1355,17 @@
+ ) {
+     let pb = graph.plateau_basis();
+     for (&key, gnodes) in pb.iter() {
+         for &gid in gnodes {
+             if !graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+-            if g.state() != GState::SemiInternal {
++            if g.state() == /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+                 continue;
+             }
+ 
+             // Find the surviving child.
+             let child = g.left.or(g.right);
+             let Some(child_id) = child else {
+                 errors.push(format!("P-I4: semi-internal {gid:?} in plateau {key:?} has no children"));
+                 continue;

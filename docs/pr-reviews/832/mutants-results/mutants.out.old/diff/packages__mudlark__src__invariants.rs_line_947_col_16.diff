@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_plateau_depth_consistency
+@@ -939,17 +939,17 @@
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     let pb = graph.plateau_basis();
+     for (&key, plateau) in &graph.plateaus {
+         for &gid in pb.basis_elements(&key) {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue; // Liveness already checked above.
+             }
+             let g = graph.gnodes().get(gid.index());
+             let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+             let expected_depth = match g.state() {
+                 GState::Terminal | GState::SemiInternal => g_depth,
+                 GState::Internal => {
+                     let Some(d) = crate::graph::uniform_contour_depth_of(graph.gnodes(), gid, N) else {

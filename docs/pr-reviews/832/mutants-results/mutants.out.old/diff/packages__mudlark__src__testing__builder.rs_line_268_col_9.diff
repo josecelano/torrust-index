@@ -1,0 +1,22 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<C, V>::check_every -> Self with Default::default()
+@@ -260,18 +260,17 @@
+     }
+ 
+     // ── Configuration ───────────────────────────────────────
+ 
+     /// Enable invariant checking every `k` observations during
+     /// `build()`.  `k = 0` means check after every observation.
+     #[must_use]
+     pub const fn check_every(mut self, k: usize) -> Self {
+-        self.check_invariants_every = Some(if k == 0 { 1 } else { k });
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Terminal operations ─────────────────────────────────
+ 
+     /// Extract the serializable plan (without executing it).
+     #[must_use]
+     pub fn plan(self) -> Plan<C, V> {
+         self.plan

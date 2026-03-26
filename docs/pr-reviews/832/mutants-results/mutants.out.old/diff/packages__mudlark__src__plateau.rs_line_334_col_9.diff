@@ -1,0 +1,28 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::insert with ()
+@@ -326,24 +326,17 @@
+ 
+     /// Register `gnode` as a basis element of the plateau at `key`.
+     ///
+     /// # Panics (debug)
+     ///
+     /// Panics if `gnode` is already registered as a basis element
+     /// of any plateau (would violate basis uniqueness).
+     pub(crate) fn insert(&mut self, key: BasisEdge<C>, gnode: GNodeId) {
+-        debug_assert!(
+-            !self.back.contains_key(&gnode),
+-            "PlateauBasis::insert: gnode {gnode:?} already in \
+-             basis of plateau {:?}",
+-            self.back.get(&gnode)
+-        );
+-        self.forward.entry(key).or_default().insert(gnode);
+-        self.back.insert(gnode, key);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Remove `gnode` from whatever plateau's basis it belongs to.
+     ///
+     /// Returns the basis edge key it was removed from, or `None`
+     /// if the gnode was not a basis element.
+     ///
+     /// If this was the last basis element for that plateau,

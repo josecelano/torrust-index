@@ -1,0 +1,39 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_recompute_sums with ()
+@@ -1664,35 +1664,17 @@
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, _new_gnodes: &[GNodeId]) {}
+ 
+     /// Post-decay: recompute plateau sums from authoritative g.sum
+     /// values. Decay changes magnitudes only — no structural changes.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[cfg_attr(not(debug_assertions), allow(unused_variables))]
+     pub(crate) fn plateau_recompute_sums(&mut self, label: &str) {
+-        for (&key, plateau) in &mut self.plateaus {
+-            plateau.sum = self
+-                .plateau_basis
+-                .basis_elements(&key)
+-                .iter()
+-                .map(|&r| self.gnodes.get(r.index()).sum)
+-                .fold(V::zero(), V::add);
+-        }
+-
+-        #[cfg(debug_assertions)]
+-        for (&key, plateau) in &self.plateaus {
+-            let expected: V = self
+-                .plateau_basis
+-                .basis_elements(&key)
+-                .iter()
+-                .map(|&r| self.gnodes.get(r.index()).sum)
+-                .fold(V::zero(), V::add);
+-            assert_eq!(plateau.sum, expected, "POST-{label}: plateau sum drift at key {key:?}");
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_recompute_sums(&mut self, _label: &str) {}
+ }

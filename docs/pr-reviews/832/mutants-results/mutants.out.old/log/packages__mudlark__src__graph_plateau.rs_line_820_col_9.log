@@ -1,0 +1,296 @@
+
+*** packages/mudlark/src/graph_plateau.rs:820:9: replace GvGraph<C, V, N>::normalize_plateaus with ()
+
+*** mutation diff:
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::normalize_plateaus with ()
+@@ -812,189 +812,17 @@
+     ///
+     /// ADR-M-031: gated behind `plateaus_dirty` flag.  After sorted
+     /// placement was introduced for observe-path callers, this
+     /// function is only needed for batch-eviction and decay paths.
+     /// Early-returns O(1) when the flag is not set.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(clippy::too_many_lines)]
+     pub(crate) fn normalize_plateaus(&mut self) {
+-        use crate::gnode::GState;
+-        use crate::gtree::gnode_depth_from_interval;
+-        use crate::plateau::{basis_edge_of, BasisEdge, Plateau};
+-
+-        // ADR-M-031 Phase 4: early return when not dirty.
+-        if !self.plateaus_dirty {
+-            return;
+-        }
+-        self.plateaus_dirty = false;
+-
+-        let _span = tracing::debug_span!("normalize_plateaus").entered();
+-
+-        // ── Step 0: capture old total for conservation check ────
+-        #[cfg(debug_assertions)]
+-        let old_total: f64 = {
+-            let build = self.build_plateaus();
+-            build.values().map(|p| p.sum.to_f64_approx()).sum()
+-        };
+-
+-        // ── Step 1: DFS collection ──────────────────────────────
+-        //    Internal nodes with non-uniform contour depth are
+-        //    decomposed into their descendant terminals / balanced
+-        //    internals (mirroring build_plateaus's DFS logic).
+-        //
+-        //    A `seen` set prevents double-collection when a
+-        //    SemiInternal's DFS recurses into a node that is also
+-        //    a top-level old basis element.
+-        let mut elems: Vec<(GNodeId, BasisEdge<C>, u32, C, C, V)> = Vec::new();
+-        let mut seen = std::collections::HashSet::new();
+-        let basis_ids: Vec<GNodeId> = self.plateau_basis.back_map().keys().copied().collect();
+-        for gid in basis_ids {
+-            let mut stack = vec![gid];
+-            while let Some(nid) = stack.pop() {
+-                if !seen.insert(nid) {
+-                    continue; // already collected by an ancestor's DFS
+-                }
+-                let g = self.gnodes.get(nid.index());
+-                match g.state() {
+-                    GState::Terminal => {
+-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+-                    }
+-                    GState::SemiInternal => {
+-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+-                        // Recurse into child subtree for its own
+-                        // basis elements.
+-                        if let Some(left) = g.left {
+-                            stack.push(left);
+-                        }
+-                        if let Some(right) = g.right {
+-                            stack.push(right);
+-                        }
+-                    }
+-                    GState::Internal => {
+-                        if let Some(ud) = uniform_contour_depth_of(&self.gnodes, nid, N) {
+-                            // Uniform subtree: keep as single basis
+-                            // element.
+-                            elems.push((nid, basis_edge_of(g), ud, g.lo, g.hi, g.sum));
+-                        } else {
+-                            // Non-uniform subtree: decompose into
+-                            // children (like build_plateaus).
+-                            if let Some(left) = g.left {
+-                                stack.push(left);
+-                            }
+-                            if let Some(right) = g.right {
+-                                stack.push(right);
+-                            }
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-        elems.sort_by_key(|e| e.1);
+-
+-        // ── Step 1 assert: no duplicate GNodeIds ────────────────
+-        #[cfg(debug_assertions)]
+-        {
+-            let mut ids: Vec<usize> = elems.iter().map(|e| e.0.index()).collect();
+-            ids.sort_unstable();
+-            for w in ids.windows(2) {
+-                debug_assert_ne!(
+-                    w[0], w[1],
+-                    "normalize_plateaus step 1: duplicate GNodeId({}) in DFS collection",
+-                    w[0],
+-                );
+-            }
+-        }
+-
+-        // ── Step 2: left-to-right sweep ─────────────────────────
+-        let mut new_plateaus: std::collections::BTreeMap<BasisEdge<C>, Plateau<C, V>> = std::collections::BTreeMap::new();
+-        let mut assignments: Vec<(BasisEdge<C>, GNodeId)> = Vec::with_capacity(elems.len());
+-
+-        for (gid, be, depth, lo, hi, sum) in &elems {
+-            let merge_key = new_plateaus
+-                .range(..*be)
+-                .next_back()
+-                .filter(|(_, p)| p.depth == *depth)
+-                .map(|(&k, _)| k);
+-
+-            let key = if let Some(mk) = merge_key {
+-                let p = new_plateaus.get_mut(&mk).unwrap();
+-                if hi.total_cmp(&p.end) == std::cmp::Ordering::Greater {
+-                    p.end = *hi;
+-                }
+-                if lo.total_cmp(&p.start) == std::cmp::Ordering::Less {
+-                    p.start = *lo;
+-                }
+-                p.sum = V::add(p.sum, *sum);
+-                mk
+-            } else {
+-                new_plateaus.insert(
+-                    *be,
+-                    Plateau {
+-                        basis_edge: *be,
+-                        start: *lo,
+-                        end: *hi,
+-                        depth: *depth,
+-                        sum: *sum,
+-                    },
+-                );
+-                *be
+-            };
+-            assignments.push((key, *gid));
+-        }
+-
+-        // ── Step 2 assert: sweep sum == element sum per key ─────
+-        #[cfg(debug_assertions)]
+-        {
+-            // Group collected element sums by assigned plateau key.
+-            let mut key_sums: std::collections::BTreeMap<BasisEdge<C>, f64> = std::collections::BTreeMap::new();
+-            for (i, (key, _gid)) in assignments.iter().enumerate() {
+-                *key_sums.entry(*key).or_default() += elems[i].5.to_f64_approx();
+-            }
+-            for (key, elem_sum) in &key_sums {
+-                let sweep_sum = new_plateaus[key].sum.to_f64_approx();
+-                debug_assert!(
+-                    (sweep_sum - elem_sum).abs() < 1e-9,
+-                    "normalize_plateaus step 2: sweep sum {sweep_sum} != \
+-                     element sum {elem_sum} for plateau {key:?}",
+-                );
+-            }
+-        }
+-
+-        // ── Step 3: swap maps ───────────────────────────────────
+-        self.plateaus = new_plateaus;
+-        self.plateau_basis.rebuild(assignments);
+-
+-        // ── Step 3 assert: every plateau sum == Σ basis.sum ─────
+-        #[cfg(debug_assertions)]
+-        self.debug_check_plateau_sums("normalize step 3 (post-rebuild)");
+-
+-        // ── Step 4: consolidation pass (P-I2 minimality) ────────
+-        self.consolidate_all_basis();
+-
+-        // ── Step 4 assert: sums still consistent after merges ───
+-        #[cfg(debug_assertions)]
+-        self.debug_check_plateau_sums("normalize step 4 (post-consolidate)");
+-
+-        // ── Conservation: total plateau energy unchanged ─────────
+-        #[cfg(debug_assertions)]
+-        {
+-            let new_total: f64 = {
+-                let build = self.build_plateaus();
+-                build.values().map(|p| p.sum.to_f64_approx()).sum()
+-            };
+-            debug_assert!(
+-                (old_total - new_total).abs() < 1e-9,
+-                "normalize_plateaus: total plateau energy changed: \
+-                 old={old_total}, new={new_total}, delta={}",
+-                new_total - old_total,
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn normalize_plateaus(&mut self) {}
+ 
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh once_cell v1.21.3
+       Fresh tracing-core v0.1.36
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh plotters-backend v0.3.7
+       Fresh itoa v1.0.17
+       Fresh clap_lex v1.0.0
+       Fresh anstyle v1.0.13
+       Fresh pin-project-lite v0.2.16
+       Fresh ciborium-io v0.2.2
+       Fresh memchr v2.8.0
+       Fresh serde_json v1.0.149
+       Fresh ciborium-ll v0.2.2
+       Fresh tracing v0.1.44
+       Fresh clap_builder v4.5.59
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh cast v0.3.0
+       Fresh log v0.4.29
+       Fresh tracing-log v0.2.0
+       Fresh criterion-plot v0.8.2
+       Fresh sharded-slab v0.1.7
+       Fresh walkdir v2.5.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh clap v4.5.59
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh oorandom v11.1.5
+       Fresh nu-ansi-term v0.50.3
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh smallvec v1.15.1
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): the file `packages/mudlark/src/graph_plateau.rs` has changed (1773696067.950842579s, 23s after last build at 1773696044.455476859s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error: method `rebuild` is never used
+   --> packages/mudlark/src/plateau.rs:419:19
+    |
+318 | impl<C: Coordinate> PlateauBasis<C> {
+    | ----------------------------------- method in this implementation
+...
+419 |     pub(crate) fn rebuild(&mut self, assignments: impl IntoIterator<Item = (BasisEdge<C>, GNodeId)>) {
+    |                   ^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D unused`
+    = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: method `consolidate_all_basis` is never used
+   --> packages/mudlark/src/graph_plateau.rs:834:19
+    |
+ 24 | impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+    | -------------------------------------------------------------------------------- method in this implementation
+...
+834 |     pub(crate) fn consolidate_all_basis(&mut self) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

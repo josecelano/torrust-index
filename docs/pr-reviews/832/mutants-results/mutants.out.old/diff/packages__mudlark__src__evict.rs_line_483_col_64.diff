@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace != with == in plateau_after_evict
+@@ -475,17 +475,17 @@
+     // Evacuate right-adjacent same-depth plateaus that could be
+     // incorrectly merged with the parent during sorted placement.
+     // We look for plateaus whose BasisEdge is in [parent_hi, ...) and
+     // at the same depth, that are spatially adjacent (start <= parent_hi).
+     {
+         let right_keys: Vec<crate::plateau::BasisEdge<C>> = graph
+             .plateaus
+             .range(crate::plateau::BasisEdge(parent_hi)..)
+-            .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
++            .take_while(|(_, p)| p.start.total_cmp(&parent_hi) == /* ~ changed by cargo-mutants ~ */ std::cmp::Ordering::Greater)
+             .filter(|(_, p)| p.depth == parent_depth)
+             .map(|(&k, _)| k)
+             .collect();
+         for rk in right_keys {
+             let members: Vec<crate::handle::GNodeId> = graph.plateau_basis.basis_elements(&rk).iter().copied().collect();
+             if !members.is_empty() {
+                 tracing::trace!(
+                     ?rk,

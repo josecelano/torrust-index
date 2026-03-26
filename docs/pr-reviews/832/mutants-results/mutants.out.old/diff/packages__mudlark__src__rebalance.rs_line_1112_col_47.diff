@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace match guard children.len() == 3 with true in escalate_after_promote
+@@ -1104,17 +1104,17 @@
+ /// - **Indirect:** a child of `h` is violated at the `p` level.
+ ///   Resolving it would contract `p`, producing a merged node whose
+ ///   standard-promote recreates the 3-node — an infinite cycle.
+ ///
+ /// **Action:** contract `p` (isolating `h`), optionally contract `g`,
+ /// then skip-promote `h` up to `g`.
+ fn escalate_after_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId, violations: &mut Vec<VNodeId>) {
+     let heaviest = match &vnodes.get(p.index()).kind {
+-        VKind::Structural { children, .. } if children.len() == 3 => children.get(children.heaviest_child_index()).0,
++        VKind::Structural { children, .. } if true /* ~ changed by cargo-mutants ~ */ => children.get(children.heaviest_child_index()).0,
+         _ => return,
+     };
+ 
+     let h_direct = is_violated(vnodes, heaviest);
+     let h_indirect = !h_direct && any_child_violated(vnodes, heaviest);
+     if !h_direct && !h_indirect {
+         return;
+     }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_v_i6_exposed_flag
+@@ -540,17 +540,17 @@
+                 errors.push(format!(
+                     "V-I6 violated at V-node {idx}: backing G-node {} is not occupied",
+                     gnode.index()
+                 ));
+                 continue;
+             }
+             let g = graph.gnodes().get(gnode.index());
+             let expected = g.uncovered_range().is_some();
+-            if *is_exposed != expected {
++            if *is_exposed == /* ~ changed by cargo-mutants ~ */ expected {
+                 errors.push(format!(
+                     "V-I6 violated at V-node {idx}: is_exposed={is_exposed}, \
+                      expected={expected} (state={:?})",
+                     g.state()
+                 ));
+             }
+         }
+     }

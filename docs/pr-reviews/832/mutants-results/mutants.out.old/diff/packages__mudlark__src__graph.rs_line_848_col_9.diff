@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::total_sum -> V with Default::default()
+@@ -840,17 +840,17 @@
+     ///
+     /// g.observe(10, 3u64);
+     /// g.observe(20, 7u64);
+     /// assert_eq!(g.total_sum(), 10u64);
+     /// ```
+     #[must_use]
+     #[inline]
+     pub fn total_sum(&self) -> V {
+-        self.gnodes.get(self.g_root.index()).sum
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Read-only access to the G-node arena.
+     ///
+     /// `pub(crate)` — Surface 3 (Emulsion). External consumers use
+     /// the public query surface (`get`, `range_sum`, `plateaus`,
+     /// `sample`, `extract`, `layers`) instead.
+     #[must_use]

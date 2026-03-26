@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace += with -= in semi_internal_lineage
+@@ -126,17 +126,17 @@
+                     "{} is SI-child (G({}) under G({}))",
+                     ancestor_name(depth),
+                     anc_id.index(),
+                     anc_parent_id.index()
+                 ));
+             }
+         }
+         cur = anc.parent;
+-        depth += 1;
++        depth -= /* ~ changed by cargo-mutants ~ */ 1;
+     }
+ 
+     if parts.is_empty() {
+         String::new()
+     } else {
+         format!("  [{}]", parts.join("; "))
+     }
+ }

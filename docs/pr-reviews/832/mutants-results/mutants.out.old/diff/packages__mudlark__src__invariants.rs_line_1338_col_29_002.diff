@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with >= in check_p_i3_basis_disjointness
+@@ -1330,17 +1330,17 @@
+             tiles.push((tlo.to_f64(), thi.to_f64(), key));
+         }
+     }
+     tiles.sort_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.total_cmp(&b.1)));
+ 
+     for w in tiles.windows(2) {
+         let (lo1, hi1, k1) = &w[0];
+         let (lo2, _hi2, k2) = &w[1];
+-        if k1 != k2 && *hi1 > *lo2 + 1e-12 {
++        if k1 != k2 && *hi1 >= /* ~ changed by cargo-mutants ~ */ *lo2 + 1e-12 {
+             errors.push(format!(
+                 "P-I3 tile disjointness: tile in plateau {k1:?} [{lo1}, {hi1}) \
+                  overlaps tile in plateau {k2:?} [{lo2}, ..)"
+             ));
+         }
+     }
+ }
+ 

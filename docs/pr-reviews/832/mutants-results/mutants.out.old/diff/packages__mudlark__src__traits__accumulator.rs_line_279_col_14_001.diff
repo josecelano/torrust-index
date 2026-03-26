@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/accumulator.rs
++++ replace - with / in <impl Accumulator for f64>::sub
+@@ -271,11 +271,11 @@
+ 
+     #[inline]
+     fn add(self, other: Self) -> Self {
+         self + other
+     }
+ 
+     #[inline]
+     fn sub(self, other: Self) -> Self {
+-        self - other
++        self / /* ~ changed by cargo-mutants ~ */ other
+     }
+ }

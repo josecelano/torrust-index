@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace == with != in evict_tip
+@@ -160,17 +160,17 @@
+             3 => (3, Some(p), None), // 3→2: parent survives
+             2 => {
+                 // 2-node collapse: find the surviving sibling.
+                 let sibling = match &graph.vnodes.get(p.index()).kind {
+                     VKind::Structural { children, .. } => {
+                         // Find the child that is NOT v_id.
+                         let (c0, _) = children.get(0);
+                         let (c1, _) = children.get(1);
+-                        if c0 == v_id {
++                        if c0 != /* ~ changed by cargo-mutants ~ */ v_id {
+                             Some(c1)
+                         } else {
+                             Some(c0)
+                         }
+                     }
+                     VKind::Entry { .. } => None,
+                 };
+                 (2, graph.vnodes.get(p.index()).parent, sibling) // collapse: grandparent

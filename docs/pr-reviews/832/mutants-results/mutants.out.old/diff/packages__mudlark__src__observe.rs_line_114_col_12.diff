@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ delete ! in GvGraph<C, V, N>::observe
+@@ -106,17 +106,17 @@
+ 
+         // 6. Drain violation queue.
+         let new_gnodes = rebalance::rebalance(
+             &mut self.vnodes,
+             &mut self.gnodes,
+             &mut self.violations,
+             self.live_depth_evict,
+         );
+-        if !new_gnodes.is_empty() {
++        if  /* ~ changed by cargo-mutants ~ */new_gnodes.is_empty() {
+             self.handle_legacy_promotes(&new_gnodes);
+             self.repair_p_i4();
+         }
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
+         }

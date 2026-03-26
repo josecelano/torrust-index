@@ -1,0 +1,299 @@
+
+*** packages/mudlark/src/invariants.rs:304:5: replace check_all_invariants -> Vec<String> with vec!["xyzzy".into()]
+
+*** mutation diff:
+--- packages/mudlark/src/invariants.rs
++++ replace check_all_invariants -> Vec<String> with vec!["xyzzy".into()]
+@@ -296,51 +296,17 @@
+ }
+ 
+ /// Check all invariants and return errors as a Vec instead of panicking.
+ ///
+ /// Useful for programmatic testing — the caller can inspect which
+ /// invariants failed and dump diagnostic info before asserting.
+ #[allow(dead_code)]
+ pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<String> {
+-    let mut errors: Vec<String> = Vec::new();
+-
+-    check_g_i1_summation(graph, &mut errors);
+-    check_g_i2_variable_fanout(graph, &mut errors);
+-    check_g_i4_entry_consistency(graph, &mut errors);
+-    check_v_i1_structural_sum(graph, &mut errors);
+-    check_v_i2_branching_factor(graph, &mut errors);
+-    check_v_i3_max_uncle(graph, &mut errors);
+-    check_v_i5_entry_leaf(graph, &mut errors);
+-    check_v_i6_exposed_flag(graph, &mut errors);
+-    check_v_i6b_evictable_flag(graph, &mut errors);
+-    check_v_i7_structural_flag(graph, &mut errors);
+-    check_clean_accounting(graph, &mut errors);
+-    check_parent_link_consistency(graph, &mut errors);
+-    check_v_root_consistency(graph, &mut errors);
+-    check_node_count_consistency(graph, &mut errors);
+-    check_terminal_count_consistency(graph, &mut errors);
+-    check_depth_gate_invariants(graph, &mut errors);
+-    check_hard_budget(graph, &mut errors);
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    {
+-        check_plateau_btreemap_key_consistency(graph, &mut errors);
+-        check_plateau_basis_consistency(graph, &mut errors);
+-        check_plateau_sum_consistency(graph, &mut errors);
+-        check_plateau_depth_consistency(graph, &mut errors);
+-        check_p_i1_i_keys_are_contour_steps(graph, &mut errors);
+-        check_p_i1_ii_tile_contiguity(graph, &mut errors);
+-        check_p_i1_iii_run_contains_tile(graph, &mut errors);
+-        check_p_i2_basis_minimality(graph, &mut errors);
+-        check_p_i3_basis_disjointness(graph, &mut errors);
+-        check_p_i4_thatch_one_hop(graph, &mut errors);
+-        check_p_i5_thatch_depth(graph, &mut errors);
+-    }
+-
+-    errors
++    vec!["xyzzy".into()] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── G-I1: Summation invariant ───────────────────────────────────────
+ 
+ fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh cfg-if v1.0.4
+       Fresh once_cell v1.21.3
+       Fresh find-msvc-tools v0.1.9
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh autocfg v1.5.0
+       Fresh either v1.15.0
+       Fresh memchr v2.8.0
+       Fresh clap_lex v1.0.0
+       Fresh anstyle v1.0.13
+       Fresh itoa v1.0.17
+       Fresh plotters-backend v0.3.7
+       Fresh pin-project-lite v0.2.16
+       Fresh ciborium-io v0.2.2
+       Fresh log v0.4.29
+       Fresh same-file v1.0.6
+       Fresh proc-macro2 v1.0.106
+       Fresh regex-automata v0.4.14
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh clap_builder v4.5.59
+       Fresh itertools v0.13.0
+       Fresh plotters-svg v0.3.7
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh thread_local v1.1.9
+       Fresh walkdir v2.5.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh anes v0.1.6
+       Fresh rand_core v0.10.0
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh quote v1.0.44
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh zmij v1.0.21
+       Fresh libc v0.2.182
+       Fresh sharded-slab v0.1.7
+       Fresh clap v4.5.59
+       Fresh tracing-log v0.2.0
+       Fresh criterion-plot v0.8.2
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh syn v2.0.116
+       Fresh crossbeam-epoch v0.9.18
+       Fresh serde_json v1.0.149
+       Fresh num-traits v0.2.19
+       Fresh page_size v0.6.0
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh tracing-attributes v0.1.31
+       Fresh crossbeam-deque v0.8.6
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh tracing v0.1.44
+       Fresh rayon-core v1.13.0
+       Fresh half v2.7.1
+       Fresh tinytemplate v1.2.1
+       Fresh rayon v1.11.0
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+       Fresh ciborium-ll v0.2.2
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+error: unused variable: `graph`
+   --> packages/mudlark/src/invariants.rs:303:88
+    |
+303 | pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<String> {
+    |                                                                                        ^^^^^ help: if this is intentional, prefix it with an underscore: `_graph`
+    |
+    = note: `-D unused-variables` implied by `-D unused`
+    = help: to override `-D unused` add `#[allow(unused_variables)]`
+
+error: method `vnodes` is never used
+   --> packages/mudlark/src/graph.rs:867:25
+    |
+494 | impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
+    | ------------------------------------------------------------------ method in this implementation
+...
+867 |     pub(crate) const fn vnodes(&self) -> &Arena<VNode<V>> {
+    |                         ^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D unused`
+    = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: function `check_g_i1_summation` is never used
+   --> packages/mudlark/src/invariants.rs:309:4
+    |
+309 | fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_g_i2_variable_fanout` is never used
+   --> packages/mudlark/src/invariants.rs:330:4
+    |
+330 | fn check_g_i2_variable_fanout<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_g_i4_entry_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:344:4
+    |
+344 | fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i1_structural_sum` is never used
+   --> packages/mudlark/src/invariants.rs:390:4
+    |
+390 | fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i2_branching_factor` is never used
+   --> packages/mudlark/src/invariants.rs:434:4
+    |
+434 | fn check_v_i2_branching_factor<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i3_max_uncle` is never used
+   --> packages/mudlark/src/invariants.rs:450:4
+    |
+450 | fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i5_entry_leaf` is never used
+   --> packages/mudlark/src/invariants.rs:466:4
+    |
+466 | fn check_v_i5_entry_leaf<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i6_exposed_flag` is never used
+   --> packages/mudlark/src/invariants.rs:499:4
+    |
+499 | fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i6b_evictable_flag` is never used
+   --> packages/mudlark/src/invariants.rs:527:4
+    |
+527 | fn check_v_i6b_evictable_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_i7_structural_flag` is never used
+   --> packages/mudlark/src/invariants.rs:563:4
+    |
+563 | fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_clean_accounting` is never used
+   --> packages/mudlark/src/invariants.rs:592:4
+    |
+592 | fn check_clean_accounting<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_parent_link_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:612:4
+    |
+612 | fn check_parent_link_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_v_root_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:688:4
+    |
+688 | fn check_v_root_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_node_count_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:710:4
+    |
+710 | fn check_node_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_terminal_count_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:723:4
+    |
+723 | fn check_terminal_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_hard_budget` is never used
+   --> packages/mudlark/src/invariants.rs:739:4
+    |
+739 | fn check_hard_budget<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^
+
+error: function `check_depth_gate_invariants` is never used
+   --> packages/mudlark/src/invariants.rs:756:4
+    |
+756 | fn check_depth_gate_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_plateau_sum_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:877:4
+    |
+877 | fn check_plateau_sum_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_plateau_depth_consistency` is never used
+   --> packages/mudlark/src/invariants.rs:906:4
+    |
+906 | fn check_plateau_depth_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `check_p_i5_thatch_depth` is never used
+    --> packages/mudlark/src/invariants.rs:1375:4
+     |
+1375 | fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `route_to_depth` is never used
+    --> packages/mudlark/src/invariants.rs:1424:4
+     |
+1424 | fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>, x: C) -> u32 {
+     |    ^^^^^^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 23 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: function `check_g_i1_summation` is never used
+   --> packages/mudlark/src/invariants.rs:309:4
+    |
+309 | fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    |    ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D unused`
+    = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: could not compile `torrust-mudlark` (lib test) due to 22 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

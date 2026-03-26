@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace < with <= in GvGraph<C, V, N>::sample_child
+@@ -103,17 +103,17 @@
+     fn sample_child(children: &crate::vnode::PackedChildren<V>, rng: &mut impl crate::traits::Rng) -> VNodeId {
+         let total: f64 = children.intensities[..children.len()].iter().map(|v| v.weight()).sum();
+         debug_assert!(total > 0.0, "sample_child: zero-total children");
+ 
+         let threshold = rng.next_f64() * total;
+         let mut cumulative = 0.0_f64;
+         for i in 0..children.len() {
+             cumulative += children.intensities[i].weight();
+-            if threshold < cumulative {
++            if threshold <= /* ~ changed by cargo-mutants ~ */ cumulative {
+                 return children.ids[i].expect("child ID within len");
+             }
+         }
+         // Floating-point rounding safeguard: if threshold rounds to
+         // exactly `total`, fall through to the last child.
+         children.ids[children.len() - 1].expect("last child ID")
+     }
+ 

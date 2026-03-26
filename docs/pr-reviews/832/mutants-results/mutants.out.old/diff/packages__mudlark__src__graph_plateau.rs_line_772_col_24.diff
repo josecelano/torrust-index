@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::consolidate_basis_up
+@@ -764,17 +764,17 @@
+                     parent = parent_id.index(),
+                     "consolidate_basis_up: stop — parent subtree not uniform"
+                 );
+                 break;
+             };
+ 
+             // Extra sanity: the uniform depth must match the plateau.
+             let Some(p) = self.plateaus.get(&left_key) else { break };
+-            if p.depth != uniform_depth {
++            if p.depth == /* ~ changed by cargo-mutants ~ */ uniform_depth {
+                 tracing::trace!(
+                     from = gid.index(),
+                     parent = parent_id.index(),
+                     plateau_depth = p.depth,
+                     uniform_depth,
+                     "consolidate_basis_up: stop — depth mismatch"
+                 );
+                 break;

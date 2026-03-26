@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace == with != in resolve
+@@ -1239,17 +1239,17 @@
+     } else {
+         tracing::debug!("phase 2: skip promote path");
+         let Some(g) = vnodes.get(p.index()).parent else {
+             tracing::trace!("no grandparent — cannot skip-promote");
+             return None;
+         };
+ 
+         // Ensure g is a 2-node.
+-        let g_merged = if structural_child_count(vnodes, g) == 3 {
++        let g_merged = if structural_child_count(vnodes, g) != /* ~ changed by cargo-mutants ~ */ 3 {
+             let merged = contract(vnodes, g);
+             push_side_effect_violations(vnodes, g, violations);
+             push_side_effect_violations(vnodes, merged, violations);
+             push_promoted_violations(vnodes, g, violations);
+             if !is_violated(vnodes, c) {
+                 tracing::debug!("phase 2: resolved by g-contraction");
+                 return None;
+             }

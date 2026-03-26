@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_plateau_basis_consistency
+@@ -854,17 +854,17 @@
+     errors: &mut Vec<String>,
+ ) {
+     let pb = graph.plateau_basis();
+ 
+     // Forward → back consistency + liveness.
+     for (&key, gnodes) in pb.iter() {
+         for &gid in gnodes {
+             // Liveness check.
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 errors.push(format!(
+                     "Plateau basis: basis element {gid:?} in plateau {key:?} is not a live arena slot"
+                 ));
+                 continue;
+             }
+             // Back-pointer check.
+             match pb.plateau_key(gid) {
+                 Some(back_key) if back_key == key => {} // OK

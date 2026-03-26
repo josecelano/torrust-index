@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/accumulator.rs
++++ replace <impl Accumulator for f32>::zero -> Self with Default::default()
+@@ -244,17 +244,17 @@
+ 
+ impl_accumulator_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Accumulator for f32 {
+     #[inline]
+     fn zero() -> Self {
+-        0.0
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     fn add(self, other: Self) -> Self {
+         self + other
+     }
+ 
+     #[inline]

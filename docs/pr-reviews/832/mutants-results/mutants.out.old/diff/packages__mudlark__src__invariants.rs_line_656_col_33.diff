@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_parent_link_consistency
+@@ -648,17 +648,17 @@
+     errors: &mut Vec<String>,
+ ) {
+     // G-Tree parent links.
+     for (idx, g) in graph.gnodes().iter_occupied() {
+         let g_id = GNodeId::from_index(idx);
+         if let Some(left) = g.left {
+             if graph.gnodes().is_occupied(left.index()) {
+                 let child_parent = graph.gnodes().get(left.index()).parent;
+-                if child_parent != Some(g_id) {
++                if child_parent == /* ~ changed by cargo-mutants ~ */ Some(g_id) {
+                     errors.push(format!(
+                         "G-parent link: G-node {idx}'s left child {}'s parent is {:?}, expected {g_id:?}",
+                         left.index(),
+                         child_parent
+                     ));
+                 }
+             }
+         }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_depth_gate_invariants
+@@ -806,17 +806,17 @@
+     if d_evict < buffer + 1 {
+         errors.push(format!(
+             "D-I3 floor: live_depth_evict ({d_evict}) < depth_buffer ({buffer}) + 1"
+         ));
+     }
+ 
+     // Buffer consistency: D_create == D_evict - buffer.
+     // Only check if floor holds (avoids underflow).
+-    if d_evict >= buffer && d_create != d_evict - buffer {
++    if d_evict >= buffer && d_create == /* ~ changed by cargo-mutants ~ */ d_evict - buffer {
+         errors.push(format!(
+             "D-I3 buffer: live_depth_create ({d_create}) != live_depth_evict ({d_evict}) - depth_buffer ({buffer})"
+         ));
+     }
+ }
+ 
+ // ══════════════════════════════════════════════════════════════════════
+ // Plateau invariant checks (ADR-M-026, Step 2F)

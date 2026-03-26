@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/proratable.rs
++++ replace * with + in <impl Proratable for f32>::scale_by
+@@ -131,17 +131,17 @@
+             return <Self as Accumulator>::zero();
+         }
+         self * (portion as Self / total as Self)
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn scale_by(self, ratio: f64) -> Self {
+-        (f64::from(self) * ratio) as Self
++        (f64::from(self) + /* ~ changed by cargo-mutants ~ */ ratio) as Self
+     }
+ }
+ 
+ impl Proratable for f64 {
+     #[inline]
+     #[allow(clippy::cast_precision_loss)]
+     fn prorate(self, portion: u64, total: u64) -> Self {
+         if total == 0 {

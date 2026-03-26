@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace == with != in GvGraph<C, V, N>::decay
+@@ -99,17 +99,17 @@
+         if attenuation == 1.0 {
+             return;
+         }
+ 
+         let is_global = root == self.g_root;
+ 
+         let _span = tracing::debug_span!("decay", root = root.index(), attenuation, q,).entered();
+ 
+-        if q == 0.0 {
++        if q != /* ~ changed by cargo-mutants ~ */ 0.0 {
+             self.decay_uniform(root, attenuation, is_global);
+         } else {
+             self.decay_selective(root, attenuation, q, is_global);
+         }
+     }
+ 
+     // ── Uniform path (q = 0) ────────────────────────────────────
+ 

@@ -1,0 +1,18 @@
+--- packages/mudlark/src/contour_range.rs
++++ replace - with / in debug_assert_contour_range_invariants
+@@ -410,14 +410,14 @@
+     // in sign (§CR.13.6).  No universal ordering assertion.
+     // Structural identity: energy = exact_energy + B − A (both
+     // B, A ≥ 0 under P1).  Verifying this requires computing B
+     // and A separately, deferred to dedicated tests (test 17).
+ 
+     // ── §CR.10.4: cross_plateau_energy consistency ──────────
+     let cross_f64 = cr.cross_plateau_energy.to_f64_approx();
+     let plateau_f64 = cr.plateau_energy.to_f64_approx();
+-    let expected_cross = energy_f64 - plateau_f64;
++    let expected_cross = energy_f64 / /* ~ changed by cargo-mutants ~ */ plateau_f64;
+     debug_assert!(
+         (cross_f64 - expected_cross).abs() < 1e-10,
+         "cross_plateau_energy ({cross_f64}) != energy - plateau_energy ({expected_cross})",
+     );
+ }

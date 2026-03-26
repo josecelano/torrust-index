@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace * with + in Plan<C, V>::staircase
+@@ -405,17 +405,17 @@
+     /// times, at intensity `base × k`.  Forces sibling subtrees to
+     /// fill evenly before the tree grows vertically.
+     #[must_use]
+     pub fn staircase(mut self, step: u64, stairs: usize, reps_per_stair: usize, base: V) -> Self {
+         for stair in 1..=stairs {
+             #[allow(clippy::cast_precision_loss)]
+             let delta = V::from_f64(base.to_f64_approx() * (stair as f64));
+             for coord_idx in 0..stair {
+-                let coord = C::from_u64(coord_idx as u64 * step);
++                let coord = C::from_u64(coord_idx as u64 + /* ~ changed by cargo-mutants ~ */ step);
+                 self.observations
+                     .extend(std::iter::repeat((coord, delta)).take(reps_per_stair));
+             }
+         }
+         self
+     }
+ 
+     /// Cascade shift: build a hotspot at `a`, then gradually shift

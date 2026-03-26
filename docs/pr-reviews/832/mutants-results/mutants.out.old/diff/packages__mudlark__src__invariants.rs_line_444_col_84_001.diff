@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_v_i1_structural_sum
+@@ -436,17 +436,17 @@
+                 if !graph.vnodes().is_occupied(child_id.index()) {
+                     errors.push(format!(
+                         "V-I1 violated at V-node {idx}: child {} is not occupied",
+                         child_id.index()
+                     ));
+                     continue;
+                 }
+                 let actual_int = graph.vnodes().get(child_id.index()).intensity;
+-                if (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() > 1e-9 {
++                if (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() < /* ~ changed by cargo-mutants ~ */ 1e-9 {
+                     errors.push(format!(
+                         "V-I1 cached intensity mismatch at V-node {idx}, child {}: \
+                          cached={}, actual={}",
+                         child_id.index(),
+                         cached_int.to_f64_approx(),
+                         actual_int.to_f64_approx()
+                     ));
+                 }

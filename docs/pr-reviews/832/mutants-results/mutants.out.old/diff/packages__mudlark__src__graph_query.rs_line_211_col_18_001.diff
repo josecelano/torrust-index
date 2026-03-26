@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace < with > in GvGraph<C, V, N>::clamp_to_domain
+@@ -203,17 +203,17 @@
+     /// Safe because `route_to_receiver` uses `x < mid` / else, so
+     /// `x == domain_max` always routes right, and the returned `Cell`
+     /// draws its interval from the arena node's `[lo, hi)` which is
+     /// always inside the domain.
+     #[inline]
+     fn clamp_to_domain(coord: C) -> C {
+         let lo = C::zero();
+         let hi = C::domain_max(N);
+-        if coord < lo {
++        if coord > /* ~ changed by cargo-mutants ~ */ lo {
+             lo
+         } else if coord >= hi {
+             hi
+         } else {
+             coord
+         }
+     }
+ 

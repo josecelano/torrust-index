@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace * with / in Plan<C, V>::sawtooth
+@@ -605,17 +605,17 @@
+     /// intensity escalating each cycle.
+     ///
+     /// Creates periodic pressure waves that force the V-Tree to
+     /// adapt to ever-increasing load.
+     #[must_use]
+     pub fn sawtooth(mut self, width: u64, base: V, cycles: usize) -> Self {
+         for k in 0..cycles {
+             #[allow(clippy::cast_precision_loss)]
+-            let delta = V::from_f64(base.to_f64_approx() * ((k + 1) as f64));
++            let delta = V::from_f64(base.to_f64_approx() / /* ~ changed by cargo-mutants ~ */ ((k + 1) as f64));
+             for x in 0..width {
+                 self.observations.push((C::from_u64(x), delta));
+             }
+         }
+         self
+     }
+ 
+     /// Centroid drift: a hotspot that slides across the domain from

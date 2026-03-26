@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace + with * in Plan<C, V>::interleaved_hotspots
+@@ -216,17 +216,17 @@
+     ///
+     /// Unlike [`oscillating_hotspot`](Self::oscillating_hotspot) (2
+     /// far-apart points), this targets `count` spatially close points
+     /// whose V-Tree subtrees share ancestors, creating overlapping
+     /// violation neighborhoods.
+     #[must_use]
+     pub fn interleaved_hotspots(mut self, start: u64, count: u64, spacing: u64, delta: V, burst: usize, cycles: usize) -> Self {
+         for cycle in 0..cycles {
+-            let coord = C::from_u64(start + (cycle as u64 % count) * spacing);
++            let coord = C::from_u64(start * /* ~ changed by cargo-mutants ~ */ (cycle as u64 % count) * spacing);
+             self.observations.extend(std::iter::repeat((coord, delta)).take(burst));
+         }
+         self
+     }
+ 
+     /// Cousin rivalry: alternate observations between two adjacent
+     /// subtree regions `[a_start, a_start+width)` and
+     /// `[b_start, b_start+width)` with escalating intensity.

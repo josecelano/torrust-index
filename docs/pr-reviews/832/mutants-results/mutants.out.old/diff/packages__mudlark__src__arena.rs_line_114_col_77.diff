@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace != with == in Arena<T>::is_occupied
+@@ -106,17 +106,17 @@
+     }
+ 
+     /// Whether the slot at `index` is currently occupied.
+     #[must_use]
+     #[inline]
+     pub fn is_occupied(&self, index: usize) -> bool {
+         let word = index / 64;
+         let bit = index % 64;
+-        word < self.occupied.len() && (self.occupied[word] & (1u64 << bit)) != 0
++        word < self.occupied.len() && (self.occupied[word] & (1u64 << bit)) == /* ~ changed by cargo-mutants ~ */ 0
+     }
+ 
+     /// Iterate over all occupied `(index, &T)` pairs.
+     ///
+     /// Useful for invariant checking and diagnostics. The iteration
+     /// order is by slot index (ascending), not insertion order.
+     pub fn iter_occupied(&self) -> impl Iterator<Item = (usize, &T)> + '_ {
+         (0..self.slots.len())

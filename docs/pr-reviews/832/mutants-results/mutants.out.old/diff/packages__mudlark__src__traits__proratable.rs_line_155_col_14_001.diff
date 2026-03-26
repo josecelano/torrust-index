@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/proratable.rs
++++ replace * with / in <impl Proratable for f64>::scale_by
+@@ -147,11 +147,11 @@
+         if total == 0 {
+             return <Self as Accumulator>::zero();
+         }
+         self * (portion as Self / total as Self)
+     }
+ 
+     #[inline]
+     fn scale_by(self, ratio: f64) -> Self {
+-        self * ratio
++        self / /* ~ changed by cargo-mutants ~ */ ratio
+     }
+ }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::recompute_plateau
+@@ -380,17 +380,17 @@
+         let mut sum = V::zero();
+         let mut depth = 0u32;
+ 
+         for &gid in elements {
+             let g = self.gnodes.get(gid.index());
+             if g.lo.total_cmp(&min_lo) == std::cmp::Ordering::Less {
+                 min_lo = g.lo;
+             }
+-            if g.hi.total_cmp(&max_hi) == std::cmp::Ordering::Greater {
++            if g.hi.total_cmp(&max_hi) != /* ~ changed by cargo-mutants ~ */ std::cmp::Ordering::Greater {
+                 max_hi = g.hi;
+             }
+             sum = V::add(sum, g.sum);
+ 
+             // Depth: contour depth contributed by this basis element.
+             // Terminal / Semi-internal: own depth.
+             // Internal (balanced): actual uniform contour depth of
+             //   the subtree — may be deeper than own_depth + 1 after

@@ -1,0 +1,24 @@
+--- packages/mudlark/src/pewei.rs
++++ replace RegionLookup<C>::get -> Option<NodeRef> with Some(Default::default())
+@@ -454,20 +454,17 @@
+     /// Look up the node reference at `(g_depth, start)`.
+     ///
+     /// Binary search touches only the `starts` array. The `nodes`
+     /// entry is read once at the final index.
+     ///
+     /// Returns `None` if no PEWEI node exists at that position
+     /// (gap region — background only).
+     fn get(&self, start: C, g_depth: usize) -> Option<NodeRef> {
+-        let bucket = self.by_depth.get(g_depth)?;
+-        // Safety: same NaN argument as `build()`.
+-        let idx = bucket.starts.binary_search_by(|s| s.partial_cmp(&start).unwrap()).ok()?;
+-        Some(bucket.nodes[idx])
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── descend (private) ────────────────────────────────────────────────
+ 
+ /// Resolve a `NodeRef` to the total energy of that node.
+ ///
+ /// Terminals: `intensity`. Transitions: `total`.

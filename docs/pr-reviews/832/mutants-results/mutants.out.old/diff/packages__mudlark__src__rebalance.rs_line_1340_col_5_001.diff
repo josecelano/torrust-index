@@ -1,0 +1,132 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace rebalance -> Vec<GNodeId> with vec![Default::default()]
+@@ -1332,128 +1332,17 @@
+ /// `depth_evict` is the current live $D_{\text{evict}}$, forwarded to
+ /// [`resolve`] for the legacy-promotion depth gate (§IDEA M-11.9).
+ pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     violations: &mut Vec<VNodeId>,
+     depth_evict: u32,
+ ) -> Vec<GNodeId> {
+-    let mut new_gnodes = Vec::new();
+-    // Safety-net ceiling — proportional to tree size so that large
+-    // but valid workloads are never rejected.  Each resolve() pushes
+-    // O(1) side-effect entries, so total iterations are bounded by a
+-    // constant factor of the arena population.  The 10 000 floor
+-    // keeps small trees protected.
+-    let max_iterations: u32 = vnodes.count().saturating_mul(20).max(10_000);
+-    let mut iterations: u32 = 0;
+-    let mut resolved: u32 = 0;
+-
+-    let _span = tracing::debug_span!("rebalance", queue = violations.len()).entered();
+-
+-    // Pre-rebalance audit: detect violations not in the queue.
+-    if tracing::enabled!(tracing::Level::DEBUG) {
+-        crate::diagnostic::audit_violations(vnodes, violations, "PRE-REBALANCE");
+-    }
+-
+-    while let Some(c) = violations.pop() {
+-        iterations += 1;
+-        if iterations > max_iterations {
+-            tracing::error!(
+-                iterations,
+-                max_iterations,
+-                resolved,
+-                queue = violations.len(),
+-                current = c.index(),
+-                "rebalance safety-net exceeded — dumping queue tail",
+-            );
+-            let tail = violations.len().saturating_sub(20);
+-            for (i, v) in violations[tail..].iter().enumerate() {
+-                if vnodes.is_occupied(v.index()) {
+-                    tracing::error!(idx = tail + i, entry = %Ctx(vnodes, *v));
+-                } else {
+-                    tracing::error!(idx = tail + i, node = v.index(), "DEAD");
+-                }
+-            }
+-            // In debug builds: crash immediately (it's a bug).
+-            // In release builds: break out and log — avoids taking
+-            // down a production process for what may be an edge-case
+-            // in side-effect accounting rather than a true loop.
+-            #[cfg(debug_assertions)]
+-            panic!(
+-                "rebalance: exceeded {max_iterations} iterations \
+-                 (queue={}, node=v{}, resolved={resolved})",
+-                violations.len(),
+-                c.index(),
+-            );
+-            #[cfg(not(debug_assertions))]
+-            {
+-                tracing::error!(
+-                    "breaking out of rebalance loop — \
+-                     possible bug in violation resolution",
+-                );
+-                break;
+-            }
+-        }
+-
+-        // Guard: node may have been destroyed by a prior resolution.
+-        if !vnodes.is_occupied(c.index()) {
+-            tracing::trace!(node = c.index(), "skip destroyed");
+-            continue;
+-        }
+-        // Guard: violation may have been resolved as a side effect.
+-        if !is_violated(vnodes, c) {
+-            tracing::trace!(node = c.index(), "skip already resolved");
+-            continue;
+-        }
+-
+-        resolved += 1;
+-        tracing::debug!(
+-            iter = iterations,
+-            resolved,
+-            queue = violations.len(),
+-            node = %Ctx(vnodes, c),
+-            "resolving violation",
+-        );
+-        if let Some(gid) = resolve(vnodes, gnodes, c, violations, depth_evict) {
+-            new_gnodes.push(gid);
+-        }
+-
+-        // Post-resolve diagnostic: log if the node is still violated.
+-        if vnodes.is_occupied(c.index()) && is_violated(vnodes, c) {
+-            tracing::warn!(
+-                iter = iterations,
+-                node = %Ctx(vnodes, c),
+-                "node STILL violated after resolve",
+-            );
+-        }
+-
+-        // Post-resolve full scan: detect violations created by resolve
+-        // that weren't enqueued.
+-        if tracing::enabled!(tracing::Level::DEBUG) {
+-            crate::diagnostic::audit_violations(vnodes, violations, "POST-RESOLVE");
+-        }
+-    }
+-
+-    tracing::debug!(iterations, resolved, "rebalance complete");
+-
+-    // Full-tree audit: verify the queue-based loop left no violations
+-    // behind.  O(n) scan — guarded by tracing level.
+-    // The O(n) scan always runs in debug builds (ensures the assert
+-    // fires during `cargo test`) and optionally in release when a
+-    // tracing subscriber is active at DEBUG.
+-    if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-        let remaining = crate::diagnostic::audit_violations(vnodes, violations, "RESIDUAL");
+-        assert!(
+-            remaining.is_empty(),
+-            "rebalance finished with residual violations: {remaining:?}"
+-        );
+-    }
+-
+-    new_gnodes
++    vec![Default::default()] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Full-tree violation audit (§IDEA M-11.8) ───────────────────────
+ 
+ /// Full-tree scan for violated nodes, returned deepest-first.
+ ///
+ /// This is the spec's §IDEA M-11.8 audit function — `O(n)` per call.
+ /// Used by the `debug_assert!` at the end of [`rebalance`] to confirm

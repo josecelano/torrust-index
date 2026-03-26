@@ -1,0 +1,25 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::new_3 -> Self with Default::default()
+@@ -116,21 +116,17 @@
+             ids: [Some(a.0), Some(b.0), None],
+             len: 2,
+         }
+     }
+ 
+     /// Create a 3-child node.
+     #[must_use]
+     pub const fn new_3(a: (VNodeId, V), b: (VNodeId, V), c: (VNodeId, V)) -> Self {
+-        Self {
+-            intensities: [a.1, b.1, c.1],
+-            ids: [Some(a.0), Some(b.0), Some(c.0)],
+-            len: 3,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Number of children (2 or 3).
+     #[must_use]
+     #[inline]
+     pub const fn len(&self) -> usize {
+         self.len as usize
+     }

@@ -1,0 +1,26 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace wide_shallow_config -> Config<u64> with Config::new()
+@@ -127,22 +127,17 @@
+     }
+ }
+ 
+ /// Wide shallow config: θ=10, shallow `D_create`/`D_evict`.
+ /// Creates wide, shallow trees — tests lateral violation propagation
+ /// rather than deep escalation.
+ #[must_use]
+ pub const fn wide_shallow_config() -> Config<u64> {
+-    Config {
+-        split_threshold: 10,
+-        depth_create: 2,
+-        depth_evict: 4,
+-        ..BASE_U64
+-    }
++    Config::new() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Worked example config from §IDEA M-16: θ=5, `D_create`=3,
+ /// `D_evict`=6, N=3 (domain [0,8)).
+ #[must_use]
+ pub const fn worked_example_config() -> Config<u64> {
+     BASE_U64
+ }

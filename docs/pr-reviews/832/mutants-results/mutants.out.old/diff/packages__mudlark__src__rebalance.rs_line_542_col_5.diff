@@ -1,0 +1,140 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace legacy_promote -> GNodeId with Default::default()
+@@ -534,136 +534,17 @@
+ ///
+ /// Panics if `c` is not an entry, if its G-node is not semi-internal,
+ /// or if `c` has no parent or grandparent.
+ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     c: VNodeId,
+ ) -> GNodeId {
+-    let p = vnodes.get(c.index()).parent.expect("legacy_promote: c must have a parent");
+-    let g = vnodes
+-        .get(p.index())
+-        .parent
+-        .expect("legacy_promote: p must have a grandparent");
+-
+-    let gnode_id = match &vnodes.get(c.index()).kind {
+-        VKind::Entry { gnode, .. } => *gnode,
+-        VKind::Structural { .. } => panic!("legacy_promote: c must be an entry"),
+-    };
+-
+-    debug_assert!(
+-        gnodes.get(gnode_id.index()).is_semi_internal(),
+-        "legacy_promote: backing G-node must be semi-internal"
+-    );
+-
+-    let _span = tracing::debug_span!(
+-        "legacy_promote",
+-        c = %Nd(vnodes, c),
+-        p = p.index(),
+-        g = g.index(),
+-        gnode = gnode_id.index(),
+-    )
+-    .entered();
+-
+-    // ── G-Tree: create the missing child ────────────────────────
+-    let gn = gnodes.get(gnode_id.index());
+-    let (new_lo, new_hi) = gn
+-        .uncovered_range()
+-        .expect("legacy_promote: semi-internal must have uncovered range");
+-    let new_child = GNode {
+-        lo: new_lo,
+-        hi: new_hi,
+-        sum: V::zero(),
+-        own: V::zero(),
+-        left: None,
+-        right: None,
+-        parent: Some(gnode_id),
+-        entry: None,
+-    };
+-    let new_child_id = GNodeId::from_index(gnodes.alloc(new_child));
+-
+-    // Link into parent's empty slot.
+-    {
+-        let gn = gnodes.get_mut(gnode_id.index());
+-        if gn.left.is_none() {
+-            gn.left = Some(new_child_id);
+-        } else {
+-            debug_assert!(gn.right.is_none(), "legacy_promote: expected empty right slot");
+-            gn.right = Some(new_child_id);
+-        }
+-    }
+-
+-    // ── V-Tree: create entry for new child ──────────────────────
+-    // ne takes c's place at the same depth
+-    let c_depth = vnodes.get(c.index()).cached_depth.load(Ordering::Relaxed);
+-    let ne = VNode {
+-        intensity: V::zero(),
+-        parent: Some(p),
+-        cached_depth: AtomicU32::new(c_depth), // Same depth as c was
+-        kind: VKind::Entry {
+-            gnode: new_child_id,
+-            is_exposed: true,   // new terminal: on the contour
+-            is_evictable: true, // new terminal: no dependents
+-        },
+-    };
+-    let ne_id = VNodeId::from_index(vnodes.alloc(ne));
+-    gnodes.get_mut(new_child_id.index()).entry = Some(ne_id);
+-
+-    // ── V-Tree: replace c with ne in p's children ───────────────
+-    let c_int = vnodes.get(c.index()).intensity;
+-    replace_child_in_parent(vnodes, p, c, ne_id, V::zero());
+-
+-    // ── V-Tree: lift c to g (g becomes 3-node) ─────────────────
+-    let (u_id, u_int) = sibling_of(vnodes, g, p);
+-
+-    // c is about to become frozen (internal, 2 G-children) → not evictable.
+-    let c_evictable = false;
+-    let p_evictable = node_has_evictable(vnodes, p);
+-    let u_evictable = node_has_evictable(vnodes, u_id);
+-
+-    let p_int = vnodes.get(p.index()).intensity;
+-    let g_node = vnodes.get_mut(g.index());
+-    if let VKind::Structural { children, has_evictable } = &mut g_node.kind {
+-        *children = PackedChildren::new_3((c, c_int), (p, p_int), (u_id, u_int));
+-        *has_evictable = c_evictable || p_evictable || u_evictable;
+-    }
+-
+-    vnodes.get_mut(c.index()).parent = Some(g);
+-    // c moved up one level: update its depth
+-    let new_c_depth = if c_depth == DEPTH_STALE { DEPTH_STALE } else { c_depth - 1 };
+-    vnodes.get(c.index()).cached_depth.store(new_c_depth, Ordering::Relaxed);
+-
+-    // ── Freeze c: gnode now has 2 G-children ────────────────────
+-    if let VKind::Entry {
+-        is_exposed,
+-        is_evictable,
+-        ..
+-    } = &mut vnodes.get_mut(c.index()).kind
+-    {
+-        *is_exposed = false; // internal: fully shielded
+-        *is_evictable = false; // has dependents
+-    }
+-
+-    // ── Recompute p's intensity ─────────────────────────────────
+-    recompute_structural_intensity(vnodes, p);
+-    let new_p_int = vnodes.get(p.index()).intensity;
+-    update_parent_cached_intensity(vnodes, p, new_p_int);
+-
+-    // ── Propagate evictable flags ───────────────────────────────
+-    propagate_evictable_flags(vnodes, p);
+-    propagate_evictable_flags(vnodes, g);
+-
+-    tracing::debug!(
+-        new_gnode = new_child_id.index(),
+-        new_ventry = ne_id.index(),
+-        "legacy_promote complete: c lifted to g, new child created",
+-    );
+-
+-    new_child_id
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Violation queue helpers (§IDEA M-11.11) ────────────────────────
+ 
+ /// Push grandchildren of `node` that are newly violated.
+ ///
+ /// After restructuring at `node`, its grandchildren may have weakened
+ /// uncle shields.  See §IDEA M-11.11.1.

@@ -1,0 +1,32 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_clean_accounting with ()
+@@ -622,28 +622,17 @@
+ }
+ 
+ // ── Clean accounting ────────────────────────────────────────────────
+ 
+ fn check_clean_accounting<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let mut total_v = 0.0_f64;
+-    for (_, v) in graph.vnodes().iter_occupied() {
+-        if matches!(v.kind, VKind::Entry { .. }) {
+-            total_v += v.intensity.to_f64_approx();
+-        }
+-    }
+-    let g_root_sum = graph.gnodes().get(graph.g_root().index()).sum.to_f64_approx();
+-    if (total_v - g_root_sum).abs() > 1e-9 {
+-        errors.push(format!(
+-            "Clean accounting violated: V-entry sum={total_v}, G-root sum={g_root_sum}"
+-        ));
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Parent link consistency ─────────────────────────────────────────
+ 
+ fn check_parent_link_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

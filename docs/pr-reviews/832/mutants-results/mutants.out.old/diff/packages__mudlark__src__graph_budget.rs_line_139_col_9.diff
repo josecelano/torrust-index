@@ -1,0 +1,22 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace GvGraph<C, V, N>::check_evictions -> u32 with 0
+@@ -131,18 +131,17 @@
+     ///
+     /// // After some observations, eviction may still return 0 if
+     /// // no entry exceeds the depth gate.
+     /// g.observe(42, 10u64);
+     /// let evicted = g.check_evictions();
+     /// assert_eq!(evicted, 0);
+     /// ```
+     pub fn check_evictions(&mut self) -> u32 {
+-        let _span = tracing::debug_span!("check_evictions", d_evict = self.live_depth_evict).entered();
+-        self.evict_candidates(None)
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Evict candidates up to a budget-derived limit (bounded mode).
+     ///
+     /// Like `check_evictions()` but stops after `stop_at` evictions.
+     pub(crate) fn check_evictions_bounded(&mut self, stop_at: usize) -> u32 {
+         self.evict_candidates(Some(stop_at))
+     }

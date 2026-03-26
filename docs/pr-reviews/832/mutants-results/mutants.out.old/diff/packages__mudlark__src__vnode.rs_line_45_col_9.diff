@@ -1,0 +1,26 @@
+--- packages/mudlark/src/vnode.rs
++++ replace <impl Clone for VNode<V>>::clone -> Self with Default::default()
+@@ -37,22 +37,17 @@
+     pub cached_depth: AtomicU32,
+     /// Entry or structural discriminant.
+     pub kind: VKind<V>,
+ }
+ 
+ // Manual Clone impl since AtomicU32 doesn't derive Clone
+ impl<V: Clone> Clone for VNode<V> {
+     fn clone(&self) -> Self {
+-        Self {
+-            intensity: self.intensity.clone(),
+-            parent: self.parent,
+-            cached_depth: AtomicU32::new(self.cached_depth.load(Ordering::Relaxed)),
+-            kind: self.kind.clone(),
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // Static assertion: VNode<u64> fits in one cache line (64 bytes).
+ // The cached_depth field occupies the 4-byte padding gap between
+ // parent (4 bytes) and kind (48 bytes, align 8). See ADR-M-029.
+ const _: () = assert!(std::mem::size_of::<VNode<u64>>() == 64);
+ 

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in escalate_after_promote
+@@ -1136,17 +1136,17 @@
+     push_contraction_child_violations(vnodes, p, heaviest, violations);
+ 
+     // Check if contraction resolved the issue.
+     let needs_skip = if h_direct {
+         is_violated(vnodes, heaviest)
+     } else {
+         is_violated(vnodes, merged)
+     };
+-    if !needs_skip {
++    if  /* ~ changed by cargo-mutants ~ */needs_skip {
+         tracing::debug!("resolved by contraction");
+         return;
+     }
+ 
+     // Ensure g is a 2-node before skip-promoting.
+     let g_merged = if structural_child_count(vnodes, g) == 3 {
+         let g_merged = contract(vnodes, g);
+         push_side_effect_violations(vnodes, g, violations);

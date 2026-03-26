@@ -70,19 +70,19 @@ One file per finding in [findings/](findings/). Status key: ✅ Resolved · ⚠�
 4. **Finding #12 — post-evict `debug_assert`** — `plateau.rs:127` fires immediately after any eviction in debug builds; blocks all eviction-gated test paths. Root cause of coverage ceiling at ~87%. Needs fix (relax to `debug_assert`, soften, or remove).
 5. **`torrust-sentinel` in machete ignore** — low priority, intent undocumented.
 6. **`AGENTS.md` scope** — mudlark conventions belong in `packages/mudlark/AGENTS.md`.
-7. **Mutation kill rate 60.1%** — borderline; re-run `cargo mutants -p torrust-mudlark` after Finding #12 is fixed; target ≥ 80% before merge.
+7. **Mutation kill rate 93.2%** — re-run produced 1004 caught / 72 missed / 1 timeout / 627 unviable (1077 viable total). Well above 80% target. 72 surviving mutants remain; concentrated in `graph_plateau.rs`, `diagnostic.rs`, `decay.rs`. See [mutants-results/](mutants-results/) for full list.
 8. **Module structure** — flat `src/` layout works but a grouped layout (nodes/tree/spatial/graph/algorithm/diagnostics) would improve navigability; propose as follow-up to Cameron.
 
 ---
 
 ## Measurement Snapshots
 
-| Date       | Tool             | Overall                              | Detail                                                               |
-| ---------- | ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
-| 2026-03-24 | `cargo llvm-cov` | 86.4% lines / 92.2% functions        | [llvm-cov-2026-03-24.md](coverage-results/llvm-cov-2026-03-24.md)    |
-| 2026-03-25 | `cargo llvm-cov` | 86.96% lines / 96.67% fn (436 tests) | Isolated branch — see [REVIEW_PR_832.md § Phase 5](REVIEW_PR_832.md) |
-| 2026-03-16 | `cargo mutants`  | 60.1% kill rate (621/1034)           | [mutants-results/](mutants-results/)                                 |
-| (pending)  | `cargo mutants`  | —                                    | Re-run after Finding #12 resolved                                    |
+| Date       | Tool             | Overall                              | Detail                                                                    |
+| ---------- | ---------------- | ------------------------------------ | ------------------------------------------------------------------------- |
+| 2026-03-24 | `cargo llvm-cov` | 86.4% lines / 92.2% functions        | [llvm-cov-2026-03-24.md](coverage-results/llvm-cov-2026-03-24.md)         |
+| 2026-03-25 | `cargo llvm-cov` | 86.96% lines / 96.67% fn (436 tests) | Isolated branch — see [REVIEW_PR_832.md § Phase 5](REVIEW_PR_832.md)      |
+| 2026-03-16 | `cargo mutants`  | 60.1% kill rate (621/1034)           | Original run — before Cameron's +443 tests                                |
+| 2026-03-26 | `cargo mutants`  | **93.2% kill rate (1004/1077)**      | [mutants-results/](mutants-results/) — 72 missed; 1 timeout; 627 unviable |
 
 ---
 

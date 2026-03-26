@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_v_i6b_evictable_flag
+@@ -570,17 +570,17 @@
+             ..
+         } = &v.kind
+         {
+             if !graph.gnodes().is_occupied(gnode.index()) {
+                 continue; // Already caught by V-I6.
+             }
+             let g = graph.gnodes().get(gnode.index());
+             let expected = g.is_terminal();
+-            if *is_evictable != expected {
++            if *is_evictable == /* ~ changed by cargo-mutants ~ */ expected {
+                 errors.push(format!(
+                     "V-I6b violated at V-node {idx}: is_evictable={is_evictable}, \
+                      expected={expected} (state={:?})",
+                     g.state()
+                 ));
+             }
+             // Implied: is_evictable ⟹ is_exposed
+             if *is_evictable && !*is_exposed {

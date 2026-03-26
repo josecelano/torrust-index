@@ -1,0 +1,36 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace max_uncle_intensity -> Option<V> with None
+@@ -183,32 +183,17 @@
+ 
+ /// Returns the maximum uncle intensity for node `c`, or `None` if `c`
+ /// has no grandparent (depth < 2 → no uncle relationship).
+ ///
+ /// An uncle of `c` is a sibling of `c`'s parent `p` under
+ /// grandparent `g`.
+ #[must_use]
+ pub fn max_uncle_intensity<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> Option<V> {
+-    let parent = vnodes.get(c.index()).parent?;
+-    let grandparent = vnodes.get(parent.index()).parent?;
+-
+-    let g = vnodes.get(grandparent.index());
+-    if let VKind::Structural { children, .. } = &g.kind {
+-        let mut max_int = None;
+-        for i in 0..children.len() {
+-            let (id, intensity) = children.get(i);
+-            if id != parent {
+-                max_int = Some(max_int.map_or(intensity, |cur| if intensity > cur { intensity } else { cur }));
+-            }
+-        }
+-        max_int
+-    } else {
+-        None
+-    }
++    None /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Whether node `c` violates the max-uncle constraint (V-I3).
+ ///
+ /// A node is violated when `c.int > max { u.int : u ∈ uncles(c) }`.
+ /// Returns false if `c` has no grandparent (no uncle relationship).
+ #[must_use]
+ pub fn is_violated<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> bool {

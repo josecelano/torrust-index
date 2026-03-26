@@ -1,0 +1,33 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::remove_child -> (VNodeId, V) with (Default::default(), Default::default())
+@@ -208,29 +208,17 @@
+ 
+     /// Remove a child by ID (3-node → 2-node), returning the removed
+     /// `(id, intensity)`.
+     ///
+     /// # Panics
+     ///
+     /// Panics if not a 3-node or if `id` is not found.
+     pub fn remove_child(&mut self, id: VNodeId) -> (VNodeId, V) {
+-        assert!(self.len == 3, "remove_child: not a 3-node");
+-        let idx = self.find_index(id).expect("remove_child: id not found");
+-        let removed = self.get(idx);
+-
+-        // Shift the last child into the removed slot if needed.
+-        if idx < 2 {
+-            self.ids[idx] = self.ids[2];
+-            self.intensities[idx] = self.intensities[2];
+-        }
+-        self.ids[2] = None;
+-        self.intensities[2] = V::default();
+-        self.len = 2;
+-        removed
++        (Default::default(), Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Update the cached intensity at `index`.
+     #[inline]
+     pub fn update_intensity(&mut self, index: usize, new: V) {
+         debug_assert!(index < self.len());
+         self.intensities[index] = new;
+     }

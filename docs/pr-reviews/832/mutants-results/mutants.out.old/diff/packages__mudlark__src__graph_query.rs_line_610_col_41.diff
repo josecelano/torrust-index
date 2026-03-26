@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace >= with < in GvGraph<C, V, N>::decompose_basis
+@@ -602,17 +602,17 @@
+         let g = self.gnodes.get(gid.index());
+ 
+         // 1. Disjoint — no overlap with query range.
+         if query_lo >= g.hi || query_hi <= g.lo {
+             return;
+         }
+ 
+         // 2. Fully contained — this is a basis element (not thatching).
+-        if query_lo <= g.lo && query_hi >= g.hi {
++        if query_lo <= g.lo && query_hi < /* ~ changed by cargo-mutants ~ */ g.hi {
+             basis.push(BasisElement {
+                 gnode_id: gid,
+                 start: g.lo,
+                 end: g.hi,
+                 own: g.own,
+                 sum: g.sum,
+                 depth: gnode_depth_from_interval(g.lo, g.hi, N),
+                 is_boundary_thatch: false,

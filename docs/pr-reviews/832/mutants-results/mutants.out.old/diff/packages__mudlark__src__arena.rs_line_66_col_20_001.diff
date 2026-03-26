@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace += with *= in Arena<T>::alloc
+@@ -58,17 +58,17 @@
+             // Grow bitset if needed.
+             let word = i / 64;
+             if word >= self.occupied.len() {
+                 self.occupied.resize(word + 1, 0);
+             }
+             i
+         };
+         self.set_occupied(index, true);
+-        self.count += 1;
++        self.count *= /* ~ changed by cargo-mutants ~ */ 1;
+         index
+     }
+ 
+     /// Deallocate the slot at `index`, returning the stored value
+     /// and replacing it with `T::default()`.
+     ///
+     /// # Panics (debug only)
+     ///

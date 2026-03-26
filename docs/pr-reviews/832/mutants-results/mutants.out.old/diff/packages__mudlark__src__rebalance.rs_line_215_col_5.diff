@@ -1,0 +1,22 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace is_violated -> bool with true
+@@ -207,18 +207,17 @@
+ }
+ 
+ /// Whether node `c` violates the max-uncle constraint (V-I3).
+ ///
+ /// A node is violated when `c.int > max { u.int : u ∈ uncles(c) }`.
+ /// Returns false if `c` has no grandparent (no uncle relationship).
+ #[must_use]
+ pub fn is_violated<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> bool {
+-    let c_int = vnodes.get(c.index()).intensity;
+-    max_uncle_intensity(vnodes, c).is_some_and(|max_uncle| c_int > max_uncle)
++    true /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Contraction (§IDEA M-11.3) ──────────────────────────────────────
+ 
+ /// Contract a 3-node parent `p` into a 2-node by isolating the
+ /// heaviest child and merging the other two under a new structural
+ /// node.
+ ///

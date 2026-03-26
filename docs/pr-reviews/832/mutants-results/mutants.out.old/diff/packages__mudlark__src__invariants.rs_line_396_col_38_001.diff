@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_g_i4_entry_consistency
+@@ -388,17 +388,17 @@
+                 ));
+                 continue;
+             }
+             let v = graph.vnodes().get(v_id.index());
+ 
+             // Intensity must match own.
+             let g_own = g.own.to_f64_approx();
+             let v_int = v.intensity.to_f64_approx();
+-            if (g_own - v_int).abs() > 1e-9 {
++            if (g_own - v_int).abs() < /* ~ changed by cargo-mutants ~ */ 1e-9 {
+                 errors.push(format!(
+                     "G-I4 violated at G-node {idx}: g.own={g_own}, entry.intensity={v_int}"
+                 ));
+             }
+ 
+             // Back-link: entry must be a VKind::Entry pointing back.
+             match &v.kind {
+                 VKind::Entry { gnode, .. } => {

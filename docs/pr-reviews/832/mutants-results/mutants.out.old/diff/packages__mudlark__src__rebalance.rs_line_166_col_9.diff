@@ -1,0 +1,33 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace <impl fmt::Display for Ctx<'_, V>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -158,29 +158,17 @@
+ /// Full violation context: ancestry chain with uncle info.
+ ///
+ /// Example output:
+ /// `v3(E,18) ← v5(S2,21) [v3(18), v4(3)] ← v7(S2,42) [v5(21), v6(21)]  uncle_max=21`
+ pub struct Ctx<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);
+ 
+ impl<V: Accumulator> fmt::Display for Ctx<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        let (vnodes, c) = (self.0, self.1);
+-        write!(f, "{}", Nd(vnodes, c))?;
+-        let Some(p) = vnodes.get(c.index()).parent else {
+-            return f.write_str(" (root)");
+-        };
+-        write!(f, " ← {} {}", Nd(vnodes, p), Ch(vnodes, p))?;
+-        if let Some(g) = vnodes.get(p.index()).parent {
+-            write!(f, " ← {} {}", Nd(vnodes, g), Ch(vnodes, g))?;
+-        }
+-        if let Some(u) = max_uncle_intensity(vnodes, c) {
+-            write!(f, "  uncle_max={u:?}")?;
+-        }
+-        Ok(())
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Violation detection (§IDEA M-11.2) ──────────────────────────────
+ 
+ /// Returns the maximum uncle intensity for node `c`, or `None` if `c`
+ /// has no grandparent (depth < 2 → no uncle relationship).
+ ///

@@ -1,0 +1,36 @@
+--- packages/mudlark/src/graph.rs
++++ replace uniform_contour_depth_of -> Option<u32> with None
+@@ -277,32 +277,17 @@
+ /// semi-internal half) in the subtree is at depth `d`.
+ /// Returns `None` if depths vary (including any semi-internal).
+ ///
+ /// Free function so it can be called from `&mut self` methods
+ /// without borrowing the whole `GvGraph` — only needs
+ /// `&Arena<GNode<C,V>>`.
+ #[allow(dead_code)] // Used by recompute_plateau, invariant checks, and normalize_plateaus.
+ pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(gnodes: &Arena<GNode<C, V>>, gid: GNodeId, n: u32) -> Option<u32> {
+-    use crate::gnode::GState;
+-    use crate::gtree::gnode_depth_from_interval;
+-    let g = gnodes.get(gid.index());
+-    match g.state() {
+-        GState::Terminal => Some(gnode_depth_from_interval(g.lo, g.hi, n)),
+-        GState::SemiInternal => None,
+-        GState::Internal => {
+-            let ld = g.left.and_then(|l| uniform_contour_depth_of(gnodes, l, n))?;
+-            let rd = g.right.and_then(|r| uniform_contour_depth_of(gnodes, r, n))?;
+-            if ld == rd {
+-                Some(ld)
+-            } else {
+-                None
+-            }
+-        }
+-    }
++    None /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// A Dual-Tree Value-Stratified Index (Kraft–McMillan Geometric-Value
+ /// Graph).
+ ///
+ /// Maintains a spatial index over `[0, 2^N)` whose logical hierarchy
+ /// adapts to value distribution. Consists of two trees sharing a
+ /// common set of G-nodes:

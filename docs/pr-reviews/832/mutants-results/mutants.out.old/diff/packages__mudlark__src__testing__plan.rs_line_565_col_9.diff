@@ -1,0 +1,36 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::pincer -> Self with Default::default()
+@@ -557,32 +557,17 @@
+     /// Pincer: two fronts approaching each other from opposite ends
+     /// of `[lo, hi]`.
+     ///
+     /// Step k: observe at `lo + k` and `hi − k` with `burst_per_step`
+     /// repetitions.  Creates converging violation paths that
+     /// eventually share the same ancestor at every depth.
+     #[must_use]
+     pub fn pincer(mut self, lo: u64, hi: u64, delta: V, burst_per_step: usize) -> Self {
+-        let mut left = lo;
+-        let mut right = hi;
+-        while left <= right {
+-            for _ in 0..burst_per_step {
+-                self.observations.push((C::from_u64(left), delta));
+-                if left != right {
+-                    self.observations.push((C::from_u64(right), delta));
+-                }
+-            }
+-            left += 1;
+-            if right == 0 {
+-                break;
+-            }
+-            right -= 1;
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Repulsion walk: two hotspots start at the same coordinate and
+     /// gradually drift apart, one step at a time.
+     ///
+     /// Creates initially shared then diverging violation paths,
+     /// exercising the transition from single-spine to cousin
+     /// topology.

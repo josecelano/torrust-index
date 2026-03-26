@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace * with / in GvGraph<C, V, N>::adjust_depth_gates
+@@ -78,17 +78,17 @@
+                     new_d_create = self.live_depth_create,
+                     count,
+                     soft_limit,
+                     "depth gates tightened",
+                 );
+             }
+         } else {
+             #[allow(clippy::cast_precision_loss)] // node counts fit in f64 mantissa
+-            let threshold = soft_limit as f64 * self.config.alpha_relax;
++            let threshold = soft_limit as f64 / /* ~ changed by cargo-mutants ~ */ self.config.alpha_relax;
+             #[allow(clippy::cast_precision_loss)]
+             let count_f = count as f64;
+             if count_f < threshold {
+                 // Relax: raise D_evict by 1 (no ceiling).
+                 self.live_depth_evict += 1;
+                 self.live_depth_create = self.live_depth_evict - self.depth_buffer;
+                 tracing::debug!(
+                     new_d_evict = self.live_depth_evict,

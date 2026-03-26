@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace >= with < in GvGraph<C, V, N>::select_plateaus
+@@ -581,17 +581,17 @@
+         // The end endpoint is the next key after last_plateau_key,
+         // or the domain sentinel 2^N.
+         let end = plateaus
+             .range((Bound::Excluded(last_plateau_key), Bound::Unbounded))
+             .next()
+             .map_or_else(|| BasisEdge(C::domain_max(N)), |(k, _)| *k);
+ 
+         // Sanity: start < end (should always hold given the above logic).
+-        if start_entry >= end {
++        if start_entry < /* ~ changed by cargo-mutants ~ */ end {
+             return None;
+         }
+ 
+         Some((start_entry, end))
+     }
+ 
+     /// Recursive G-Tree descent for basis set collection (§CR.8.1).
+     ///

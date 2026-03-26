@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace > with < in attempt_split
+@@ -78,17 +78,17 @@
+             push_side_effect_violations(&graph.vnodes, merged, &mut graph.violations);
+             push_promoted_violations(&graph.vnodes, p_id, &mut graph.violations);
+         }
+     }
+ 
+     // Depth gate (checked against post-contraction position).
+     // Re-read entry_id — the G-node's entry link is unchanged by contraction.
+     let entry_id = graph.gnodes.get(g_id.index()).entry.unwrap();
+-    if v_depth(&graph.vnodes, entry_id) > graph.live_depth_create {
++    if v_depth(&graph.vnodes, entry_id) < /* ~ changed by cargo-mutants ~ */ graph.live_depth_create {
+         return;
+     }
+ 
+     catalytic_split(graph, g_id);
+ }
+ 
+ /// Bootstrap split: first split when V-root is a lone entry.
+ ///

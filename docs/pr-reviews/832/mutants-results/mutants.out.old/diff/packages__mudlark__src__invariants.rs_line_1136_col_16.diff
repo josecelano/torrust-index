@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_p_i1_ii_tile_contiguity
+@@ -1128,17 +1128,17 @@
+         if elements.is_empty() {
+             errors.push(format!("P-I1(ii): plateau {key:?} has no basis elements"));
+             continue;
+         }
+ 
+         // Collect tile intervals and sort.
+         let mut tiles: Vec<(f64, f64)> = Vec::new();
+         for &gid in elements {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let (tlo, thi) = tile_of(g);
+             tiles.push((tlo.to_f64(), thi.to_f64()));
+         }
+         tiles.sort_by(|a, b| a.0.total_cmp(&b.0));
+ 

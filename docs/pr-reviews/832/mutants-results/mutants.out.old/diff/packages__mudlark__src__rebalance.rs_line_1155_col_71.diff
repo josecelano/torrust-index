@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in escalate_after_promote
+@@ -1147,17 +1147,17 @@
+     }
+ 
+     // Ensure g is a 2-node before skip-promoting.
+     let g_merged = if structural_child_count(vnodes, g) == 3 {
+         let g_merged = contract(vnodes, g);
+         push_side_effect_violations(vnodes, g, violations);
+         push_side_effect_violations(vnodes, g_merged, violations);
+         push_promoted_violations(vnodes, g, violations);
+-        let resolved = !is_violated(vnodes, heaviest) && (h_direct || !is_violated(vnodes, merged));
++        let resolved = !is_violated(vnodes, heaviest) && (h_direct ||  /* ~ changed by cargo-mutants ~ */is_violated(vnodes, merged));
+         if resolved {
+             tracing::debug!("resolved by g-contraction");
+             return;
+         }
+         Some(g_merged)
+     } else {
+         None
+     };

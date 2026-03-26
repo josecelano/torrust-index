@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace != with == in audit_plateau_consistency
+@@ -89,17 +89,17 @@
+     graph: &GvGraph<C, V, N>,
+     checkpoint: &str,
+     context: Option<&PlateauAuditContext>,
+ ) {
+     // 1. Forward/back consistency for all plateaus.
+     for &key in graph.plateaus.keys() {
+         for &r in graph.plateau_basis.basis_elements(&key) {
+             let back = graph.plateau_basis.plateau_key(r);
+-            if back != Some(key) {
++            if back == /* ~ changed by cargo-mutants ~ */ Some(key) {
+                 tracing::error!(checkpoint, ?key, gnode = r.index(), ?back, "basis back-pointer inconsistency");
+             }
+         }
+     }
+ 
+     // 2. Plateau count matches basis plateau count.
+     let map_len = graph.plateaus.len();
+     let basis_len = graph.plateau_basis.plateau_count();

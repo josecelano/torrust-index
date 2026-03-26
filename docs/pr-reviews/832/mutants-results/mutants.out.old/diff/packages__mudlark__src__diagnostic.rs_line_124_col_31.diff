@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace == with != in audit_plateau_consistency
+@@ -116,17 +116,17 @@
+     if let Some(ctx) = context {
+         if ctx.parent_state == GState::SemiInternal {
+             let g = graph.gnodes.get(ctx.parent_id.index());
+             let surviving = g.left.or(g.right);
+             if let Some(surviving_id) = surviving {
+                 let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);
+                 if let Some(pk) = parent_plateau {
+                     if let Some(ck) = graph.plateau_basis.plateau_key(surviving_id) {
+-                        if pk == ck {
++                        if pk != /* ~ changed by cargo-mutants ~ */ ck {
+                             tracing::debug!(
+                                 checkpoint,
+                                 ?pk,
+                                 ?ck,
+                                 parent = ctx.parent_id.index(),
+                                 surviving = surviving_id.index(),
+                                 "transient P-I4 overlap (will be repaired)",
+                             );

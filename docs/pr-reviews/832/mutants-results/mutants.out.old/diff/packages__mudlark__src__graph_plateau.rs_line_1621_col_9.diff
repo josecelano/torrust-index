@@ -1,0 +1,58 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_after_legacy_promotes_batched with ()
+@@ -1613,54 +1613,17 @@
+     ///    displaced elements (existing child + new child) into one vec.
+     /// 2. **Sort** all collected elements by `BasisEdge` and place
+     ///    left-to-right in a single pass.
+     ///
+     /// This prevents cross-promote ordering issues when multiple
+     /// legacy promotes occur within one `observe()` or `decay()` call.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, new_gnodes: &[GNodeId]) {
+-        use crate::gnode::GState;
+-
+-        if new_gnodes.is_empty() {
+-            return;
+-        }
+-
+-        let _span = tracing::debug_span!("plateau_after_legacy_promotes_batched", count = new_gnodes.len(),).entered();
+-
+-        // ADR-M-031: mark dirty for trailing normalize in observe().
+-        self.plateaus_dirty = true;
+-
+-        let mut to_place = Vec::new();
+-
+-        // Phase 1: remove parents from basis, collect displaced elements.
+-        for &new_gid in new_gnodes {
+-            let ng = self.gnodes.get(new_gid.index());
+-            let parent_id = ng.parent.expect("legacy_promote child must have a parent");
+-            let child_depth = crate::gtree::gnode_depth_from_interval(ng.lo, ng.hi, N);
+-
+-            let pg = self.gnodes.get(parent_id.index());
+-            let existing_child_id = if pg.left == Some(new_gid) { pg.right } else { pg.left };
+-
+-            if let Some(old_key) = self.plateau_basis.remove(parent_id) {
+-                self.fixup_plateau(old_key);
+-            }
+-
+-            if let Some(ec_id) = existing_child_id {
+-                let ec = self.gnodes.get(ec_id.index());
+-                if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
+-                    let existing_depth = crate::gtree::gnode_depth_from_interval(ec.lo, ec.hi, N);
+-                    to_place.push((ec_id, existing_depth));
+-                }
+-            }
+-            to_place.push((new_gid, child_depth));
+-        }
+-
+-        // Phase 2: sort all collected elements and place left-to-right.
+-        self.place_sorted(&mut to_place);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_legacy_promotes_batched(&mut self, _new_gnodes: &[GNodeId]) {}
+ 

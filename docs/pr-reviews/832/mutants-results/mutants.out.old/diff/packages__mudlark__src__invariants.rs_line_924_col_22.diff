@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace - with + in check_plateau_sum_consistency
+@@ -916,17 +916,17 @@
+     for (&key, plateau) in &graph.plateaus {
+         let expected: f64 = pb
+             .basis_elements(&key)
+             .iter()
+             .filter(|&&gid| graph.gnodes().is_occupied(gid.index()))
+             .map(|&gid| graph.gnodes().get(gid.index()).sum.to_f64_approx())
+             .sum();
+         let actual = plateau.sum.to_f64_approx();
+-        if (expected - actual).abs() > 1e-9 {
++        if (expected + /* ~ changed by cargo-mutants ~ */ actual).abs() > 1e-9 {
+             errors.push(format!(
+                 "Plateau sum: key {key:?}: expected sum={expected}, actual sum={actual}"
+             ));
+         }
+     }
+ }
+ 
+ // ── Plateau depth consistency ───────────────────────────────────────

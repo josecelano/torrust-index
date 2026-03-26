@@ -1,0 +1,28 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i2_branching_factor with ()
+@@ -464,24 +464,17 @@
+ }
+ 
+ // ── V-I2: Branching factor ──────────────────────────────────────────
+ 
+ fn check_v_i2_branching_factor<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        if let VKind::Structural { children, .. } = &v.kind {
+-            let len = children.len();
+-            if len != 2 && len != 3 {
+-                errors.push(format!("V-I2 violated at V-node {idx}: {len} children (must be 2 or 3)"));
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I3: Max-uncle constraint ──────────────────────────────────────
+ 
+ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

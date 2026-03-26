@@ -1,0 +1,168 @@
+
+*** packages/mudlark/src/vtree.rs:32:5: replace vtree_remove_leaf -> Option<VNodeId> with Some(Default::default())
+
+*** mutation diff:
+--- packages/mudlark/src/vtree.rs
++++ replace vtree_remove_leaf -> Option<VNodeId> with Some(Default::default())
+@@ -24,69 +24,17 @@
+ ///
+ /// Returns the new V-root (None if tree is now empty).
+ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     v_id: VNodeId,
+     v_root: Option<VNodeId>,
+ ) -> Option<VNodeId> {
+-    let span = tracing::debug_span!("vtree_remove_leaf", v_id = v_id.index(), case = tracing::field::Empty,).entered();
+-
+-    // Clear the G-node's entry link.
+-    if let VKind::Entry { gnode, .. } = vnodes.get(v_id.index()).kind {
+-        gnodes.get_mut(gnode.index()).entry = None;
+-    }
+-
+-    let parent = vnodes.get(v_id.index()).parent;
+-
+-    // Case: root entry (no parent).
+-    let Some(p_id) = parent else {
+-        span.record("case", "root");
+-        vnodes.dealloc(v_id.index());
+-        return None;
+-    };
+-
+-    let p = vnodes.get(p_id.index());
+-    let p_child_count = match &p.kind {
+-        VKind::Structural { children, .. } => children.len(),
+-        VKind::Entry { .. } => unreachable!("parent of entry should be structural"),
+-    };
+-
+-    if p_child_count == 3 {
+-        // 3-node → 2-node: just remove the child.
+-        span.record("case", "shrink");
+-        remove_child_from_structural(vnodes, p_id, v_id);
+-        propagate_v_sums_from(vnodes, p_id);
+-        propagate_evictable_flags(vnodes, p_id);
+-        vnodes.dealloc(v_id.index());
+-        return v_root;
+-    }
+-
+-    // 2-node parent → collapse: sole surviving child replaces parent.
+-    span.record("case", "collapse");
+-    let sole_id = sole_sibling(vnodes, p_id, v_id);
+-    let grandparent = vnodes.get(p_id.index()).parent;
+-
+-    vnodes.get_mut(sole_id.index()).parent = grandparent;
+-
+-    // Invalidate depth cache for sole subtree (it moved up one level)
+-    invalidate_depth_subtree(vnodes, sole_id);
+-
+-    let new_root = grandparent.map_or(Some(sole_id), |g_id| {
+-        let sole_int = vnodes.get(sole_id.index()).intensity;
+-        replace_child_in_parent(vnodes, g_id, p_id, sole_id, sole_int);
+-        propagate_v_sums_from(vnodes, g_id);
+-        propagate_evictable_flags(vnodes, g_id);
+-        v_root
+-    });
+-
+-    vnodes.dealloc(p_id.index());
+-    vnodes.dealloc(v_id.index());
+-    new_root
++    Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Propagate V-Tree sum intensities upward from `start`.
+ ///
+ /// Implements §IDEA M-8.9.1 `propagate_v_sums`.
+ pub fn propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+     tracing::trace!(start = start.index(), "propagate_v_sums");
+     let mut current = vnodes.get(start.index()).parent;
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh find-msvc-tools v0.1.9
+       Fresh regex-syntax v0.8.9
+       Fresh once_cell v1.21.3
+       Fresh shlex v1.3.0
+       Fresh autocfg v1.5.0
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh plotters-backend v0.3.7
+       Fresh ciborium-io v0.2.2
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh clap_lex v1.0.0
+       Fresh itoa v1.0.17
+       Fresh memchr v2.8.0
+       Fresh serde_json v1.0.149
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh ciborium-ll v0.2.2
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh log v0.4.29
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh criterion-plot v0.8.2
+       Fresh walkdir v2.5.0
+       Fresh tracing-log v0.2.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh alloca v0.4.0
+       Fresh plotters v0.3.7
+       Fresh ciborium v0.2.2
+       Fresh clap v4.5.59
+       Fresh tinytemplate v1.2.1
+       Fresh regex v1.12.3
+       Fresh matchers v0.2.0
+       Fresh thread_local v1.1.9
+       Fresh smallvec v1.15.1
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh nu-ansi-term v0.50.3
+       Fresh rand_core v0.10.0
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0277]: the trait bound `VNodeId: Default` is not satisfied
+   --> packages/mudlark/src/vtree.rs:32:10
+    |
+ 32 |     Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+    |          ^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Default` is not implemented for `VNodeId`
+   --> packages/mudlark/src/handle.rs:207:1
+    |
+207 | pub struct VNodeId(NonZeroU32);
+    | ^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `torrust-mudlark` (lib) due to 1 previous error
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

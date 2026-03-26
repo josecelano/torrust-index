@@ -1,0 +1,28 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with None
+@@ -504,24 +504,17 @@
+     ///
+     /// let e = g.contour_range_energy(first, end).unwrap();
+     /// // Full-domain: energy == exact_energy (no boundary thatching).
+     /// assert_eq!(e.energy, e.exact_energy);
+     /// assert!(e.energy > 0);
+     /// ```
+     #[must_use]
+     pub fn contour_range_energy(&self, start: BasisEdge<C>, end: BasisEdge<C>) -> Option<ContourRangeEnergy<V>> {
+-        let cr = self.contour_range(start, end)?;
+-        Some(ContourRangeEnergy {
+-            energy: cr.energy,
+-            exact_energy: cr.exact_energy,
+-            plateau_energy: cr.plateau_energy,
+-            cross_plateau_energy: cr.cross_plateau_energy,
+-            plateau_count: cr.plateau_count,
+-        })
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Plateau selection (§CR.12): given an arbitrary dyadic range
+     /// `[lo, hi)`, find the contiguous run of overlapping plateaus
+     /// and return their lattice-aligned endpoints.
+     ///
+     /// The returned pair `(start, end)` are valid [`BasisEdge`]s for
+     /// [`contour_range()`](Self::contour_range) and

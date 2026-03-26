@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ delete match arm 3 in diagnose_missed_violation
+@@ -266,17 +266,17 @@
+     let mut current = violated;
+     let mut depth = 0_usize;
+     loop {
+         let n = vnodes.get(current.index());
+         let kind = match &n.kind {
+             VKind::Entry { .. } => "E",
+             VKind::Structural { children, .. } => match children.len() {
+                 2 => "S2",
+-                3 => "S3",
++                 /* ~ changed by cargo-mutants ~ */
+                 _ => "S?",
+             },
+         };
+         tracing::error!(
+             depth,
+             node = current.index(),
+             kind,
+             intensity = n.intensity.to_f64_approx(),

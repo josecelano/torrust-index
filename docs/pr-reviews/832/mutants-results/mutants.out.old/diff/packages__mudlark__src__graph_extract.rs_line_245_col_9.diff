@@ -1,0 +1,23 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace <impl Extend<(C, O)> for GvGraph<C, V, N>>::extend with ()
+@@ -237,19 +237,17 @@
+ /// ```
+ impl<C, V, O, const N: u32> Extend<(C, O)> for GvGraph<C, V, N>
+ where
+     C: Coordinate,
+     V: Accumulator + Inspectable,
+     O: crate::traits::Observation<V>,
+ {
+     fn extend<I: IntoIterator<Item = (C, O)>>(&mut self, iter: I) {
+-        for (coord, delta) in iter {
+-            self.observe(coord, delta);
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// BFS iterator over V-Tree entries, yielding `(layer_index, Node)`.
+ ///
+ /// Created by [`GvGraph::layers()`]. Structural V-nodes are traversed
+ /// but not yielded — only V-Entry nodes (backing G-nodes) produce
+ /// output, matching `extract()`'s behavior.

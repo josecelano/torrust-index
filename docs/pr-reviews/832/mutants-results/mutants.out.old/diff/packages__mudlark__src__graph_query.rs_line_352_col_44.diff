@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace <= with > in GvGraph<C, V, N>::range_sum_inner
+@@ -344,17 +344,17 @@
+     /// `query_lo..query_hi` is the half-open query range (already
+     /// clamped). `gid` is the current G-node.
+     fn range_sum_inner(&self, gid: crate::handle::GNodeId, query_lo: C, query_hi: C) -> V {
+         let g = self.gnodes.get(gid.index());
+         let node_lo = g.lo;
+         let node_hi = g.hi;
+ 
+         // Fully disjoint.
+-        if query_lo >= node_hi || query_hi <= node_lo {
++        if query_lo >= node_hi || query_hi > /* ~ changed by cargo-mutants ~ */ node_lo {
+             return V::zero();
+         }
+ 
+         // Fully contained.
+         if query_lo <= node_lo && query_hi >= node_hi {
+             return g.sum;
+         }
+ 

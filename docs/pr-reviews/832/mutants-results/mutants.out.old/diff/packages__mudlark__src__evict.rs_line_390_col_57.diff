@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace && with || in plateau_after_evict
+@@ -382,17 +382,17 @@
+                 // Candidate ancestor found. Check if its tile
+                 // actually covers the parent's basis edge:
+                 // tile = [anc_key, next_key_in_btreemap)
+                 let next_key = graph
+                     .plateaus
+                     .range((std::ops::Bound::Excluded(anc_key), std::ops::Bound::Unbounded))
+                     .next()
+                     .map(|(&k, _)| k);
+-                let tile_covers = parent_key >= anc_key && next_key.map_or(true, |nk| parent_key < nk);
++                let tile_covers = parent_key >= anc_key || /* ~ changed by cargo-mutants ~ */ next_key.map_or(true, |nk| parent_key < nk);
+ 
+                 if tile_covers {
+                     // Case (b): ancestor's tile covers parent.
+                     // Now remove it and decompose.
+                     graph.plateau_basis.remove(anc);
+ 
+                     // Surviving child at parent level.
+                     if parent_state_after == GState::SemiInternal {

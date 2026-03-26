@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::len -> usize with 0
+@@ -127,17 +127,17 @@
+             len: 3,
+         }
+     }
+ 
+     /// Number of children (2 or 3).
+     #[must_use]
+     #[inline]
+     pub const fn len(&self) -> usize {
+-        self.len as usize
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Returns `true` if there are no children. (Always false for a valid node.)
+     #[must_use]
+     #[inline]
+     #[allow(dead_code)]
+     pub const fn is_empty(&self) -> bool {
+         self.len == 0

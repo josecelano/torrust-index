@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace += with *= in GvGraph<C, V, N>::handle_legacy_promotes
+@@ -27,17 +27,17 @@
+     /// in a single batch.  This prevents cross-promote ordering
+     /// issues when multiple legacy promotes occur in one `observe()`.
+     pub(crate) fn handle_legacy_promotes(&mut self, new_gnodes: &[GNodeId]) {
+         for &_new_gid in new_gnodes {
+             self.node_count += 1;
+             // Legacy promote creates a new terminal child and transitions
+             // its parent from semi-internal → internal.  The parent was
+             // not a terminal, so net terminal change = +1.
+-            self.terminal_count += 1;
++            self.terminal_count *= /* ~ changed by cargo-mutants ~ */ 1;
+         }
+         self.plateau_after_legacy_promotes_batched(new_gnodes);
+     }
+ 
+     /// Adjust `D_evict` and `D_create` based on memory pressure (ADR-M-017).
+     ///
+     /// Called inside `observe()` after `rebalance()` and before
+     /// `check_evictions()`. Only fires when `budget` is `Some`.

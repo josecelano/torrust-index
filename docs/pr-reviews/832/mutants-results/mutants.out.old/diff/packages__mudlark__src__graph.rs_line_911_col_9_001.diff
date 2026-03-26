@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::depth_evict -> u32 with 1
+@@ -903,17 +903,17 @@
+     /// #     bounded_eviction: true,
+     /// # };
+     /// # let g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// assert_eq!(g.depth_evict(), 6);
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn depth_evict(&self) -> u32 {
+-        self.live_depth_evict
++        1 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Current (dynamic) `D_create` depth gate
+     ///
+     /// Splits are only authorized when the target entry's V-depth
+     /// is at most `D_create`.  Starts at [`Config::depth_create`]
+     /// and moves in lockstep with `D_evict` to preserve the buffer
+     /// zone (ADR-M-017).

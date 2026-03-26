@@ -1,0 +1,193 @@
+
+*** packages/mudlark/src/graph_extract.rs:61:9: replace GvGraph<C, V, N>::extract -> crate::pewei::Pewei<C, V> with Default::default()
+
+*** mutation diff:
+--- packages/mudlark/src/graph_extract.rs
++++ replace GvGraph<C, V, N>::extract -> crate::pewei::Pewei<C, V> with Default::default()
+@@ -53,93 +53,17 @@
+     /// for layer in &pewei.layers {
+     ///     for t in &layer.terminals {
+     ///         assert!(t.start < t.end);
+     ///     }
+     /// }
+     /// ```
+     #[must_use]
+     pub fn extract(&self) -> crate::pewei::Pewei<C, V> {
+-        use std::collections::VecDeque;
+-
+-        use crate::gnode::GState;
+-        use crate::pewei::{Layer, Pewei, Terminal, Transition};
+-        use crate::vnode::VKind;
+-
+-        let domain_start = C::zero();
+-        let domain_end = C::domain_max(N);
+-
+-        let Some(v_root) = self.v_root else {
+-            return Pewei {
+-                domain_start,
+-                domain_end,
+-                layers: vec![],
+-            };
+-        };
+-
+-        // BFS queue: (VNodeId, bfs_depth).
+-        let mut queue = VecDeque::new();
+-        queue.push_back((v_root, 0u32));
+-
+-        let mut layers: Vec<Layer<C, V>> = Vec::new();
+-
+-        while let Some((vid, bfs_depth)) = queue.pop_front() {
+-            let vnode = self.vnodes.get(vid.index());
+-
+-            match &vnode.kind {
+-                VKind::Entry { gnode, .. } => {
+-                    let g = self.gnodes.get(gnode.index());
+-                    let g_depth = self.gnode_depth(*gnode);
+-
+-                    // Ensure the layer exists.
+-                    while layers.len() <= bfs_depth as usize {
+-                        layers.push(Layer {
+-                            transitions: Vec::new(),
+-                            terminals: Vec::new(),
+-                        });
+-                    }
+-                    let layer = &mut layers[bfs_depth as usize];
+-
+-                    match g.state() {
+-                        GState::Terminal => {
+-                            layer.terminals.push(Terminal {
+-                                start: g.lo,
+-                                end: g.hi,
+-                                intensity: g.own,
+-                                depth: g_depth,
+-                                v_depth: bfs_depth,
+-                            });
+-                        }
+-                        GState::SemiInternal | GState::Internal => {
+-                            layer.transitions.push(Transition {
+-                                start: g.lo,
+-                                end: g.hi,
+-                                baseline: g.own,
+-                                total: g.sum,
+-                                refinement: V::sub(g.sum, g.own),
+-                                depth: g_depth,
+-                                v_depth: bfs_depth,
+-                            });
+-                        }
+-                    }
+-                }
+-                VKind::Structural { children, .. } => {
+-                    for i in 0..children.len() {
+-                        let (child_id, _intensity) = children.get(i);
+-                        queue.push_back((child_id, bfs_depth + 1));
+-                    }
+-                }
+-            }
+-        }
+-
+-        Pewei {
+-            domain_start,
+-            domain_end,
+-            layers,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Lazy V-Tree BFS iterator yielding `(layer_index, Node<C, V>)`.
+     ///
+     /// Streaming counterpart to [`extract()`](Self::extract): same
+     /// traversal order, same node classification (structural V-nodes
+     /// skipped), but yields [`Node`](crate::view::Node) view types
+     /// without building the full owned `Pewei` snapshot.
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh autocfg v1.5.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh regex-syntax v0.8.9
+       Fresh once_cell v1.21.3
+       Fresh shlex v1.3.0
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh ciborium-io v0.2.2
+       Fresh anstyle v1.0.13
+       Fresh itoa v1.0.17
+       Fresh pin-project-lite v0.2.16
+       Fresh plotters-backend v0.3.7
+       Fresh memchr v2.8.0
+       Fresh clap_lex v1.0.0
+       Fresh clap_builder v4.5.59
+       Fresh serde_json v1.0.149
+       Fresh plotters-svg v0.3.7
+       Fresh tracing v0.1.44
+       Fresh ciborium-ll v0.2.2
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh log v0.4.29
+       Fresh lazy_static v1.5.0
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh criterion-plot v0.8.2
+       Fresh walkdir v2.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh tracing-log v0.2.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh clap v4.5.59
+       Fresh regex v1.12.3
+       Fresh matchers v0.2.0
+       Fresh thread_local v1.1.9
+       Fresh anes v0.1.6
+       Fresh rand_core v0.10.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh smallvec v1.15.1
+       Fresh oorandom v11.1.5
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-4akUoH.tmp/packages/mudlark): the file `packages/mudlark/src/graph_budget.rs` has changed (1773695847.861664264s, 18s after last build at 1773695829.225221365s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-4akUoH.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0277]: the trait bound `Pewei<C, V>: Default` is not satisfied
+   --> packages/mudlark/src/graph_extract.rs:61:9
+    |
+ 61 |         Default::default() /* ~ changed by cargo-mutants ~ */
+    |         ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `Pewei<C, V>`
+    |
+help: consider annotating `Pewei<C, V>` with `#[derive(Default)]`
+   --> packages/mudlark/src/pewei.rs:164:1
+    |
+164 + #[derive(Default)]
+165 | pub struct Pewei<C: Coordinate, V: Accumulator> {
+    |
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `torrust-mudlark` (lib) due to 1 previous error
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

@@ -1,0 +1,30 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::cascade_shift -> Self with Default::default()
+@@ -423,26 +423,17 @@
+     ///
+     /// The transition interleaves lingering `a` observations (every
+     /// 3rd step) with dominant `b` observations, forcing the old
+     /// subtree to merge/contract while the new one splits — creating
+     /// violations on both sides of their shared parent.
+     #[must_use]
+     pub fn cascade_shift(mut self, a: C, b: C, delta: V, n_build: usize, n_shift: usize) -> Self {
+         // Pure buildup at a
+-        self.observations.extend(std::iter::repeat((a, delta)).take(n_build));
+-        // Transition: gradually shift weight from a to b
+-        for i in 0..n_shift {
+-            if i % 3 == 0 {
+-                self.observations.push((a, delta)); // lingering
+-            } else {
+-                self.observations.push((b, delta));
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Coverage / topology patterns ────────────────────────────
+     //
+     // Diverse traversal strategies that exercise the V-Tree from
+     // different angles.
+ 
+     /// Diamond: converge from domain extremes toward the center, then

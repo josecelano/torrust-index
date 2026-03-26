@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_traits.rs
++++ replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())]))
+@@ -14,17 +14,17 @@
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::SpatialRead for GvGraph<C, V, N> {
+     type Coord = C;
+     type Accum = V;
+ 
+     fn plateaus(
+         &self,
+     ) -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> {
+-        self.plateaus()
++        Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn get(&self, coord: C) -> crate::view::Cell<C, V> {
+         self.get(coord)
+     }
+ }
+ 
+ // ── SpatialWrite impl ────────────────────────────────────────────────

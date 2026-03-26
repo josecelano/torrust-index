@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/attenuatable.rs
++++ replace * with + in <impl Attenuatable for f32>::attenuate
+@@ -127,17 +127,17 @@
+ impl_attenuatable_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Attenuatable for f32 {
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn attenuate(self, factor: f64) -> Self {
+-        (f64::from(self) * factor) as Self
++        (f64::from(self) + /* ~ changed by cargo-mutants ~ */ factor) as Self
+     }
+ }
+ 
+ impl Attenuatable for f64 {
+     #[inline]
+     fn attenuate(self, factor: f64) -> Self {
+         self * factor
+     }

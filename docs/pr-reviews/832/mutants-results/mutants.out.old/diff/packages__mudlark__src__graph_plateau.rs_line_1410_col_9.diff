@@ -1,0 +1,64 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_after_bootstrap_split with ()
+@@ -1402,60 +1402,17 @@
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_observe<O: crate::traits::Observation<V>>(&mut self, _g_id: GNodeId, _delta: O) {}
+ 
+     /// Post-bootstrap-split: parent was terminal → now balanced
+     /// internal. Remove old basis element and re-place at child depth.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn plateau_after_bootstrap_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
+-        let _span = tracing::debug_span!("plateau_after_bootstrap_split", g_id = g_id.index(), left = left_id.index(),).entered();
+-
+-        // ADR-M-031: mark dirty for trailing normalize in observe().
+-        self.plateaus_dirty = true;
+-
+-        let old_key = self
+-            .plateau_basis
+-            .remove(g_id)
+-            .expect("bootstrap_split: g_id must be a basis element");
+-        self.fixup_plateau(old_key);
+-
+-        let right_id = self
+-            .gnodes
+-            .get(g_id.index())
+-            .right
+-            .expect("bootstrap_split: g_id must have a right child");
+-
+-        let left_depth =
+-            crate::gtree::gnode_depth_from_interval(self.gnodes.get(left_id.index()).lo, self.gnodes.get(left_id.index()).hi, N);
+-        let right_depth = crate::gtree::gnode_depth_from_interval(
+-            self.gnodes.get(right_id.index()).lo,
+-            self.gnodes.get(right_id.index()).hi,
+-            N,
+-        );
+-
+-        if left_depth == right_depth {
+-            // Power-of-2 domain: parent subtree is uniform, place
+-            // parent as a single basis element.
+-            self.place_basis_element(g_id, left_depth);
+-        } else {
+-            // Non-power-of-2 domain (e.g. u8/N=8, domain_max=255):
+-            // children have different depths, so the parent subtree
+-            // is not uniform. Place each child individually.
+-            tracing::debug!(
+-                g = g_id.index(),
+-                left = left_id.index(),
+-                right = right_id.index(),
+-                left_depth,
+-                right_depth,
+-                "bootstrap_split: unequal child depths, placing children separately"
+-            );
+-            self.place_basis_element(left_id, left_depth);
+-            self.place_basis_element(right_id, right_depth);
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_bootstrap_split(&mut self, _g_id: GNodeId, _left_id: GNodeId) {}
+ 

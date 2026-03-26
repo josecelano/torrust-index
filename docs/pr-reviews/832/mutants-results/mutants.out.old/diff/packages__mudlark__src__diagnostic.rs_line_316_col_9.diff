@@ -1,0 +1,37 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace <impl fmt::Display for Gn<'_, C, V>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -308,33 +308,17 @@
+ /// G-node display: `G5(T,[0,128),sum=42)`.
+ ///
+ /// Shows the arena index, state (T/S/I for Terminal/SemiInternal/Internal),
+ /// interval, and accumulated sum.
+ pub struct Gn<'a, C: Coordinate, V: Accumulator + Inspectable>(pub &'a Arena<GNode<C, V>>, pub GNodeId);
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        let idx = self.1.index();
+-        if !self.0.is_occupied(idx) {
+-            return write!(f, "G{idx}(DEAD)");
+-        }
+-        let g = self.0.get(idx);
+-        let state = match g.state() {
+-            crate::gnode::GState::Terminal => "T",
+-            crate::gnode::GState::SemiInternal => "S",
+-            crate::gnode::GState::Internal => "I",
+-        };
+-        write!(
+-            f,
+-            "G{idx}({state},[{},{}),sum={})",
+-            g.lo.to_f64(),
+-            g.hi.to_f64(),
+-            g.sum.to_f64_approx()
+-        )
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// Plateau display: `P([0,128),d=3,sum=42)`.
+ ///
+ /// Shows the thatched range, depth, and total energy of the plateau.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(pub &'a GvGraph<C, V, N>, pub GNodeId);

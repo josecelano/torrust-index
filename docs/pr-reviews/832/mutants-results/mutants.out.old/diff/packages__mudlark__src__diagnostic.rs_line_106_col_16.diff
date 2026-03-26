@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace != with == in audit_plateau_consistency
+@@ -98,17 +98,17 @@
+                 tracing::error!(checkpoint, ?key, gnode = r.index(), ?back, "basis back-pointer inconsistency");
+             }
+         }
+     }
+ 
+     // 2. Plateau count matches basis plateau count.
+     let map_len = graph.plateaus.len();
+     let basis_len = graph.plateau_basis.plateau_count();
+-    if map_len != basis_len {
++    if map_len == /* ~ changed by cargo-mutants ~ */ basis_len {
+         tracing::error!(
+             checkpoint,
+             map_len,
+             basis_len,
+             "plateaus.len() != plateau_basis.plateau_count()",
+         );
+     }
+ 

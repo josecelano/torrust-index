@@ -1,0 +1,24 @@
+--- packages/mudlark/src/traits/observation.rs
++++ replace Observation::scale -> V with Default::default()
+@@ -112,20 +112,17 @@
+     /// Multiplicative scaling: `current × factor`, in `Self`'s
+     /// precision, stored as `V`.
+     ///
+     /// Default panics.  Cross-type impls (`f64` → uint, `f32` → uint)
+     /// provide working implementations.  Same-type `scale` is not
+     /// used by the core engine — `decay()` uses
+     /// `Attenuatable::attenuate` directly.
+     fn scale(_current: V, _factor: Self) -> V {
+-        unimplemented!(
+-            "Observation::scale: use a cross-type Observation impl \
+-             (e.g. f64 → uint) or call Attenuatable::attenuate directly"
+-        )
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Same-type blanket impl ──────────────────────────────────────────
+ 
+ /// Every `V: Accumulator` is `Observation<V>` (same-type).
+ ///
+ /// Provides `accumulate` via [`Accumulator::add`].  `scale` uses

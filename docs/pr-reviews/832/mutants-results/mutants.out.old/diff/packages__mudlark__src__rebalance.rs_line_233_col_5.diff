@@ -1,0 +1,99 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace contract -> VNodeId with Default::default()
+@@ -225,95 +225,17 @@
+ /// Returns the ID of the newly created merged structural node.
+ ///
+ /// See §IDEA M-11.3.
+ ///
+ /// # Panics
+ ///
+ /// Panics if `p` is not a structural 3-node.
+ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNodeId {
+-    let _span = tracing::debug_span!(
+-        "contract",
+-        p = %Nd(vnodes, p),
+-        children = %Ch(vnodes, p),
+-    )
+-    .entered();
+-
+-    // Read the 3-node's children.
+-    let (heaviest_idx, children_data) = {
+-        let node = vnodes.get(p.index());
+-        let children = match &node.kind {
+-            VKind::Structural { children, .. } => children,
+-            VKind::Entry { .. } => panic!("contract: p must be structural"),
+-        };
+-        assert!(children.len() == 3, "contract: p must be a 3-node");
+-        let h = children.heaviest_child_index();
+-        let data: [(VNodeId, V); 3] = [children.get(0), children.get(1), children.get(2)];
+-        (h, data)
+-    };
+-
+-    // Identify isolate vs merge pair.
+-    let isolate = children_data[heaviest_idx];
+-    let mut merge = Vec::with_capacity(2);
+-    for (i, &child) in children_data.iter().enumerate() {
+-        if i != heaviest_idx {
+-            merge.push(child);
+-        }
+-    }
+-    let (a_id, a_int) = merge[0];
+-    let (b_id, b_int) = merge[1];
+-
+-    // Compute has_evictable for the merged node.
+-    let a_terminal = node_has_evictable(vnodes, a_id);
+-    let b_terminal = node_has_evictable(vnodes, b_id);
+-
+-    // Compute merged node depth (same as p's children, i.e. p_depth + 1)
+-    let p_depth = vnodes.get(p.index()).cached_depth.load(Ordering::Relaxed);
+-    let m_depth = if p_depth == DEPTH_STALE { DEPTH_STALE } else { p_depth + 1 };
+-
+-    // Create the merged structural node.
+-    let merged = VNode {
+-        intensity: V::add(a_int, b_int),
+-        parent: Some(p),
+-        cached_depth: AtomicU32::new(m_depth),
+-        kind: VKind::Structural {
+-            children: PackedChildren::new_2((a_id, a_int), (b_id, b_int)),
+-            has_evictable: a_terminal || b_terminal,
+-        },
+-    };
+-    let m_id = VNodeId::from_index(vnodes.alloc(merged));
+-
+-    // Re-parent a and b.
+-    vnodes.get_mut(a_id.index()).parent = Some(m_id);
+-    vnodes.get_mut(b_id.index()).parent = Some(m_id);
+-
+-    // Invalidate depth cache for a and b subtrees (they moved down one level)
+-    invalidate_depth_subtree(vnodes, a_id);
+-    invalidate_depth_subtree(vnodes, b_id);
+-
+-    // Rewrite p as a 2-node: [isolate, merged].
+-    let merged_int = V::add(a_int, b_int);
+-    let iso_terminal = node_has_evictable(vnodes, isolate.0);
+-    let m_terminal = a_terminal || b_terminal;
+-
+-    let p_node = vnodes.get_mut(p.index());
+-    if let VKind::Structural { children, has_evictable } = &mut p_node.kind {
+-        *children = PackedChildren::new_2(isolate, (m_id, merged_int));
+-        *has_evictable = iso_terminal || m_terminal;
+-    }
+-
+-    // Propagate terminal flags upward from p.
+-    propagate_evictable_flags(vnodes, p);
+-
+-    tracing::debug!(
+-        merged = %Nd(vnodes, m_id),
+-        result = %Ch(vnodes, p),
+-        "complete",
+-    );
+-    m_id
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Standard Promote (§IDEA M-11.4) ─────────────────────────────────
+ 
+ /// Standard promotion: explode a 2-child structural node `c` into
+ /// its parent `p`, turning `p` into a 3-node.
+ ///
+ /// **Precondition:** `c` is structural with 2 children. `p` is a

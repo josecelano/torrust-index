@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace + with * in GvGraph<C, V, N>::fixup_plateau
+@@ -1133,17 +1133,17 @@
+                 for &gid in &element_ids {
+                     self.plateau_basis.remove(gid);
+                     let g = self.gnodes.get(gid.index());
+                     let d = match g.state() {
+                         crate::gnode::GState::Terminal | crate::gnode::GState::SemiInternal => {
+                             crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
+                         }
+                         crate::gnode::GState::Internal => crate::graph::uniform_contour_depth_of(&self.gnodes, gid, N)
+-                            .unwrap_or_else(|| crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N) + 1),
++                            .unwrap_or_else(|| crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N) * /* ~ changed by cargo-mutants ~ */ 1),
+                     };
+                     displaced.push((gid, d));
+                 }
+                 self.plateaus.remove(&old_key);
+                 self.place_sorted(&mut displaced);
+                 return;
+             }
+         }

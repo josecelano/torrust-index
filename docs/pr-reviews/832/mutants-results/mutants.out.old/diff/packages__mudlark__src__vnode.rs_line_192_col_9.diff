@@ -1,0 +1,23 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::replace_child with ()
+@@ -184,19 +184,17 @@
+     }
+ 
+     /// Replace one child with another.
+     ///
+     /// # Panics
+     ///
+     /// Panics if `old` is not found among the children.
+     pub fn replace_child(&mut self, old: VNodeId, new: VNodeId, new_intensity: V) {
+-        let idx = self.find_index(old).expect("replace_child: old id not found");
+-        self.ids[idx] = Some(new);
+-        self.intensities[idx] = new_intensity;
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Add a child (2-node → 3-node).
+     ///
+     /// # Panics
+     ///
+     /// Panics if already a 3-node.
+     pub fn add_child(&mut self, id: VNodeId, intensity: V) {

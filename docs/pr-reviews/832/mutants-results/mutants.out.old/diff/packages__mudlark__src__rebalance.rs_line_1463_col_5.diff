@@ -1,0 +1,28 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace find_violated_nodes -> Vec<VNodeId> with vec![]
+@@ -1455,24 +1455,15 @@
+ 
+ /// Full-tree scan for violated nodes, returned deepest-first.
+ ///
+ /// This is the spec's §IDEA M-11.8 audit function — `O(n)` per call.
+ /// Used by the `debug_assert!` at the end of [`rebalance`] to confirm
+ /// the queue-based loop left no violations behind.
+ #[must_use]
+ pub fn find_violated_nodes<V: Accumulator>(vnodes: &Arena<VNode<V>>) -> Vec<VNodeId> {
+-    let mut violated: Vec<(VNodeId, u32)> = Vec::new();
+-    for (idx, _) in vnodes.iter_occupied() {
+-        let id = VNodeId::from_index(idx);
+-        if is_violated(vnodes, id) {
+-            violated.push((id, v_depth(vnodes, id)));
+-        }
+-    }
+-    // Deepest first (highest depth = processed first).
+-    violated.sort_by_key(|b| std::cmp::Reverse(b.1));
+-    violated.into_iter().map(|(id, _)| id).collect()
++    vec![] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Unit tests ──────────────────────────────────────────────────────
+ 
+ #[cfg(test)]
+ mod tests {}

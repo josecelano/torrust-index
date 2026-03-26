@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace - with / in GvGraph<C, V, N>::sample_child
+@@ -109,17 +109,17 @@
+         for i in 0..children.len() {
+             cumulative += children.intensities[i].weight();
+             if threshold < cumulative {
+                 return children.ids[i].expect("child ID within len");
+             }
+         }
+         // Floating-point rounding safeguard: if threshold rounds to
+         // exactly `total`, fall through to the last child.
+-        children.ids[children.len() - 1].expect("last child ID")
++        children.ids[children.len() / /* ~ changed by cargo-mutants ~ */ 1].expect("last child ID")
+     }
+ 
+     // ── Point Query (Phase 5, Step 3 — ADR-M-026) ────────────────
+ }
+ 
+ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
+     /// Infallible point query: which cell receives observations at
+     /// `coord`?

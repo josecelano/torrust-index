@@ -1,0 +1,21 @@
+--- packages/mudlark/src/view.rs
++++ replace Node<C, V>::is_terminal -> bool with true
+@@ -383,17 +383,17 @@
+     /// # let mut g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// # g.observe(42, 10u64);
+     /// let (_layer, node) = g.layers().next().unwrap();
+     /// assert_eq!(node.is_terminal(), node.state == GState::Terminal);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn is_terminal(&self) -> bool {
+-        self.state == GState::Terminal
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Refinement energy: `sum - own`
+     ///
+     /// Quantifies how much energy in this node's region comes from
+     /// child nodes rather than direct accumulation. For terminal
+     /// nodes (no children) this is always zero; for internal or
+     /// semi-internal nodes it reveals how much spatial detail exists

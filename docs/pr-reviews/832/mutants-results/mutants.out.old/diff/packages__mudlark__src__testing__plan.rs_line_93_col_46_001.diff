@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::spread
+@@ -85,17 +85,17 @@
+ // ── Convenience builders (need Coordinate + Accumulator) ────────
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable> Plan<C, V> {
+     /// Uniform spread: `n` observations cycling through coordinates
+     /// `0, 1, 2, …` (mod `domain`), all with the same `delta`.
+     #[must_use]
+     pub fn spread(mut self, domain: u64, delta: V, n: usize) -> Self {
+         for i in 0..n {
+-            let coord = C::from_u64(i as u64 % domain);
++            let coord = C::from_u64(i as u64 + /* ~ changed by cargo-mutants ~ */ domain);
+             self.observations.push((coord, delta));
+         }
+         self
+     }
+ 
+     /// Monotone sweep: coordinates `0, 1, 2, …` (mod `domain`), with
+     /// varying intensity `(i % 7) + 1`.
+     #[must_use]

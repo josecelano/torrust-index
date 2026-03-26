@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ delete ! in GvGraph<C, V, N>::gnode_info
+@@ -1099,17 +1099,17 @@
+     /// // Root is always live.
+     /// let info = g.gnode_info(g.g_root()).unwrap();
+     /// assert_eq!(info.start, 0);
+     /// assert_eq!(info.end, 256);
+     /// assert!(info.parent.is_none());
+     /// ```
+     #[must_use]
+     pub fn gnode_info(&self, id: GNodeId) -> Option<GNodeInfo<C, V>> {
+-        if !self.gnodes.is_occupied(id.index()) {
++        if  /* ~ changed by cargo-mutants ~ */self.gnodes.is_occupied(id.index()) {
+             return None;
+         }
+         let g = self.gnodes.get(id.index());
+         Some(GNodeInfo {
+             start: g.lo,
+             end: g.hi,
+             own: g.own,
+             sum: g.sum,

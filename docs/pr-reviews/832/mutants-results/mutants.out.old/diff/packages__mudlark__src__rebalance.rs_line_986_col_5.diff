@@ -1,0 +1,40 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_cousin_violations_with_config with ()
+@@ -978,36 +978,17 @@
+ #[inline]
+ pub fn push_cousin_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     sole: VNodeId,
+     grandparent: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_9_collapse_cousins {
+-        return;
+-    }
+-    // Get the OTHER children of grandparent (excluding sole, which was just promoted)
+-    let cousins: Vec<VNodeId> = match &vnodes.get(grandparent.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != sole).collect(),
+-        VKind::Entry { .. } => return,
+-    };
+-
+-    tracing::debug!(
+-        sole = sole.index(),
+-        grandparent = grandparent.index(),
+-        cousins = ?cousins.iter().map(|c| c.index()).collect::<Vec<_>>(),
+-        "push_cousin_violations: checking cousins' children (source 9)",
+-    );
+-
+-    // Check each cousin's children for violations.
+-    for cousin in cousins {
+-        push_children_violations(vnodes, cousin, "collapse cousins (source 9)", violations);
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Check a node's direct children for violations.
+ ///
+ /// Helper function for source 7 (collapse), source 8 (3→2 transition),
+ /// and source 9 (collapse cousins).
+ fn push_children_violations<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

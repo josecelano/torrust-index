@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with / in Plan<C, V>::sweep
+@@ -98,17 +98,17 @@
+ 
+     /// Monotone sweep: coordinates `0, 1, 2, …` (mod `domain`), with
+     /// varying intensity `(i % 7) + 1`.
+     #[must_use]
+     pub fn sweep(mut self, domain: u64, n: usize) -> Self {
+         for i in 0..n {
+             let coord = C::from_u64(i as u64 % domain);
+             #[allow(clippy::cast_precision_loss)]
+-            let delta = V::from_f64((i as u64 % 7 + 1) as f64);
++            let delta = V::from_f64((i as u64 / /* ~ changed by cargo-mutants ~ */ 7 + 1) as f64);
+             self.observations.push((coord, delta));
+         }
+         self
+     }
+ 
+     /// Alternating extremes: `lo`, `hi`, `lo`, `hi`, …
+     #[must_use]
+     pub fn zigzag(mut self, lo: C, hi: C, delta: V, n: usize) -> Self {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace || with && in GvGraph<C, V, N>::decay_uniform
+@@ -186,17 +186,17 @@
+             self.plateaus_dirty = true;
+         }
+         self.normalize_plateaus();
+ 
+         // 7. Re-run P-I4 repair after normalization.
+         self.repair_p_i4();
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-DECAY-UNIFORM");
+         }
+     }
+ 
+     // ── Selective path (q > 0) ──────────────────────────────────
+ 
+     /// Per-depth factor table, bottom-up G-sum recompute, trailing
+     /// rebalance.

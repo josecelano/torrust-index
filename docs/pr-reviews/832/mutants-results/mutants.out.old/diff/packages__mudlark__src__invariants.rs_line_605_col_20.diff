@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_v_i7_structural_flag
+@@ -597,17 +597,17 @@
+ fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (idx, v) in graph.vnodes().iter_occupied() {
+         if let VKind::Structural { children, has_evictable } = &v.kind {
+             let expected = (0..children.len()).any(|i| {
+                 let (child_id, _) = children.get(i);
+-                if !graph.vnodes().is_occupied(child_id.index()) {
++                if  /* ~ changed by cargo-mutants ~ */graph.vnodes().is_occupied(child_id.index()) {
+                     return false;
+                 }
+                 let child = graph.vnodes().get(child_id.index());
+                 match &child.kind {
+                     VKind::Entry { is_evictable, .. } => *is_evictable,
+                     VKind::Structural { has_evictable, .. } => *has_evictable,
+                 }
+             });

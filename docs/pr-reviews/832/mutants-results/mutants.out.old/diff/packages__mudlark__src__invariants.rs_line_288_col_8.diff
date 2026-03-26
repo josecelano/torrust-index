@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in dump_plateaus
+@@ -280,17 +280,17 @@
+         for e in &p_i3_errors {
+             writeln!(out, "    !! {e}").unwrap();
+         }
+     }
+ 
+     // Append P-I4 check.
+     let mut p_i4_errors = Vec::new();
+     check_p_i4_thatch_one_hop(graph, &mut p_i4_errors);
+-    if !p_i4_errors.is_empty() {
++    if  /* ~ changed by cargo-mutants ~ */p_i4_errors.is_empty() {
+         writeln!(out, "  ─── P-I4 violations ───").unwrap();
+         for e in &p_i4_errors {
+             writeln!(out, "    !! {e}").unwrap();
+         }
+     }
+ 
+     out
+ }

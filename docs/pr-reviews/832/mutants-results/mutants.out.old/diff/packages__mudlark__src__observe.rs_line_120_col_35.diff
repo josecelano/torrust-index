@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ replace || with && in GvGraph<C, V, N>::observe
+@@ -112,17 +112,17 @@
+             self.live_depth_evict,
+         );
+         if !new_gnodes.is_empty() {
+             self.handle_legacy_promotes(&new_gnodes);
+             self.repair_p_i4();
+         }
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
+         }
+ 
+         // 7. Dynamic depth control (§IDEA M-7.1, ADR-M-017).
+         self.adjust_depth_gates();
+ 
+         // 8. Budget-guarded eviction (ADR-M-015, ADR-M-018).
+         if let Some(soft_limit) = self.soft_limit {

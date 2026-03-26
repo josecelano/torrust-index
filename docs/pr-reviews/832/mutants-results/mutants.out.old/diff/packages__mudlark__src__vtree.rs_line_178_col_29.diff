@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vtree.rs
++++ replace == with != in propagate_evictable_flags
+@@ -170,17 +170,17 @@
+         let node = vnodes.get(id.index());
+         match &node.kind {
+             VKind::Entry { .. } => {
+                 current = node.parent;
+             }
+             VKind::Structural { children, has_evictable } => {
+                 let old = *has_evictable;
+                 let new_flag = compute_has_evictable(vnodes, children);
+-                if new_flag == old {
++                if new_flag != /* ~ changed by cargo-mutants ~ */ old {
+                     return; // No change — stop propagation.
+                 }
+                 // Must drop borrow before mutating.
+                 let parent = node.parent;
+                 set_has_evictable(vnodes, id, new_flag);
+                 current = parent;
+             }
+         }

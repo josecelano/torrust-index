@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::plateau_after_catalytic_split
+@@ -1513,17 +1513,17 @@
+                     let mut displaced: Vec<GNodeId> = Vec::new();
+                     for &path_node in &path {
+                         let par = self
+                             .gnodes
+                             .get(path_node.index())
+                             .parent
+                             .expect("path node must have a parent");
+                         let pg = self.gnodes.get(par.index());
+-                        let sibling = if pg.left == Some(path_node) { pg.right } else { pg.left };
++                        let sibling = if pg.left != /* ~ changed by cargo-mutants ~ */ Some(path_node) { pg.right } else { pg.left };
+                         if let Some(sib_id) = sibling {
+                             displaced.push(sib_id);
+                         }
+                     }
+                     // Also evacuate remaining co-basis elements of the
+                     // same plateau (they may become non-contiguous after
+                     // the ancestor's removal).
+                     let co_members: Vec<GNodeId> = self.plateau_basis.basis_elements(&key).iter().copied().collect();

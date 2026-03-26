@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in check_p_i2_basis_minimality
+@@ -1283,17 +1283,17 @@
+                 continue;
+             }
+ 
+             // Check: does R's parent also have uniform contour depth ==
+             // expected_depth?  If so, R should have been consolidated
+             // into the parent.
+             if let Some(parent_id) = g.parent {
+                 if let Some(parent_depth) = uniform_contour_depth_of(graph.gnodes(), parent_id, N) {
+-                    if parent_depth == expected_depth {
++                    if parent_depth != /* ~ changed by cargo-mutants ~ */ expected_depth {
+                         errors.push(format!(
+                             "P-I2 minimality: basis element G({}) in plateau {key:?} \
+                              has parent G({}) with uniform contour depth {parent_depth} \
+                              == plateau depth {expected_depth} — parent should be the \
+                              basis element instead",
+                             gid.index(),
+                             parent_id.index(),
+                         ));

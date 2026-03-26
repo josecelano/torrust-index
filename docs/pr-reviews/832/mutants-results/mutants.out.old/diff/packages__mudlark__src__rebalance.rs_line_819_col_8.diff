@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_leaf_removal_violations_with_config
+@@ -811,17 +811,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_leaf_removal_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     start: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_6_leaf_removal_ancestors {
++    if  /* ~ changed by cargo-mutants ~ */config.source_6_leaf_removal_ancestors {
+         return;
+     }
+     let mut ancestor = start;
+     while let Some(parent) = vnodes.get(ancestor.index()).parent {
+         // Iterate siblings of `ancestor` under `parent`.
+         let sibling_ids: Vec<VNodeId> = match &vnodes.get(parent.index()).kind {
+             VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != ancestor).collect(),
+             VKind::Entry { .. } => break,

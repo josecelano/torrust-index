@@ -1,0 +1,238 @@
+
+*** packages/mudlark/src/split.rs:186:5: replace catalytic_split with ()
+
+*** mutation diff:
+--- packages/mudlark/src/split.rs
++++ replace catalytic_split with ()
+@@ -178,100 +178,17 @@
+ /// - 2 V-entries + 1 structural wrapping them
+ /// - Adds structural as 3rd child of V-parent (2→3-node)
+ ///
+ /// Flips entry's `is_exposed` to false. Propagates evictable flags.
+ ///
+ /// See §IDEA M-10.2.
+ #[allow(clippy::too_many_lines)] // Plateau maintenance adds ~50 lines.
+ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+-    let (lo, hi, entry_id) = {
+-        let g = graph.gnodes.get(g_id.index());
+-        (g.lo, g.hi, g.entry.expect("catalytic_split: g must have an entry"))
+-    };
+-    let mid = C::midpoint(lo, hi);
+-    let _span = tracing::debug_span!("catalytic_split", g_id = g_id.index(), ?lo, ?hi, ?mid,).entered();
+-    let p_id = graph
+-        .vnodes
+-        .get(entry_id.index())
+-        .parent
+-        .expect("catalytic_split: entry must have a parent");
+-
+-    // G-Tree: create children.
+-    let left_id = alloc_g_child(&mut graph.gnodes, lo, mid, g_id);
+-    let right_id = alloc_g_child(&mut graph.gnodes, mid, hi, g_id);
+-    graph.gnodes.get_mut(g_id.index()).left = Some(left_id);
+-    graph.gnodes.get_mut(g_id.index()).right = Some(right_id);
+-
+-    // V-Tree: create entries for children.
+-    let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, left_id);
+-    let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, right_id);
+-
+-    // Get parent's depth to compute s_depth
+-    let p_depth = graph.vnodes.get(p_id.index()).cached_depth.load(Ordering::Relaxed);
+-    let s_depth = if p_depth == DEPTH_STALE { DEPTH_STALE } else { p_depth + 1 };
+-    let child_depth = if s_depth == DEPTH_STALE { DEPTH_STALE } else { s_depth + 1 };
+-
+-    // V-Tree: structural wrapping the entries.
+-    let s = VNode {
+-        intensity: V::zero(),
+-        parent: Some(p_id),
+-        cached_depth: AtomicU32::new(s_depth),
+-        kind: VKind::Structural {
+-            children: PackedChildren::new_2((le_id, V::zero()), (re_id, V::zero())),
+-            has_evictable: true,
+-        },
+-    };
+-    let s_id = VNodeId::from_index(graph.vnodes.alloc(s));
+-    graph.vnodes.get_mut(le_id.index()).parent = Some(s_id);
+-    graph.vnodes.get_mut(re_id.index()).parent = Some(s_id);
+-    // Set child depths
+-    graph
+-        .vnodes
+-        .get(le_id.index())
+-        .cached_depth
+-        .store(child_depth, Ordering::Relaxed);
+-    graph
+-        .vnodes
+-        .get(re_id.index())
+-        .cached_depth
+-        .store(child_depth, Ordering::Relaxed);
+-
+-    // Add s as third child of p (2-node → 3-node).
+-    let p = graph.vnodes.get_mut(p_id.index());
+-    if let VKind::Structural { children, .. } = &mut p.kind {
+-        children.add_child(s_id, V::zero());
+-    }
+-
+-    // Flip entry's flags: now internal (both children present).
+-    if let VKind::Entry {
+-        is_exposed,
+-        is_evictable,
+-        ..
+-    } = &mut graph.vnodes.get_mut(entry_id.index()).kind
+-    {
+-        *is_exposed = false;
+-        *is_evictable = false;
+-    }
+-
+-    // Propagate evictable flags upward from p.
+-    propagate_evictable_flags(&mut graph.vnodes, p_id);
+-
+-    // Update node count.
+-    graph.node_count += 2;
+-    // +2 new terminals, −1 parent no longer terminal = net +1.
+-    graph.terminal_count += 1;
+-
+-    // Plateau maintenance (no-op without `plateau` feature).
+-    graph.plateau_after_catalytic_split(g_id, left_id);
+-
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    if tracing::enabled!(tracing::Level::DEBUG) {
+-        crate::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Allocation helpers ──────────────────────────────────────────────
+ 
+ /// Allocate a terminal G-child covering `[lo, hi)` under `parent`.
+ fn alloc_g_child<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, lo: C, hi: C, parent: GNodeId) -> GNodeId {
+     let g = GNode {
+         lo,
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+    Blocking waiting for file lock on package cache
+       Fresh unicode-ident v1.0.24
+       Fresh cfg-if v1.0.4
+       Fresh once_cell v1.21.3
+       Fresh autocfg v1.5.0
+       Fresh shlex v1.3.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh regex-syntax v0.8.9
+       Fresh either v1.15.0
+       Fresh proc-macro2 v1.0.106
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh clap_lex v1.0.0
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh plotters-backend v0.3.7
+       Fresh ciborium-io v0.2.2
+       Fresh itoa v1.0.17
+       Fresh memchr v2.8.0
+       Fresh itertools v0.13.0
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh log v0.4.29
+       Fresh lazy_static v1.5.0
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh nu-ansi-term v0.50.3
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh quote v1.0.44
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh zmij v1.0.21
+       Fresh plotters-svg v0.3.7
+       Fresh libc v0.2.182
+       Fresh clap_builder v4.5.59
+       Fresh sharded-slab v0.1.7
+       Fresh tracing-log v0.2.0
+       Fresh regex v1.12.3
+       Fresh criterion-plot v0.8.2
+       Fresh matchers v0.2.0
+       Fresh walkdir v2.5.0
+       Fresh syn v2.0.116
+       Fresh crossbeam-epoch v0.9.18
+       Fresh serde_json v1.0.149
+       Fresh num-traits v0.2.19
+       Fresh page_size v0.6.0
+       Fresh clap v4.5.59
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh tracing-attributes v0.1.31
+       Fresh crossbeam-deque v0.8.6
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh rayon-core v1.13.0
+       Fresh tracing v0.1.44
+       Fresh half v2.7.1
+       Fresh tinytemplate v1.2.1
+       Fresh rayon v1.11.0
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): the file `packages/mudlark/src/split.rs` has changed (1773697151.900755784s, 2s after last build at 1773697149.011750223s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+       Fresh ciborium-ll v0.2.2
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error: unused import: `propagate_evictable_flags`
+  --> packages/mudlark/src/split.rs:20:20
+   |
+20 | use crate::vtree::{propagate_evictable_flags, v_depth};
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_imports)]`
+
+error: unused variable: `graph`
+   --> packages/mudlark/src/split.rs:185:79
+    |
+185 | fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+    |                                                                               ^^^^^ help: if this is intentional, prefix it with an underscore: `_graph`
+    |
+    = note: `-D unused-variables` implied by `-D unused`
+    = help: to override `-D unused` add `#[allow(unused_variables)]`
+
+error: unused variable: `g_id`
+   --> packages/mudlark/src/split.rs:185:109
+    |
+185 | fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+    |                                                                                                             ^^^^ help: if this is intentional, prefix it with an underscore: `_g_id`
+
+error: method `plateau_after_catalytic_split` is never used
+    --> packages/mudlark/src/graph_plateau.rs:1466:19
+     |
+  24 | impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+     | -------------------------------------------------------------------------------- method in this implementation
+...
+1466 |     pub(crate) fn plateau_after_catalytic_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `-D dead-code` implied by `-D unused`
+     = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: method `add_child` is never used
+   --> packages/mudlark/src/vnode.rs:202:12
+    |
+110 | impl<V: Copy + Default + PartialOrd> PackedChildren<V> {
+    | ------------------------------------------------------ method in this implementation
+...
+202 |     pub fn add_child(&mut self, id: VNodeId, intensity: V) {
+    |            ^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 5 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `torrust-mudlark` (lib test) due to 4 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

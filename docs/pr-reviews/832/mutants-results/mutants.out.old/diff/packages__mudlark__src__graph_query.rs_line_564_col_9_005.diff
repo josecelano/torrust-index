@@ -1,0 +1,50 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new()))
+@@ -556,46 +556,17 @@
+     /// // Arbitrary coordinates → lattice-aligned contour range endpoints.
+     /// if let Some((start, end)) = g.select_plateaus(10, 60) {
+     ///     let cr = g.contour_range(start, end).unwrap();
+     ///     assert!(cr.basis.len() >= 1);
+     /// }
+     /// ```
+     #[must_use]
+     pub fn select_plateaus(&self, lo: C, hi: C) -> Option<(BasisEdge<C>, BasisEdge<C>)> {
+-        use std::ops::Bound;
+-
+-        if lo >= hi {
+-            return None;
+-        }
+-
+-        let plateaus = self.plateaus();
+-        if plateaus.is_empty() {
+-            return None;
+-        }
+-
+-        // §CR.12: find the largest a_j ≤ lo  (floor index)
+-        let start_entry = plateaus.range(..=BasisEdge(lo)).next_back().map(|(k, _)| *k)?;
+-
+-        // §CR.12: find the last plateau whose basis edge is < hi.
+-        let last_plateau_key = plateaus.range(..BasisEdge(hi)).next_back().map(|(k, _)| *k)?;
+-
+-        // The end endpoint is the next key after last_plateau_key,
+-        // or the domain sentinel 2^N.
+-        let end = plateaus
+-            .range((Bound::Excluded(last_plateau_key), Bound::Unbounded))
+-            .next()
+-            .map_or_else(|| BasisEdge(C::domain_max(N)), |(k, _)| *k);
+-
+-        // Sanity: start < end (should always hold given the above logic).
+-        if start_entry >= end {
+-            return None;
+-        }
+-
+-        Some((start_entry, end))
++        Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new())) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Recursive G-Tree descent for basis set collection (§CR.8.1).
+     ///
+     /// Collects the minimal G-node cover of `[query_lo, query_hi)`.
+     /// Semi-internal nodes with an uncovered half overlapping the
+     /// range are flagged as boundary thatching elements (§CR.3.2).
+     fn decompose_basis(&self, gid: GNodeId, query_lo: C, query_hi: C, basis: &mut Vec<BasisElement<C, V>>) {

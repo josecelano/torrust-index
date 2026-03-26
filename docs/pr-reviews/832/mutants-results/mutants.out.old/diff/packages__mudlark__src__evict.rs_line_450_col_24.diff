@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace != with == in plateau_after_evict
+@@ -442,17 +442,17 @@
+     // Step 3 — Fixup: now that the ancestor walk is complete, we
+     // can safely fix up the evicted child's old plateau AND the
+     // ancestor's old plateau (if found).
+     if let Some(ek) = evicted_key {
+         graph.fixup_plateau(ek);
+     }
+     if let Some(ak) = ancestor_key {
+         // Don't double-fixup if the ancestor was the same plateau.
+-        if evicted_key != Some(ak) {
++        if evicted_key == /* ~ changed by cargo-mutants ~ */ Some(ak) {
+             graph.fixup_plateau(ak);
+         }
+     }
+ 
+     // Step 4+5 combined — Merge parent into displaced list, collect
+     // all basis elements, sort by BasisEdge, place left-to-right
+     // (ADR-M-031 §3a).
+     //

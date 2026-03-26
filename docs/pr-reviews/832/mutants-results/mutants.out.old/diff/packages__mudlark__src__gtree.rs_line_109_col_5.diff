@@ -1,0 +1,26 @@
+--- packages/mudlark/src/gtree.rs
++++ replace recompute_g_sums_subtree with ()
+@@ -101,22 +101,13 @@
+ /// `preorder` must list nodes in pre-order (root first). The function
+ /// iterates in reverse (post-order: leaves first) so each node's
+ /// children are already correct when it is visited.
+ ///
+ /// Cost: $O(|\text{preorder}|)$.
+ ///
+ /// Used by `decay()` after scaling `g.own` values.
+ pub fn recompute_g_sums_subtree<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, preorder: &[GNodeId]) {
+-    for &gid in preorder.iter().rev() {
+-        let (left_sum, right_sum) = {
+-            let g = gnodes.get(gid.index());
+-            let l = g.left.map_or_else(V::zero, |l| gnodes.get(l.index()).sum);
+-            let r = g.right.map_or_else(V::zero, |r| gnodes.get(r.index()).sum);
+-            (l, r)
+-        };
+-        let g = gnodes.get_mut(gid.index());
+-        g.sum = V::add(g.own, V::add(left_sum, right_sum));
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::find_index -> Option<usize> with Some(0)
+@@ -175,17 +175,17 @@
+             }
+         }
+         max_idx
+     }
+ 
+     /// Find the position of `id` in this node's children.
+     #[must_use]
+     pub fn find_index(&self, id: VNodeId) -> Option<usize> {
+-        (0..self.len()).find(|&i| self.ids[i] == Some(id))
++        Some(0) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Replace one child with another.
+     ///
+     /// # Panics
+     ///
+     /// Panics if `old` is not found among the children.
+     pub fn replace_child(&mut self, old: VNodeId, new: VNodeId, new_intensity: V) {

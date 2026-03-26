@@ -1,0 +1,32 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace any_child_violated -> bool with false
+@@ -1075,28 +1075,17 @@
+ 
+ /// Whether any direct child of `node` is violated (V-I3).
+ ///
+ /// Used by escalation: if a grandchild of `p` through the heaviest
+ /// child `h` is violated, resolving it would contract `p` (undoing
+ /// the promote) and create a merged node whose standard-promote
+ /// recreates the 3-node — an infinite cycle.
+ fn any_child_violated<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId) -> bool {
+-    match &vnodes.get(node.index()).kind {
+-        VKind::Structural { children, .. } => {
+-            for i in 0..children.len() {
+-                let (child_id, _) = children.get(i);
+-                if is_violated(vnodes, child_id) {
+-                    return true;
+-                }
+-            }
+-            false
+-        }
+-        VKind::Entry { .. } => false,
+-    }
++    false /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Escalation (§IDEA M-11.10) ──────────────────────────────────────
+ 
+ /// After standard-promote makes `p` a 3-node, check whether the
+ /// heaviest child (or its descendants) would cycle back.
+ ///
+ /// **Escalation triggers:**

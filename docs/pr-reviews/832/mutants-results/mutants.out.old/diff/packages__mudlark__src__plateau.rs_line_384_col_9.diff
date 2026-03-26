@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::contains -> bool with true
+@@ -376,17 +376,17 @@
+         static EMPTY: OnceLock<HashSet<GNodeId>> = OnceLock::new();
+         self.forward.get(key).unwrap_or_else(|| EMPTY.get_or_init(HashSet::new))
+     }
+ 
+     /// Whether `gnode` is currently a basis element of any plateau.
+     #[inline]
+     #[allow(unused)] // Available for future use; not called yet.
+     pub(crate) fn contains(&self, gnode: GNodeId) -> bool {
+-        self.back.contains_key(&gnode)
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Number of tracked plateaus (forward map entries).
+     #[inline]
+     pub(crate) fn plateau_count(&self) -> usize {
+         self.forward.len()
+     }
+ 

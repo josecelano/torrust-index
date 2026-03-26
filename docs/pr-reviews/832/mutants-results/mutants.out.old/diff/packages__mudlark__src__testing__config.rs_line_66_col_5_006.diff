@@ -1,0 +1,25 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace tight_budget_config -> Config<u64> with Config::from(1)
+@@ -58,21 +58,17 @@
+         ..BASE_U64
+     }
+ }
+ 
+ /// Tight budget: minimum allowed budget for buffer=3 (headroom=81,
+ /// budget=82, `soft_limit`=1).
+ #[must_use]
+ pub const fn tight_budget_config() -> Config<u64> {
+-    Config {
+-        budget: Some(82),
+-        bounded_eviction: false,
+-        ..BASE_U64
+-    }
++    Config::from(1) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Small buffer config: buffer=1 (`D_evict`=4), headroom=9.
+ #[must_use]
+ pub const fn small_buffer_config(budget: usize) -> Config<u64> {
+     Config {
+         depth_evict: 4,
+         budget: Some(budget),

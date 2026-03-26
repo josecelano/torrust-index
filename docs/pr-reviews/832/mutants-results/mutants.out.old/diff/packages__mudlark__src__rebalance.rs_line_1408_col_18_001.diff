@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace += with *= in rebalance
+@@ -1400,17 +1400,17 @@
+             continue;
+         }
+         // Guard: violation may have been resolved as a side effect.
+         if !is_violated(vnodes, c) {
+             tracing::trace!(node = c.index(), "skip already resolved");
+             continue;
+         }
+ 
+-        resolved += 1;
++        resolved *= /* ~ changed by cargo-mutants ~ */ 1;
+         tracing::debug!(
+             iter = iterations,
+             resolved,
+             queue = violations.len(),
+             node = %Ctx(vnodes, c),
+             "resolving violation",
+         );
+         if let Some(gid) = resolve(vnodes, gnodes, c, violations, depth_evict) {

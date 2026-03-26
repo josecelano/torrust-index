@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace -= with /= in GvGraph<C, V, N>::adjust_depth_gates
+@@ -66,17 +66,17 @@
+             self.depth_buffer
+         );
+         self.soft_limit = Some(soft_limit);
+ 
+         if count > soft_limit {
+             // Tighten: lower D_evict by 1, floor at buffer + 1.
+             let floor = self.depth_buffer + 1;
+             if self.live_depth_evict > floor {
+-                self.live_depth_evict -= 1;
++                self.live_depth_evict /= /* ~ changed by cargo-mutants ~ */ 1;
+                 self.live_depth_create = self.live_depth_evict - self.depth_buffer;
+                 tracing::debug!(
+                     new_d_evict = self.live_depth_evict,
+                     new_d_create = self.live_depth_create,
+                     count,
+                     soft_limit,
+                     "depth gates tightened",
+                 );

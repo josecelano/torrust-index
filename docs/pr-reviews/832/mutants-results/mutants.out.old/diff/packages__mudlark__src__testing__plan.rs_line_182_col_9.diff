@@ -1,0 +1,29 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::random_spray -> Self with Default::default()
+@@ -174,25 +174,17 @@
+ 
+     /// Uniform random spray: `n` observations at pseudo-random
+     /// coordinates within `[0, domain)`, all with the same `delta`.
+     ///
+     /// Deterministic: same `seed` → identical plan.
+     /// Uses an inline LCG (no external RNG dependency).
+     #[must_use]
+     pub fn random_spray(mut self, seed: u64, domain: u64, delta: V, n: usize) -> Self {
+-        let mut state = seed;
+-        for _ in 0..n {
+-            state = state
+-                .wrapping_mul(6_364_136_223_846_793_005)
+-                .wrapping_add(1_442_695_040_888_963_407);
+-            let coord = C::from_u64(state % domain);
+-            self.observations.push((coord, delta));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Oscillating hotspot: every `burst` observations the target
+     /// switches between `a` and `b`.  Forces repeated deep refinement
+     /// followed by abandonment and eviction.
+     #[must_use]
+     pub fn oscillating_hotspot(mut self, a: C, b: C, delta: V, burst: usize, cycles: usize) -> Self {
+         for cycle in 0..cycles {

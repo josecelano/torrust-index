@@ -1,0 +1,22 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<C, V>::then -> Self with Default::default()
+@@ -250,18 +250,17 @@
+     delegate! {
+         /// Golden spiral: Fibonacci-hashed dispersal.
+         fn golden_spiral(domain: u64, delta: V, n: usize)
+     }
+ 
+     /// Append a raw plan.
+     #[must_use]
+     pub fn then(mut self, other: Plan<C, V>) -> Self {
+-        self.plan = self.plan.then(other);
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Configuration ───────────────────────────────────────
+ 
+     /// Enable invariant checking every `k` observations during
+     /// `build()`.  `k = 0` means check after every observation.
+     #[must_use]
+     pub const fn check_every(mut self, k: usize) -> Self {

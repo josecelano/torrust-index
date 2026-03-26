@@ -1,0 +1,22 @@
+--- packages/mudlark/src/arena.rs
++++ replace Arena<T>::get -> &T with Box::leak(Box::new(Default::default()))
+@@ -85,18 +85,17 @@
+     /// Immutable access to the slot at `index`.
+     ///
+     /// # Panics (debug only)
+     ///
+     /// `debug_assert`s that the slot is currently occupied.
+     #[must_use]
+     #[inline]
+     pub fn get(&self, index: usize) -> &T {
+-        debug_assert!(self.is_occupied(index), "Arena::get: slot {index} is not occupied");
+-        &self.slots[index]
++        Box::leak(Box::new(Default::default())) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Mutable access to the slot at `index`.
+     ///
+     /// # Panics (debug only)
+     ///
+     /// `debug_assert`s that the slot is currently occupied.
+     #[inline]

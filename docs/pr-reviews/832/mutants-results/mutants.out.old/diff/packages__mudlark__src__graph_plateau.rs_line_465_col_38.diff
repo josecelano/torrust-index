@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::place_basis_element
+@@ -457,17 +457,17 @@
+ 
+         // Right neighbour at the same depth AND spatially adjacent.
+         // Adjacent means: right_plateau.start <= our hi (they touch or overlap).
+         // Same intervening-plateau guard as above.
+         let right_key = self
+             .plateaus
+             .range(BasisEdge(hi)..)
+             .next()
+-            .filter(|(_, p)| p.depth == depth && p.start.total_cmp(&hi) != std::cmp::Ordering::Greater)
++            .filter(|(_, p)| p.depth != /* ~ changed by cargo-mutants ~ */ depth && p.start.total_cmp(&hi) != std::cmp::Ordering::Greater)
+             .map(|(&k, _)| k)
+             .filter(|rk| {
+                 // Check for intervening plateaus between key and rk.
+                 self.plateaus
+                     .range((std::ops::Bound::Excluded(key), std::ops::Bound::Excluded(*rk)))
+                     .next()
+                     .is_none()
+             });

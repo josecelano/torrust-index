@@ -1,0 +1,126 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::consolidate_basis_up with ()
+@@ -686,122 +686,17 @@
+     /// `uniform_contour_depth_of(parent)` before merging.  Two
+     /// children can be in the same plateau (via `own_depth + 1`)
+     /// *without* the parent's full subtree being uniform — e.g. when
+     /// a child is Internal with deeper descendants that feed other
+     /// plateaus.  The uniform check catches this.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(clippy::too_many_lines)]
+     fn consolidate_basis_up(&mut self, mut gid: GNodeId) {
+-        use crate::gnode::GState;
+-
+-        loop {
+-            let Some(parent_id) = self.gnodes.get(gid.index()).parent else {
+-                tracing::trace!(from = gid.index(), "consolidate_basis_up: stop — no parent");
+-                break;
+-            };
+-            if self.gnodes.get(parent_id.index()).state() != GState::Internal {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    parent_state = ?self.gnodes.get(parent_id.index()).state(),
+-                    "consolidate_basis_up: stop — parent not Internal",
+-                );
+-                break;
+-            }
+-            let (left, right) = {
+-                let pg = self.gnodes.get(parent_id.index());
+-                match (pg.left, pg.right) {
+-                    (Some(l), Some(r)) => (l, r),
+-                    _ => break,
+-                }
+-            };
+-
+-            // Semi-internals break uniformity — cannot consolidate.
+-            if self.gnodes.get(left.index()).state() == GState::SemiInternal
+-                || self.gnodes.get(right.index()).state() == GState::SemiInternal
+-            {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    "consolidate_basis_up: stop — semi-internal child"
+-                );
+-                break;
+-            }
+-
+-            // Both children must be basis elements in the same plateau.
+-            let Some(left_key) = self.plateau_basis.plateau_key(left) else {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    left = left.index(),
+-                    "consolidate_basis_up: stop — left not in basis"
+-                );
+-                break;
+-            };
+-            let Some(right_key) = self.plateau_basis.plateau_key(right) else {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    right = right.index(),
+-                    "consolidate_basis_up: stop — right not in basis"
+-                );
+-                break;
+-            };
+-            if left_key != right_key {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    ?left_key,
+-                    ?right_key,
+-                    "consolidate_basis_up: stop — children in different plateaus"
+-                );
+-                break;
+-            }
+-
+-            // Guard: parent's subtree must actually be uniform depth.
+-            let Some(uniform_depth) = uniform_contour_depth_of(&self.gnodes, parent_id, N) else {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    "consolidate_basis_up: stop — parent subtree not uniform"
+-                );
+-                break;
+-            };
+-
+-            // Extra sanity: the uniform depth must match the plateau.
+-            let Some(p) = self.plateaus.get(&left_key) else { break };
+-            if p.depth != uniform_depth {
+-                tracing::trace!(
+-                    from = gid.index(),
+-                    parent = parent_id.index(),
+-                    plateau_depth = p.depth,
+-                    uniform_depth,
+-                    "consolidate_basis_up: stop — depth mismatch"
+-                );
+-                break;
+-            }
+-
+-            // Consolidate: replace both children with the parent.
+-            tracing::debug!(
+-                left = left.index(),
+-                right = right.index(),
+-                parent = parent_id.index(),
+-                ?left_key,
+-                uniform_depth,
+-                "consolidate_basis_up: MERGING siblings into parent",
+-            );
+-            let key = left_key;
+-            self.plateau_basis.remove(left);
+-            self.plateau_basis.remove(right);
+-            self.plateau_basis.insert(key, parent_id);
+-            self.recompute_plateau(&key);
+-
+-            gid = parent_id;
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Rebuild `self.plateaus` and `self.plateau_basis` key-assignments
+     /// from the existing basis elements, using the **standard merge**
+     /// (adjacent same-depth only).
+     ///
+     /// The incremental `place_basis_element` path can produce
+     /// non-contiguous plateaus when entries are inserted in a

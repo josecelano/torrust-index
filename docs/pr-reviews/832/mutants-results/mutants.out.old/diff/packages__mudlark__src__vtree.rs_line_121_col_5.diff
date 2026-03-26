@@ -1,0 +1,61 @@
+--- packages/mudlark/src/vtree.rs
++++ replace recompute_v_postorder with ()
+@@ -113,57 +113,17 @@
+ }
+ 
+ /// Post-order traversal: recurse into children first, then recompute
+ /// this node's cached intensities and sum.
+ ///
+ /// V-tree depth is O(log E), so recursion depth is bounded and safe.
+ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId) {
+     // Collect child IDs (if structural) before mutating.
+-    let child_ids: Option<Vec<VNodeId>> = {
+-        let node = vnodes.get(id.index());
+-        match &node.kind {
+-            VKind::Entry { .. } => None,
+-            VKind::Structural { children, .. } => {
+-                let ids: Vec<VNodeId> = (0..children.len()).map(|i| children.get(i).0).collect();
+-                Some(ids)
+-            }
+-        }
+-    };
+-
+-    let Some(child_ids) = child_ids else {
+-        // Entry — leaf; intensity already correct.
+-        return;
+-    };
+-
+-    // 1. Recurse into children (post-order).
+-    for &child in &child_ids {
+-        recompute_v_postorder(vnodes, child);
+-    }
+-
+-    // 2. Refresh cached child intensities from children's current values.
+-    for (i, &child) in child_ids.iter().enumerate() {
+-        let child_int = vnodes.get(child.index()).intensity;
+-        let node = vnodes.get_mut(id.index());
+-        if let VKind::Structural { children, .. } = &mut node.kind {
+-            children.intensities[i] = child_int;
+-        }
+-    }
+-
+-    // 3. Recompute own intensity = sum of children.
+-    let node = vnodes.get(id.index());
+-    if let VKind::Structural { children, .. } = &node.kind {
+-        let mut total = V::zero();
+-        for i in 0..children.len() {
+-            total = V::add(total, children.intensities[i]);
+-        }
+-        // Drop borrow before mutating.
+-        let _ = node;
+-        vnodes.get_mut(id.index()).intensity = total;
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Propagate evictable flags upward from `start`.
+ ///
+ /// Implements §IDEA M-9.3. Early-terminates when a flag is unchanged.
+ pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+     let mut current = Some(start);
+     while let Some(id) = current {

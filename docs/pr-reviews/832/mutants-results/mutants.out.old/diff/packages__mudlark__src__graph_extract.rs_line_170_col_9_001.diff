@@ -1,0 +1,25 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace GvGraph<C, V, N>::layers -> impl Iterator<Item =(usize, crate::view::Node<C, V>)>+'_ with ::std::iter::once((0, Default::default()))
+@@ -162,21 +162,17 @@
+     /// // Each yielded node covers a valid interval.
+     /// let nodes: Vec<_> = g.layers().collect();
+     /// assert!(!nodes.is_empty());
+     /// for (layer, node) in &nodes {
+     ///     assert!(node.start < node.end);
+     /// }
+     /// ```
+     pub fn layers(&self) -> impl Iterator<Item = (usize, crate::view::Node<C, V>)> + '_ {
+-        let mut queue = std::collections::VecDeque::new();
+-        if let Some(v_root) = self.v_root {
+-            queue.push_back((v_root, 0usize));
+-        }
+-        Layers { graph: self, queue }
++        ::std::iter::once((0, Default::default())) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Construct a `GvGraph` and populate it with observations from
+     /// an iterator.
+     ///
+     /// Equivalent to:
+     /// ```ignore
+     /// let mut g = GvGraph::new(config);

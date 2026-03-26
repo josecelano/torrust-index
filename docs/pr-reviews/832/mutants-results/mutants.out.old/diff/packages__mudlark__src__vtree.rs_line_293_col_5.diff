@@ -1,0 +1,30 @@
+--- packages/mudlark/src/vtree.rs
++++ replace sole_sibling -> VNodeId with Default::default()
+@@ -285,26 +285,17 @@
+     let p = vnodes.get_mut(parent.index());
+     if let VKind::Structural { children, .. } = &mut p.kind {
+         children.remove_child(child);
+     }
+ }
+ 
+ /// Get the sole sibling of `child` in a 2-node `parent`.
+ fn sole_sibling<V: Accumulator>(vnodes: &Arena<VNode<V>>, parent: VNodeId, child: VNodeId) -> VNodeId {
+-    let p = vnodes.get(parent.index());
+-    if let VKind::Structural { children, .. } = &p.kind {
+-        for i in 0..children.len() {
+-            let (id, _) = children.get(i);
+-            if id != child {
+-                return id;
+-            }
+-        }
+-    }
+-    unreachable!("sole_sibling: child not found in parent");
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Recompute a structural node's intensity from its children.
+ pub fn recompute_structural_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId) {
+     let node = vnodes.get(id.index());
+     if let VKind::Structural { children, .. } = &node.kind {
+         let mut total = V::zero();
+         for i in 0..children.len() {

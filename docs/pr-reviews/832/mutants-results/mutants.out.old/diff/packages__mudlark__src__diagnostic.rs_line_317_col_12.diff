@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ delete ! in <impl fmt::Display for Gn<'_, C, V>>::fmt
+@@ -309,17 +309,17 @@
+ ///
+ /// Shows the arena index, state (T/S/I for Terminal/SemiInternal/Internal),
+ /// interval, and accumulated sum.
+ pub struct Gn<'a, C: Coordinate, V: Accumulator + Inspectable>(pub &'a Arena<GNode<C, V>>, pub GNodeId);
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         let idx = self.1.index();
+-        if !self.0.is_occupied(idx) {
++        if  /* ~ changed by cargo-mutants ~ */self.0.is_occupied(idx) {
+             return write!(f, "G{idx}(DEAD)");
+         }
+         let g = self.0.get(idx);
+         let state = match g.state() {
+             crate::gnode::GState::Terminal => "T",
+             crate::gnode::GState::SemiInternal => "S",
+             crate::gnode::GState::Internal => "I",
+         };

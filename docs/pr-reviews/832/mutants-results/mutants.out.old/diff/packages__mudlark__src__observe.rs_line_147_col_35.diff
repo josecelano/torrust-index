@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ replace || with && in GvGraph<C, V, N>::observe
+@@ -139,17 +139,17 @@
+         //    flag so it's O(1) no-op for simple observations that
+         //    don't trigger structural changes (splits / promotes).
+         //    Sorted placement (Phases 2a/2b) reduces frequency;
+         //    remaining cross-step interactions within observe()
+         //    still need normalize when structural changes occur.
+         self.normalize_plateaus();
+ 
+         #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
++        if cfg!(debug_assertions) && /* ~ changed by cargo-mutants ~ */ tracing::enabled!(tracing::Level::DEBUG) {
+             self.debug_check_plateau_sums("POST-NORMALIZE");
+         }
+ 
+         // 10. Re-run P-I4 repair — normalization may re-key basis
+         //     elements, re-introducing thatch-hop violations.
+         self.repair_p_i4();
+ 
+         // Post-observe audit: catch violations missed by any pipeline

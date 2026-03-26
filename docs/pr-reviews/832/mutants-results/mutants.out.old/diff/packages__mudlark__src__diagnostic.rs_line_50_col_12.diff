@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ delete ! in audit_violations
+@@ -42,17 +42,17 @@
+     vnodes: &Arena<VNode<V>>,
+     violations: &[VNodeId],
+     checkpoint: &str,
+ ) -> Vec<VNodeId> {
+     let all_violated = rebalance::find_violated_nodes(vnodes);
+     let queued: std::collections::HashSet<usize> = violations.iter().map(|v| v.index()).collect();
+     let mut missed = Vec::new();
+     for &v in &all_violated {
+-        if !queued.contains(&v.index()) {
++        if  /* ~ changed by cargo-mutants ~ */queued.contains(&v.index()) {
+             tracing::error!(
+                 checkpoint,
+                 node = %Ctx(vnodes, v),
+                 "violation NOT in queue",
+             );
+             missed.push(v);
+         }
+     }

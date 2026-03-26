@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace += with *= in bootstrap_split
+@@ -152,17 +152,17 @@
+         *is_exposed = false;
+         *is_evictable = false;
+     }
+ 
+     // Update graph state.
+     graph.v_root = Some(root_s_id);
+     graph.node_count += 2;
+     // +2 new terminals, −1 parent no longer terminal = net +1.
+-    graph.terminal_count += 1;
++    graph.terminal_count *= /* ~ changed by cargo-mutants ~ */ 1;
+ 
+     // Plateau maintenance (no-op without `plateau` feature).
+     graph.plateau_after_bootstrap_split(g_id, left_id);
+ 
+     #[cfg(feature = "dynamic-contour-tracking")]
+     if tracing::enabled!(tracing::Level::DEBUG) {
+         crate::diagnostic::audit_plateau_consistency(graph, "POST-BOOTSTRAP-SPLIT", None);
+     }

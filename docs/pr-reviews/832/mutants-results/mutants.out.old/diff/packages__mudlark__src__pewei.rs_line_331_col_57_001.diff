@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace - with / in Pewei<C, V>::reconstruct
+@@ -323,17 +323,17 @@
+             return vec![Span {
+                 start: self.domain_start,
+                 end: self.domain_end,
+                 intensity: V::zero(),
+                 depth: 0,
+             }];
+         }
+ 
+-        let max_layer = max_layer.min(self.layers.len() - 1);
++        let max_layer = max_layer.min(self.layers.len() / /* ~ changed by cargo-mutants ~ */ 1);
+         let visible = &self.layers[..=max_layer];
+         let lookup = RegionLookup::build(visible);
+ 
+         // Pre-allocate: every terminal produces one span, every
+         // transition produces at most one span (the invisible
+         // sibling) plus passes through. The terminal count is a
+         // tight lower bound; +1 accounts for the root if it appears
+         // as a single truncated span.

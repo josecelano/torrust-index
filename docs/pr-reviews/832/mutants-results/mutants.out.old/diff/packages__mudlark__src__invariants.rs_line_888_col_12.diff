@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_plateau_basis_consistency
+@@ -880,17 +880,17 @@
+                 }
+             }
+         }
+     }
+ 
+     // Back → forward consistency.
+     for (&gid, &key) in pb.back_map() {
+         let elements = pb.basis_elements(&key);
+-        if !elements.contains(&gid) {
++        if  /* ~ changed by cargo-mutants ~ */elements.contains(&gid) {
+             errors.push(format!(
+                 "Plateau basis back→forward: back[{gid:?}] = {key:?} but {gid:?} not in forward[{key:?}]"
+             ));
+         }
+     }
+ 
+     // plateaus.keys() == plateau_basis.forward.keys()
+     let btree_keys: Vec<_> = graph.plateaus.keys().copied().collect();

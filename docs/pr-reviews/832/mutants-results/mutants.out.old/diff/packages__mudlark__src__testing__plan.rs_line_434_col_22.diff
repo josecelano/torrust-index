@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace == with != in Plan<C, V>::cascade_shift
+@@ -426,17 +426,17 @@
+     /// subtree to merge/contract while the new one splits — creating
+     /// violations on both sides of their shared parent.
+     #[must_use]
+     pub fn cascade_shift(mut self, a: C, b: C, delta: V, n_build: usize, n_shift: usize) -> Self {
+         // Pure buildup at a
+         self.observations.extend(std::iter::repeat((a, delta)).take(n_build));
+         // Transition: gradually shift weight from a to b
+         for i in 0..n_shift {
+-            if i % 3 == 0 {
++            if i % 3 != /* ~ changed by cargo-mutants ~ */ 0 {
+                 self.observations.push((a, delta)); // lingering
+             } else {
+                 self.observations.push((b, delta));
+             }
+         }
+         self
+     }
+ 

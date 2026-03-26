@@ -1,0 +1,60 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i5_thatch_depth with ()
+@@ -1405,56 +1405,17 @@
+ /// covering that point (thatch depth) must be ≤ `d_geo(x) + 1`.
+ ///
+ /// `d_geo(x)` = depth of the terminal G-node reached by routing `x`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-
+-    // Collect all sample coordinates: every basis element's lo.
+-    let mut samples: Vec<C> = Vec::new();
+-    for (_, gnodes) in pb.iter() {
+-        for &gid in gnodes {
+-            if graph.gnodes().is_occupied(gid.index()) {
+-                samples.push(graph.gnodes().get(gid.index()).lo);
+-            }
+-        }
+-    }
+-    samples.sort_by(Coordinate::total_cmp);
+-    samples.dedup_by(|a, b| a.total_cmp(b) == std::cmp::Ordering::Equal);
+-
+-    for x in &samples {
+-        // Count thatch depth: how many plateaus have a basis element
+-        // whose [lo, hi) contains x.
+-        let mut thatch_count = 0u32;
+-        for (&_key, gnodes) in pb.iter() {
+-            let covers = gnodes.iter().any(|&gid| {
+-                if !graph.gnodes().is_occupied(gid.index()) {
+-                    return false;
+-                }
+-                let g = graph.gnodes().get(gid.index());
+-                g.lo.total_cmp(x) != std::cmp::Ordering::Greater && x.total_cmp(&g.hi) == std::cmp::Ordering::Less
+-            });
+-            if covers {
+-                thatch_count += 1;
+-            }
+-        }
+-
+-        // Compute d_geo(x) by routing from root to the terminal.
+-        let d_geo = route_to_depth(graph, *x);
+-
+-        if thatch_count > d_geo + 1 {
+-            errors.push(format!(
+-                "P-I5 thatch depth: at x={x:?}, thatch_depth={thatch_count} > d_geo={d_geo} + 1"
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Route from G-root to the terminal containing `x`, returning its
+ /// G-Tree depth (number of edges from root).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>, x: C) -> u32 {
+     let mut cur = graph.g_root();
+     for _ in 0..=N + 1 {

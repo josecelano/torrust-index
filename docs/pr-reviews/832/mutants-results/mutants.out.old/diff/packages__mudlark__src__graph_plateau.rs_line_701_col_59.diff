@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::consolidate_basis_up
+@@ -693,17 +693,17 @@
+     fn consolidate_basis_up(&mut self, mut gid: GNodeId) {
+         use crate::gnode::GState;
+ 
+         loop {
+             let Some(parent_id) = self.gnodes.get(gid.index()).parent else {
+                 tracing::trace!(from = gid.index(), "consolidate_basis_up: stop — no parent");
+                 break;
+             };
+-            if self.gnodes.get(parent_id.index()).state() != GState::Internal {
++            if self.gnodes.get(parent_id.index()).state() == /* ~ changed by cargo-mutants ~ */ GState::Internal {
+                 tracing::trace!(
+                     from = gid.index(),
+                     parent = parent_id.index(),
+                     parent_state = ?self.gnodes.get(parent_id.index()).state(),
+                     "consolidate_basis_up: stop — parent not Internal",
+                 );
+                 break;
+             }

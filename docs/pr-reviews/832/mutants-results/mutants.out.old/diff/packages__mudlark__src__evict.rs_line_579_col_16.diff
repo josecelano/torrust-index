@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ delete ! in scan_dfs
+@@ -571,17 +571,17 @@
+     match &node.kind {
+         VKind::Entry { gnode, is_evictable, .. } => {
+             if depth > graph.live_depth_evict && *is_evictable && *gnode != graph.g_root {
+                 candidates.push(v_id);
+             }
+         }
+         VKind::Structural { children, has_evictable } => {
+             // Prune: no evictable entries in this subtree.
+-            if !has_evictable {
++            if  /* ~ changed by cargo-mutants ~ */has_evictable {
+                 return;
+             }
+             for i in 0..children.len() {
+                 let (child_id, _) = children.get(i);
+                 scan_dfs(graph, child_id, depth + 1, candidates);
+             }
+         }
+     }

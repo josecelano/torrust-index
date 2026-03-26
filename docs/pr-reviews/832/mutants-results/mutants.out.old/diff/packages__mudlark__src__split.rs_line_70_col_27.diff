@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace == with != in attempt_split
+@@ -62,17 +62,17 @@
+     if graph.vnodes.get(entry_id.index()).parent.is_none() {
+         bootstrap_split(graph, g_id);
+         return;
+     }
+ 
+     // Preprocessing: if V-parent is 3-node, contract first.
+     let p_id = graph.vnodes.get(entry_id.index()).parent.unwrap();
+     if let VKind::Structural { children, .. } = &graph.vnodes.get(p_id.index()).kind {
+-        if children.len() == 3 {
++        if children.len() != /* ~ changed by cargo-mutants ~ */ 3 {
+             let _span = tracing::debug_span!(
+                 "split_preprocess",
+                 p = %Nd(&graph.vnodes, p_id),
+             )
+             .entered();
+             let merged = contract(&mut graph.vnodes, p_id);
+             push_side_effect_violations(&graph.vnodes, p_id, &mut graph.violations);
+             push_side_effect_violations(&graph.vnodes, merged, &mut graph.violations);

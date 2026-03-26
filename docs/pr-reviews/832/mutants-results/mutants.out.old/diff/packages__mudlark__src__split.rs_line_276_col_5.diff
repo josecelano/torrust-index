@@ -1,0 +1,31 @@
+--- packages/mudlark/src/split.rs
++++ replace alloc_g_child -> GNodeId with Default::default()
+@@ -268,27 +268,17 @@
+         crate::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
+     }
+ }
+ 
+ // ── Allocation helpers ──────────────────────────────────────────────
+ 
+ /// Allocate a terminal G-child covering `[lo, hi)` under `parent`.
+ fn alloc_g_child<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, lo: C, hi: C, parent: GNodeId) -> GNodeId {
+-    let g = GNode {
+-        lo,
+-        hi,
+-        sum: V::zero(),
+-        own: V::zero(),
+-        left: None,
+-        right: None,
+-        parent: Some(parent),
+-        entry: None,
+-    };
+-    GNodeId::from_index(gnodes.alloc(g))
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Allocate a zero-intensity V-entry for `gnode` and link the G-node to it.
+ fn alloc_v_entry<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     gnode: GNodeId,
+ ) -> VNodeId {

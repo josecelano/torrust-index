@@ -1,0 +1,26 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::burst -> Self with Default::default()
+@@ -159,22 +159,17 @@
+         self
+     }
+ 
+     /// Burst: `n_spread` uniform observations across `domain`,
+     /// followed by `n_hot` concentrated observations at `hotspot`.
+     /// Exercises growth → pressure → eviction → relaxation.
+     #[must_use]
+     pub fn burst(mut self, domain: u64, spread_delta: V, n_spread: usize, hotspot: C, hot_delta: V, n_hot: usize) -> Self {
+-        for i in 0..n_spread {
+-            let coord = C::from_u64(i as u64 % domain);
+-            self.observations.push((coord, spread_delta));
+-        }
+-        self.observations.extend(std::iter::repeat((hotspot, hot_delta)).take(n_hot));
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Uniform random spray: `n` observations at pseudo-random
+     /// coordinates within `[0, domain)`, all with the same `delta`.
+     ///
+     /// Deterministic: same `seed` → identical plan.
+     /// Uses an inline LCG (no external RNG dependency).
+     #[must_use]

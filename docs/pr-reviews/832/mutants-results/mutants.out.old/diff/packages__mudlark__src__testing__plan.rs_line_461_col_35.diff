@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with / in Plan<C, V>::diamond
+@@ -453,17 +453,17 @@
+     ///
+     /// Exercises tree restructuring in both contraction and expansion
+     /// directions.
+     #[must_use]
+     pub fn diamond(mut self, domain: u64, delta: V, n: usize) -> Self {
+         let half = n / 2;
+         // Converge: outside → center
+         for i in 0..half {
+-            let offset = i as u64 % (domain / 2);
++            let offset = i as u64 / /* ~ changed by cargo-mutants ~ */ (domain / 2);
+             if i % 2 == 0 {
+                 self.observations.push((C::from_u64(offset), delta));
+             } else {
+                 self.observations.push((C::from_u64(domain - 1 - offset), delta));
+             }
+         }
+         // Diverge: center → outside
+         let center = domain / 2;

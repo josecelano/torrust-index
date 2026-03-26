@@ -1,0 +1,44 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_after_legacy_promote with ()
+@@ -1569,40 +1569,17 @@
+     /// internal. Remove parent from basis, place existing child and
+     /// new child at their contour depths (sorted, ADR-M-031 §2b).
+     /// Note: after ADR-M-031, `handle_legacy_promotes` uses
+     /// `plateau_after_legacy_promotes_batched` instead. Retained for
+     /// potential future single-promote callers.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(dead_code)]
+     pub(crate) fn plateau_after_legacy_promote(&mut self, new_gid: GNodeId) {
+-        use crate::gnode::GState;
+-
+-        let ng = self.gnodes.get(new_gid.index());
+-        let parent_id = ng.parent.expect("legacy_promote child must have a parent");
+-        let child_depth = crate::gtree::gnode_depth_from_interval(ng.lo, ng.hi, N);
+-
+-        let pg = self.gnodes.get(parent_id.index());
+-        let existing_child_id = if pg.left == Some(new_gid) { pg.right } else { pg.left };
+-
+-        if let Some(old_key) = self.plateau_basis.remove(parent_id) {
+-            self.fixup_plateau(old_key);
+-        }
+-
+-        // Collect both elements, sort, place left-to-right (ADR-M-031 §2b).
+-        let mut to_place = Vec::new();
+-        if let Some(ec_id) = existing_child_id {
+-            let ec = self.gnodes.get(ec_id.index());
+-            if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
+-                let existing_depth = crate::gtree::gnode_depth_from_interval(ec.lo, ec.hi, N);
+-                to_place.push((ec_id, existing_depth));
+-            }
+-        }
+-        to_place.push((new_gid, child_depth));
+-        self.place_sorted(&mut to_place);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_legacy_promote(&mut self, _new_gid: GNodeId) {}
+ 

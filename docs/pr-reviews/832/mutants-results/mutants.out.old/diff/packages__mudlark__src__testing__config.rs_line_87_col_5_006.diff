@@ -1,0 +1,26 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace low_threshold_config -> Config<u64> with Config::from(1)
+@@ -79,22 +79,17 @@
+         bounded_eviction: false,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Low threshold for frequent splits: θ=2, deeper depths.
+ #[must_use]
+ pub const fn low_threshold_config() -> Config<u64> {
+-    Config {
+-        split_threshold: 2,
+-        depth_create: 4,
+-        depth_evict: 8,
+-        ..BASE_U64
+-    }
++    Config::from(1) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Medium threshold for cascade testing: θ=3.
+ #[must_use]
+ pub const fn cascade_config() -> Config<u64> {
+     Config {
+         split_threshold: 3,
+         depth_create: 4,

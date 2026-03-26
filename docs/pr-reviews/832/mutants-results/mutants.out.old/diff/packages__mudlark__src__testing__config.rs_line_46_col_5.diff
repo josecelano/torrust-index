@@ -1,0 +1,24 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace budget_config -> Config<u64> with Config::new()
+@@ -38,20 +38,17 @@
+ #[must_use]
+ pub const fn default_config() -> Config<u64> {
+     BASE_U64
+ }
+ 
+ /// Standard budgeted config: θ=5, `D_create`=3, `D_evict`=6.
+ #[must_use]
+ pub const fn budget_config(budget: usize) -> Config<u64> {
+-    Config {
+-        budget: Some(budget),
+-        ..BASE_U64
+-    }
++    Config::new() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Budgeted config with unbounded eviction mode.
+ #[must_use]
+ pub const fn budget_config_unbounded(budget: usize) -> Config<u64> {
+     Config {
+         budget: Some(budget),
+         bounded_eviction: false,

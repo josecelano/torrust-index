@@ -1,0 +1,196 @@
+
+*** packages/mudlark/src/rebalance.rs:412:5: replace skip_promote -> Option<VNodeId> with Some(Default::default())
+
+*** mutation diff:
+--- packages/mudlark/src/rebalance.rs
++++ replace skip_promote -> Option<VNodeId> with Some(Default::default())
+@@ -404,97 +404,17 @@
+ /// `p` is a 2-node. `g` is a 2-node.
+ ///
+ /// See §IDEA M-11.5.
+ ///
+ /// # Panics
+ ///
+ /// Panics if `c` has no parent, or if `p` has no parent (grandparent).
+ pub fn skip_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId) -> Option<VNodeId> {
+-    let p = vnodes.get(c.index()).parent.expect("skip_promote: c must have a parent");
+-    let g = vnodes.get(p.index()).parent.expect("skip_promote: p must have a grandparent");
+-    let _span = tracing::debug_span!(
+-        "skip_promote",
+-        c = %Nd(vnodes, c),
+-        p = p.index(),
+-        g = g.index(),
+-    )
+-    .entered();
+-
+-    // Find the sibling of c under p.
+-    let (s_id, s_int) = {
+-        let p_node = vnodes.get(p.index());
+-        match &p_node.kind {
+-            VKind::Structural { children, .. } => {
+-                let mut sib = None;
+-                for i in 0..children.len() {
+-                    let (id, int) = children.get(i);
+-                    if id != c {
+-                        sib = Some((id, int));
+-                        break;
+-                    }
+-                }
+-                sib.expect("skip_promote: sibling not found")
+-            }
+-            VKind::Entry { .. } => panic!("skip_promote: parent must be structural"),
+-        }
+-    };
+-
+-    let c_int = vnodes.get(c.index()).intensity;
+-
+-    // Replace p with c and s in g's children (g becomes 3-node).
+-    // First find the uncle (sibling of p in g).
+-    let (u_id, u_int) = {
+-        let g_node = vnodes.get(g.index());
+-        match &g_node.kind {
+-            VKind::Structural { children, .. } => {
+-                let mut uncle = None;
+-                for i in 0..children.len() {
+-                    let (id, int) = children.get(i);
+-                    if id != p {
+-                        uncle = Some((id, int));
+-                        break;
+-                    }
+-                }
+-                uncle.expect("skip_promote: uncle not found")
+-            }
+-            VKind::Entry { .. } => panic!("skip_promote: grandparent must be structural"),
+-        }
+-    };
+-
+-    // Compute terminal flags.
+-    let c_terminal = node_has_evictable(vnodes, c);
+-    let s_terminal = node_has_evictable(vnodes, s_id);
+-    let u_terminal = node_has_evictable(vnodes, u_id);
+-
+-    // Rewrite g as a 3-node: [c, s, u].
+-    let g_node = vnodes.get_mut(g.index());
+-    if let VKind::Structural { children, has_evictable } = &mut g_node.kind {
+-        *children = PackedChildren::new_3((c, c_int), (s_id, s_int), (u_id, u_int));
+-        *has_evictable = c_terminal || s_terminal || u_terminal;
+-    }
+-
+-    // Re-parent c and s to g.
+-    vnodes.get_mut(c.index()).parent = Some(g);
+-    vnodes.get_mut(s_id.index()).parent = Some(g);
+-
+-    // Invalidate depth cache for c and s subtrees (they moved up one level)
+-    invalidate_depth_subtree(vnodes, c);
+-    invalidate_depth_subtree(vnodes, s_id);
+-
+-    // Destroy p.
+-    vnodes.dealloc(p.index());
+-
+-    // Propagate terminal flags upward from g.
+-    propagate_evictable_flags(vnodes, g);
+-
+-    tracing::debug!(result = %Ch(vnodes, g), "p destroyed, g is 3-node");
+-
+-    // p can't be root (it has a parent g).  No root change.
+-    None
++    Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Sibling helper ──────────────────────────────────────────────────
+ 
+ /// Return the sibling of `child` under 2-node `parent`, plus its
+ /// cached intensity.
+ ///
+ /// # Panics
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh once_cell v1.21.3
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh memchr v2.8.0
+       Fresh anstyle v1.0.13
+       Fresh pin-project-lite v0.2.16
+       Fresh clap_lex v1.0.0
+       Fresh ciborium-io v0.2.2
+       Fresh itoa v1.0.17
+       Fresh plotters-backend v0.3.7
+       Fresh plotters-svg v0.3.7
+       Fresh serde_json v1.0.149
+       Fresh ciborium-ll v0.2.2
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh tracing-log v0.2.0
+       Fresh sharded-slab v0.1.7
+       Fresh criterion-plot v0.8.2
+       Fresh walkdir v2.5.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh clap v4.5.59
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh regex v1.12.3
+       Fresh matchers v0.2.0
+       Fresh thread_local v1.1.9
+       Fresh smallvec v1.15.1
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh nu-ansi-term v0.50.3
+       Fresh oorandom v11.1.5
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-4akUoH.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-4akUoH.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0277]: the trait bound `VNodeId: Default` is not satisfied
+   --> packages/mudlark/src/rebalance.rs:412:10
+    |
+412 |     Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+    |          ^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Default` is not implemented for `VNodeId`
+   --> packages/mudlark/src/handle.rs:207:1
+    |
+207 | pub struct VNodeId(NonZeroU32);
+    | ^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `torrust-mudlark` (lib) due to 1 previous error
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-4akUoH.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

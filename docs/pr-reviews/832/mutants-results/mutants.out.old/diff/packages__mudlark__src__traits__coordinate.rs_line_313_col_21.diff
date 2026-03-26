@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace / with % in <impl Coordinate for f64>::midpoint
+@@ -305,17 +305,17 @@
+     #[inline]
+     #[allow(clippy::cast_possible_wrap)]
+     fn domain_max(n: u32) -> Self {
+         2.0_f64.powi(n as i32)
+     }
+ 
+     #[inline]
+     fn midpoint(a: Self, b: Self) -> Self {
+-        a + (b - a) / 2.0
++        a + (b - a) % /* ~ changed by cargo-mutants ~ */ 2.0
+     }
+ 
+     #[inline]
+     fn width(start: Self, end: Self) -> Self {
+         end - start
+     }
+ 
+     #[inline]

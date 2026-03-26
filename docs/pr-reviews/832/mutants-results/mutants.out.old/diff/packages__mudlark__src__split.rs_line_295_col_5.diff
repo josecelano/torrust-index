@@ -1,0 +1,33 @@
+--- packages/mudlark/src/split.rs
++++ replace alloc_v_entry -> VNodeId with Default::default()
+@@ -287,29 +287,17 @@
+ }
+ 
+ /// Allocate a zero-intensity V-entry for `gnode` and link the G-node to it.
+ fn alloc_v_entry<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     gnode: GNodeId,
+ ) -> VNodeId {
+-    let e = VNode {
+-        intensity: V::zero(),
+-        parent: None,
+-        cached_depth: AtomicU32::new(DEPTH_STALE), // Caller sets depth
+-        kind: VKind::Entry {
+-            gnode,
+-            is_exposed: true,
+-            is_evictable: true,
+-        },
+-    };
+-    let e_id = VNodeId::from_index(vnodes.alloc(e));
+-    gnodes.get_mut(gnode.index()).entry = Some(e_id);
+-    e_id
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Allocate a structural 2-node wrapping two V-children and parent them.
+ fn alloc_v_structural_2<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, a: VNodeId, b: VNodeId) -> VNodeId {
+     let a_int = vnodes.get(a.index()).intensity;
+     let b_int = vnodes.get(b.index()).intensity;
+     let s = VNode {
+         intensity: V::add(a_int, b_int),

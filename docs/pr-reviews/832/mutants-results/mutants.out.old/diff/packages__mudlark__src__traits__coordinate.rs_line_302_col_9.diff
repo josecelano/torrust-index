@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f64>::zero -> Self with Default::default()
+@@ -294,17 +294,17 @@
+     }
+ }
+ 
+ impl Coordinate for f64 {
+     const BITS: u32 = 64;
+ 
+     #[inline]
+     fn zero() -> Self {
+-        0.0
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_wrap)]
+     fn domain_max(n: u32) -> Self {
+         2.0_f64.powi(n as i32)
+     }
+ 

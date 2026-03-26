@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ delete ! in GvGraph<C, V, N>::decay_selective
+@@ -246,17 +246,17 @@
+                 stack.push(right);
+             }
+         }
+ 
+         // 3. Recompute g.sum bottom-up within subtree.
+         gtree::recompute_g_sums_subtree(&mut self.gnodes, &order);
+ 
+         // 4. Propagate G-sums above the subtree.
+-        if !is_global {
++        if  /* ~ changed by cargo-mutants ~ */is_global {
+             if let Some(parent) = self.gnodes.get(root.index()).parent {
+                 gtree::recompute_g_sums(&mut self.gnodes, parent);
+             }
+         }
+ 
+         // 5. Sync V-entry intensities from g.own.
+         for &gid in &order {
+             let g = self.gnodes.get(gid.index());

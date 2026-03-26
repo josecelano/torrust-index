@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in standard_promote
+@@ -350,17 +350,17 @@
+     // Find the sibling of c in p.
+     let sibling_id = {
+         let p_node = vnodes.get(p.index());
+         match &p_node.kind {
+             VKind::Structural { children, .. } => {
+                 let mut sib = None;
+                 for i in 0..children.len() {
+                     let (id, _) = children.get(i);
+-                    if id != c {
++                    if id == /* ~ changed by cargo-mutants ~ */ c {
+                         sib = Some(children.get(i));
+                         break;
+                     }
+                 }
+                 sib.expect("standard_promote: sibling not found")
+             }
+             VKind::Entry { .. } => panic!("standard_promote: parent must be structural"),
+         }

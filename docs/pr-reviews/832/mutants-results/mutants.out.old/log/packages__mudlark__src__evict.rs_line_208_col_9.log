@@ -1,0 +1,175 @@
+
+*** packages/mudlark/src/evict.rs:208:9: delete match arm 2 in evict_tip
+
+*** mutation diff:
+--- packages/mudlark/src/evict.rs
++++ delete match arm 2 in evict_tip
+@@ -200,34 +200,17 @@
+     // - 2-node collapse cousins (source 9, §IDEA M-11.11.3): The OTHER children
+     //   of the grandparent have their children potentially violated
+     //   because those children's uncle changed from v_parent to sole.
+     //
+     // - 3→2 transition (source 8, §IDEA M-11.11.3): The remaining siblings'
+     //   children lose the removed entry as a potential uncle. Their
+     //   max_uncle may decrease.
+     match child_count {
+-        2 => {
+-            // Collapse: check the surviving sibling's children (source 7).
+-            if let Some(sole) = collapse_sibling {
+-                tracing::debug!(sole = sole.index(), "evict_tip: calling push_collapse_violations");
+-                rebalance::push_collapse_violations(&graph.vnodes, sole, &mut graph.violations);
+-
+-                // Also check the cousins' children (source 9).
+-                // change_point is the grandparent in the collapse case.
+-                if let Some(grandparent) = change_point {
+-                    tracing::debug!(
+-                        sole = sole.index(),
+-                        grandparent = grandparent.index(),
+-                        "evict_tip: calling push_cousin_violations (source 9)",
+-                    );
+-                    rebalance::push_cousin_violations(&graph.vnodes, sole, grandparent, &mut graph.violations);
+-                }
+-            }
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         3 => {
+             // 3→2: check all remaining children of the parent.
+             // v_id is already removed from the parent's children list,
+             // so we check all current children.
+             if let Some(p) = v_parent {
+                 tracing::debug!(parent = p.index(), "evict_tip: calling push_remaining_sibling_violations");
+                 rebalance::push_remaining_sibling_violations(
+                     &graph.vnodes,
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh once_cell v1.21.3
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh plotters-backend v0.3.7
+       Fresh clap_lex v1.0.0
+       Fresh itoa v1.0.17
+       Fresh ciborium-io v0.2.2
+       Fresh memchr v2.8.0
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh serde_json v1.0.149
+       Fresh ciborium-ll v0.2.2
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh same-file v1.0.6
+       Fresh log v0.4.29
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh criterion-plot v0.8.2
+       Fresh tracing-log v0.2.0
+       Fresh walkdir v2.5.0
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh clap v4.5.59
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh smallvec v1.15.1
+       Fresh nu-ansi-term v0.50.3
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): the file `packages/mudlark/src/evict.rs` has changed (1773695583.802539842s, 11s after last build at 1773695572.284602757s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+error: fields `source_7_collapse_children` and `source_9_collapse_cousins` are never read
+  --> packages/mudlark/src/rebalance.rs:78:9
+   |
+70 | pub struct ViolationSources {
+   |            ---------------- fields in this struct
+...
+78 |     pub source_7_collapse_children: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+82 |     pub source_9_collapse_cousins: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ViolationSources` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `-D dead-code` implied by `-D unused`
+   = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: function `push_collapse_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:864:8
+    |
+864 | pub fn push_collapse_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, sole: VNodeId, violations: &mut Vec<VNodeId>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_collapse_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:872:8
+    |
+872 | pub fn push_collapse_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_cousin_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:966:8
+    |
+966 | pub fn push_cousin_violations<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_cousin_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:979:8
+    |
+979 | pub fn push_cousin_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 5 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: function `push_collapse_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:864:8
+    |
+864 | pub fn push_collapse_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, sole: VNodeId, violations: &mut Vec<VNodeId>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D unused`
+    = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: could not compile `torrust-mudlark` (lib test) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

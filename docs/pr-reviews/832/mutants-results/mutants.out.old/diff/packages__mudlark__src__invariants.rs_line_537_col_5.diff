@@ -1,0 +1,40 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i6_exposed_flag with ()
+@@ -529,36 +529,17 @@
+ }
+ 
+ // ── V-I6: Terminal flag on entries ──────────────────────────────────
+ 
+ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        if let VKind::Entry { gnode, is_exposed, .. } = &v.kind {
+-            if !graph.gnodes().is_occupied(gnode.index()) {
+-                errors.push(format!(
+-                    "V-I6 violated at V-node {idx}: backing G-node {} is not occupied",
+-                    gnode.index()
+-                ));
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gnode.index());
+-            let expected = g.uncovered_range().is_some();
+-            if *is_exposed != expected {
+-                errors.push(format!(
+-                    "V-I6 violated at V-node {idx}: is_exposed={is_exposed}, \
+-                     expected={expected} (state={:?})",
+-                    g.state()
+-                ));
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I6b: Evictable flag on entries ────────────────────────────────
+ 
+ fn check_v_i6b_evictable_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

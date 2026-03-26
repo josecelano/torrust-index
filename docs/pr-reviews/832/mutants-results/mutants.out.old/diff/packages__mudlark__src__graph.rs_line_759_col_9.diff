@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::budget -> Option<usize> with None
+@@ -751,17 +751,17 @@
+     /// #     bounded_eviction: true,
+     /// # };
+     /// # let g2 = GvGraph::<u64, u64, 8>::new(config2);
+     /// assert_eq!(g2.budget(), Some(500));
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn budget(&self) -> Option<usize> {
+-        self.config.budget
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // Budget enforcement, depth-gate adjustment, eviction orchestration,
+     // and handle_legacy_promotes live in graph_budget.rs — see ADR-M-030
+     // Phase E.
+ 
+     /// The G-Tree root handle (always valid).
+     ///

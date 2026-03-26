@@ -1,0 +1,29 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::place_sorted with ()
+@@ -606,25 +606,17 @@
+     /// Sort collected `(GNodeId, u32)` pairs by `BasisEdge` and place
+     /// left-to-right.  With sorted placement the existing
+     /// left-neighbour merge in `place_basis_element` is sufficient to
+     /// produce the correct partition — no post-hoc normalize is needed.
+     ///
+     /// ADR-M-031 Phase 1b.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn place_sorted(&mut self, elements: &mut [(GNodeId, u32)]) {
+-        use crate::plateau::basis_edge_of;
+-        elements.sort_by(|a, b| {
+-            let a_key = basis_edge_of(self.gnodes.get(a.0.index()));
+-            let b_key = basis_edge_of(self.gnodes.get(b.0.index()));
+-            a_key.cmp(&b_key)
+-        });
+-        for &(gid, depth) in elements.iter() {
+-            self.place_basis_element(gid, depth);
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Recursively place a subtree's basis elements.
+     ///
+     /// For Terminal/SemiInternal nodes, places them directly.
+     /// For Internal nodes, checks if the subtree is uniform:
+     /// - If uniform: places the node as a single basis element.
+     /// - If non-uniform: recursively decomposes into children.

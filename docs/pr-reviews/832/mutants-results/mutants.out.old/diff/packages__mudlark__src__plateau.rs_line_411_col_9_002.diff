@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from_iter([Default::default()]))])))
+@@ -403,17 +403,17 @@
+     pub(crate) fn iter(&self) -> impl Iterator<Item = (&BasisEdge<C>, &HashSet<GNodeId>)> {
+         self.forward.iter()
+     }
+ 
+     /// Reference to the back-pointer map.
+     ///
+     /// Used by `assert_invariants` for cross-checking.
+     pub(crate) const fn back_map(&self) -> &HashMap<GNodeId, BasisEdge<C>> {
+-        &self.back
++        Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from_iter([Default::default()]))]))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Rebuild both forward and back maps from an explicit list of
+     /// `(plateau_key, gnode)` assignments.
+     ///
+     /// Called by `normalize_plateaus` to re-key basis elements after
+     /// the plateau `BTreeMap` is rebuilt with the correct merge logic.
+     pub(crate) fn rebuild(&mut self, assignments: impl IntoIterator<Item = (BasisEdge<C>, GNodeId)>) {

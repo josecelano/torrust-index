@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace += with -= in GvGraph<C, V, N>::normalize_plateaus
+@@ -944,17 +944,17 @@
+         }
+ 
+         // ── Step 2 assert: sweep sum == element sum per key ─────
+         #[cfg(debug_assertions)]
+         {
+             // Group collected element sums by assigned plateau key.
+             let mut key_sums: std::collections::BTreeMap<BasisEdge<C>, f64> = std::collections::BTreeMap::new();
+             for (i, (key, _gid)) in assignments.iter().enumerate() {
+-                *key_sums.entry(*key).or_default() += elems[i].5.to_f64_approx();
++                *key_sums.entry(*key).or_default() -= /* ~ changed by cargo-mutants ~ */ elems[i].5.to_f64_approx();
+             }
+             for (key, elem_sum) in &key_sums {
+                 let sweep_sum = new_plateaus[key].sum.to_f64_approx();
+                 debug_assert!(
+                     (sweep_sum - elem_sum).abs() < 1e-9,
+                     "normalize_plateaus step 2: sweep sum {sweep_sum} != \
+                      element sum {elem_sum} for plateau {key:?}",
+                 );

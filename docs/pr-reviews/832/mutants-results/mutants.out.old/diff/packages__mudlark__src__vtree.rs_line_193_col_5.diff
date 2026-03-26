@@ -1,0 +1,22 @@
+--- packages/mudlark/src/vtree.rs
++++ replace v_depth_uncached -> u32 with 0
+@@ -185,18 +185,17 @@
+             }
+         }
+     }
+ }
+ 
+ /// Compute the true V-Tree depth without caching (for debug assertions).
+ #[cfg(debug_assertions)]
+ fn v_depth_uncached<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
+-    let node = vnodes.get(id.index());
+-    node.parent.map_or(0, |p| v_depth_uncached(vnodes, p) + 1)
++    0 /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Compute the V-Tree depth (number of parent hops) of node `id`.
+ ///
+ /// The V-root has depth 0. Used by the depth gate in `attempt_split`
+ /// and eviction re-verification.
+ ///
+ /// Uses opportunistic caching with path warming (ADR-M-029):

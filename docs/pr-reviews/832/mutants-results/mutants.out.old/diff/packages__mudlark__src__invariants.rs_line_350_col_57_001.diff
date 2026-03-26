@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace + with * in check_g_i1_summation
+@@ -342,17 +342,17 @@
+ 
+ fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (idx, g) in graph.gnodes().iter_occupied() {
+         let left_sum = g.left.map_or(0.0, |l| graph.gnodes().get(l.index()).sum.to_f64_approx());
+         let right_sum = g.right.map_or(0.0, |r| graph.gnodes().get(r.index()).sum.to_f64_approx());
+-        let expected = g.own.to_f64_approx() + left_sum + right_sum;
++        let expected = g.own.to_f64_approx() + left_sum * /* ~ changed by cargo-mutants ~ */ right_sum;
+         let actual = g.sum.to_f64_approx();
+         if (expected - actual).abs() > 1e-9 {
+             errors.push(format!(
+                 "G-I1 violated at G-node {idx}: expected sum={expected}, actual sum={actual} \
+                  (own={}, left_sum={left_sum}, right_sum={right_sum})",
+                 g.own.to_f64_approx()
+             ));
+         }

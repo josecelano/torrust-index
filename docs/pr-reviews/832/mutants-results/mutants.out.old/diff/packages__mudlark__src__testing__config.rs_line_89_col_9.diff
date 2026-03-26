@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field depth_create from struct Config expression in low_threshold_config
+@@ -81,17 +81,17 @@
+     }
+ }
+ 
+ /// Low threshold for frequent splits: θ=2, deeper depths.
+ #[must_use]
+ pub const fn low_threshold_config() -> Config<u64> {
+     Config {
+         split_threshold: 2,
+-        depth_create: 4,
++         /* ~ changed by cargo-mutants ~ */
+         depth_evict: 8,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Medium threshold for cascade testing: θ=3.
+ #[must_use]
+ pub const fn cascade_config() -> Config<u64> {

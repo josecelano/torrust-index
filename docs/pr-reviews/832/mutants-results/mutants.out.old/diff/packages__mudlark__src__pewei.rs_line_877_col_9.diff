@@ -1,0 +1,18 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Terminal<C, V>::width -> C with Default::default()
+@@ -869,14 +869,14 @@
+     /// let pewei = g.extract();
+     /// for t in pewei.layers.iter().flat_map(|l| &l.terminals) {
+     ///     assert_eq!(t.width(), t.end - t.start);
+     /// }
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn width(&self) -> C {
+-        C::width(self.start, self.end)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

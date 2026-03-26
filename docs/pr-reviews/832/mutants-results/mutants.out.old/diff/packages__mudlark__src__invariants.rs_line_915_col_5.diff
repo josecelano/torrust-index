@@ -1,0 +1,35 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_plateau_sum_consistency with ()
+@@ -907,31 +907,17 @@
+ // ── Plateau sum consistency ─────────────────────────────────────────
+ 
+ /// For each plateau: `p.sum == Σ gnodes[r].sum for r in basis_elements(key)`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_sum_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-    for (&key, plateau) in &graph.plateaus {
+-        let expected: f64 = pb
+-            .basis_elements(&key)
+-            .iter()
+-            .filter(|&&gid| graph.gnodes().is_occupied(gid.index()))
+-            .map(|&gid| graph.gnodes().get(gid.index()).sum.to_f64_approx())
+-            .sum();
+-        let actual = plateau.sum.to_f64_approx();
+-        if (expected - actual).abs() > 1e-9 {
+-            errors.push(format!(
+-                "Plateau sum: key {key:?}: expected sum={expected}, actual sum={actual}"
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Plateau depth consistency ───────────────────────────────────────
+ 
+ /// For each basis element in each plateau, verify depth matches `plateau.depth`.
+ ///
+ /// - Terminal: `gnode_depth == p.depth`.
+ /// - Internal (balanced): `gnode_depth + 1 == p.depth` (contour is children's depth).

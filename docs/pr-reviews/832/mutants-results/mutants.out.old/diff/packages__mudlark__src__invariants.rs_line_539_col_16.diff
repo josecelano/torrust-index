@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_v_i6_exposed_flag
+@@ -531,17 +531,17 @@
+ // ── V-I6: Terminal flag on entries ──────────────────────────────────
+ 
+ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (idx, v) in graph.vnodes().iter_occupied() {
+         if let VKind::Entry { gnode, is_exposed, .. } = &v.kind {
+-            if !graph.gnodes().is_occupied(gnode.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gnode.index()) {
+                 errors.push(format!(
+                     "V-I6 violated at V-node {idx}: backing G-node {} is not occupied",
+                     gnode.index()
+                 ));
+                 continue;
+             }
+             let g = graph.gnodes().get(gnode.index());
+             let expected = g.uncovered_range().is_some();

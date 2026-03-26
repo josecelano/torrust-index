@@ -1,0 +1,25 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::oscillating_hotspot -> Self with Default::default()
+@@ -190,21 +190,17 @@
+         self
+     }
+ 
+     /// Oscillating hotspot: every `burst` observations the target
+     /// switches between `a` and `b`.  Forces repeated deep refinement
+     /// followed by abandonment and eviction.
+     #[must_use]
+     pub fn oscillating_hotspot(mut self, a: C, b: C, delta: V, burst: usize, cycles: usize) -> Self {
+-        for cycle in 0..cycles {
+-            let target = if cycle % 2 == 0 { a } else { b };
+-            self.observations.extend(std::iter::repeat((target, delta)).take(burst));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Targeted patterns ─────────────────────────────
+     //
+     // These patterns create overlapping violation paths — two or more
+     // concurrent violations in the same V-Tree neighborhood at
+     // different depths sharing a grandparent.  This is the topology
+     // required to trigger violation source 10 (g-contraction +

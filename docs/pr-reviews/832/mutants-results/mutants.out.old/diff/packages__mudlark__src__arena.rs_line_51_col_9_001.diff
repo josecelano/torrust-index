@@ -1,0 +1,37 @@
+--- packages/mudlark/src/arena.rs
++++ replace Arena<T>::alloc -> usize with 1
+@@ -43,33 +43,17 @@
+         self.count
+     }
+ 
+     /// Allocate a slot, returning its 0-based index.
+     ///
+     /// Reuses a previously freed slot if available, otherwise grows
+     /// the backing `Vec`.
+     pub fn alloc(&mut self, value: T) -> usize {
+-        let index = if let Some(idx) = self.free.pop() {
+-            let i = idx as usize;
+-            self.slots[i] = value;
+-            i
+-        } else {
+-            let i = self.slots.len();
+-            self.slots.push(value);
+-            // Grow bitset if needed.
+-            let word = i / 64;
+-            if word >= self.occupied.len() {
+-                self.occupied.resize(word + 1, 0);
+-            }
+-            i
+-        };
+-        self.set_occupied(index, true);
+-        self.count += 1;
+-        index
++        1 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Deallocate the slot at `index`, returning the stored value
+     /// and replacing it with `T::default()`.
+     ///
+     /// # Panics (debug only)
+     ///
+     /// `debug_assert`s that the slot is currently occupied.

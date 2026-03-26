@@ -1,0 +1,60 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::contour_range -> Option<ContourRange<C, V>> with None
+@@ -421,56 +421,17 @@
+     /// assert!(!cr.basis.is_empty());
+     /// assert!(cr.basis.iter().filter(|b| b.is_boundary_thatch).count() <= 2);
+     /// // Full-domain: energy == exact_energy (no boundary thatching).
+     /// assert_eq!(cr.energy, cr.exact_energy);
+     /// ```
+     #[must_use]
+     pub fn contour_range(&self, start: BasisEdge<C>, end: BasisEdge<C>) -> Option<ContourRange<C, V>> {
+         // 1. Obtain plateau map.
+-        let plateaus = self.plateaus();
+-
+-        // 2. Validate endpoints (CR-I1).
+-        validate_endpoints(&plateaus, start, end, C::domain_max(N))?;
+-
+-        // 3. Compute plateau energy.
+-        let (plateau_energy, plateau_count) = compute_plateau_energy(&plateaus, start, end);
+-
+-        // 4. Collect basis set.
+-        let mut basis = Vec::new();
+-        self.decompose_basis(self.g_root, start.0, end.0, &mut basis);
+-
+-        // 5. Compute energy fields.
+-        //
+-        // §CR.6: contour range energy = Σ basis[i].sum
+-        let energy = basis.iter().fold(V::zero(), |acc, b| V::add(acc, b.sum));
+-        //
+-        // §CR.13: exact energy = range_sum(start..end)
+-        let exact_energy = self.range_sum(start.0..end.0);
+-        //
+-        // §CR.10.4: cross-plateau energy
+-        let cross_plateau_energy = V::sub(energy, plateau_energy);
+-
+-        // 6. Assemble result.
+-        let result = ContourRange {
+-            start: start.0,
+-            end: end.0,
+-            basis,
+-            energy,
+-            exact_energy,
+-            plateau_energy,
+-            cross_plateau_energy,
+-            plateau_count,
+-        };
+-
+-        // 7. Debug-build invariant assertions.
+-        #[cfg(debug_assertions)]
+-        debug_assert_contour_range_invariants(&result);
+-
+-        Some(result)
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Energy-only contour-range query (§CR.6, §CR.13).
+     ///
+     /// Returns the energy scalars without exposing the decomposition
+     /// vectors.  Same lattice-endpoint requirement as
+     /// [`contour_range()`](Self::contour_range).
+     ///

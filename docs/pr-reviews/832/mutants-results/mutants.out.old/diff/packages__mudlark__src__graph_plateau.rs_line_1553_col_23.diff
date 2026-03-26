@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::plateau_after_catalytic_split
+@@ -1545,17 +1545,17 @@
+         self.fixup_plateau(old_key);
+ 
+         // Step 3+4 combined — collect all displaced + target into one
+         // vec, sort by BasisEdge, place left-to-right (ADR-M-031 §2a).
+         let mut to_place = Vec::new();
+         for &sib_id in &displaced {
+             self.collect_subtree_basis_elements(sib_id, &mut to_place);
+         }
+-        if left_depth == right_depth {
++        if left_depth != /* ~ changed by cargo-mutants ~ */ right_depth {
+             to_place.push((g_id, left_depth));
+         } else {
+             to_place.push((left_id, left_depth));
+             to_place.push((right_id, right_depth));
+         }
+         self.place_sorted(&mut to_place);
+     }
+ 

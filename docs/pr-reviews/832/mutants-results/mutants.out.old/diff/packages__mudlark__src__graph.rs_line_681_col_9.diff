@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::terminal_count -> u32 with 0
+@@ -673,17 +673,17 @@
+     /// for _ in 0..10 {
+     ///     g.observe(42, 1u64);
+     /// }
+     /// assert!(g.terminal_count() >= 2);
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn terminal_count(&self) -> u32 {
+-        self.terminal_count
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // Plateau tracking methods (plateaus, build_plateaus, plateau_basis,
+     // debug_plateau_basis, recompute_plateau, place_basis_element,
+     // place_subtree_basis_elements, consolidate_basis_up, normalize_plateaus,
+     // consolidate_all_basis, debug_check_plateau_sums,
+     // fixup_plateau, repair_p_i4, split_for_p_i4, find_boundary_node,
+     // plateau_after_observe, plateau_after_bootstrap_split,

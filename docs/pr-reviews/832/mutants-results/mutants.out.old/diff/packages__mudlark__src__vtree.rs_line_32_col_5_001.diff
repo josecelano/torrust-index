@@ -1,0 +1,73 @@
+--- packages/mudlark/src/vtree.rs
++++ replace vtree_remove_leaf -> Option<VNodeId> with Some(Default::default())
+@@ -24,69 +24,17 @@
+ ///
+ /// Returns the new V-root (None if tree is now empty).
+ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     gnodes: &mut Arena<GNode<C, V>>,
+     v_id: VNodeId,
+     v_root: Option<VNodeId>,
+ ) -> Option<VNodeId> {
+-    let span = tracing::debug_span!("vtree_remove_leaf", v_id = v_id.index(), case = tracing::field::Empty,).entered();
+-
+-    // Clear the G-node's entry link.
+-    if let VKind::Entry { gnode, .. } = vnodes.get(v_id.index()).kind {
+-        gnodes.get_mut(gnode.index()).entry = None;
+-    }
+-
+-    let parent = vnodes.get(v_id.index()).parent;
+-
+-    // Case: root entry (no parent).
+-    let Some(p_id) = parent else {
+-        span.record("case", "root");
+-        vnodes.dealloc(v_id.index());
+-        return None;
+-    };
+-
+-    let p = vnodes.get(p_id.index());
+-    let p_child_count = match &p.kind {
+-        VKind::Structural { children, .. } => children.len(),
+-        VKind::Entry { .. } => unreachable!("parent of entry should be structural"),
+-    };
+-
+-    if p_child_count == 3 {
+-        // 3-node → 2-node: just remove the child.
+-        span.record("case", "shrink");
+-        remove_child_from_structural(vnodes, p_id, v_id);
+-        propagate_v_sums_from(vnodes, p_id);
+-        propagate_evictable_flags(vnodes, p_id);
+-        vnodes.dealloc(v_id.index());
+-        return v_root;
+-    }
+-
+-    // 2-node parent → collapse: sole surviving child replaces parent.
+-    span.record("case", "collapse");
+-    let sole_id = sole_sibling(vnodes, p_id, v_id);
+-    let grandparent = vnodes.get(p_id.index()).parent;
+-
+-    vnodes.get_mut(sole_id.index()).parent = grandparent;
+-
+-    // Invalidate depth cache for sole subtree (it moved up one level)
+-    invalidate_depth_subtree(vnodes, sole_id);
+-
+-    let new_root = grandparent.map_or(Some(sole_id), |g_id| {
+-        let sole_int = vnodes.get(sole_id.index()).intensity;
+-        replace_child_in_parent(vnodes, g_id, p_id, sole_id, sole_int);
+-        propagate_v_sums_from(vnodes, g_id);
+-        propagate_evictable_flags(vnodes, g_id);
+-        v_root
+-    });
+-
+-    vnodes.dealloc(p_id.index());
+-    vnodes.dealloc(v_id.index());
+-    new_root
++    Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Propagate V-Tree sum intensities upward from `start`.
+ ///
+ /// Implements §IDEA M-8.9.1 `propagate_v_sums`.
+ pub fn propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+     tracing::trace!(start = start.index(), "propagate_v_sums");
+     let mut current = vnodes.get(start.index()).parent;

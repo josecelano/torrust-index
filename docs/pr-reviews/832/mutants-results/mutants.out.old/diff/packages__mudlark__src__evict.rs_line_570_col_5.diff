@@ -1,0 +1,34 @@
+--- packages/mudlark/src/evict.rs
++++ replace scan_dfs with ()
+@@ -562,30 +562,13 @@
+ 
+ /// Internal DFS worker for `scan_for_candidates`.
+ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     v_id: VNodeId,
+     depth: u32,
+     candidates: &mut Vec<VNodeId>,
+ ) {
+-    let node = graph.vnodes.get(v_id.index());
+-    match &node.kind {
+-        VKind::Entry { gnode, is_evictable, .. } => {
+-            if depth > graph.live_depth_evict && *is_evictable && *gnode != graph.g_root {
+-                candidates.push(v_id);
+-            }
+-        }
+-        VKind::Structural { children, has_evictable } => {
+-            // Prune: no evictable entries in this subtree.
+-            if !has_evictable {
+-                return;
+-            }
+-            for i in 0..children.len() {
+-                let (child_id, _) = children.get(i);
+-                scan_dfs(graph, child_id, depth + 1, candidates);
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

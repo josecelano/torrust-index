@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace / with % in Arena<T>::alloc
+@@ -51,17 +51,17 @@
+         let index = if let Some(idx) = self.free.pop() {
+             let i = idx as usize;
+             self.slots[i] = value;
+             i
+         } else {
+             let i = self.slots.len();
+             self.slots.push(value);
+             // Grow bitset if needed.
+-            let word = i / 64;
++            let word = i % /* ~ changed by cargo-mutants ~ */ 64;
+             if word >= self.occupied.len() {
+                 self.occupied.resize(word + 1, 0);
+             }
+             i
+         };
+         self.set_occupied(index, true);
+         self.count += 1;
+         index

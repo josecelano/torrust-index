@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ delete ! in plateau_after_evict
+@@ -509,17 +509,17 @@
+             .range(..parent_be)
+             .rev()
+             .take_while(|(_, p)| p.end.total_cmp(&parent_lo) != std::cmp::Ordering::Less)
+             .filter(|(_, p)| p.depth == parent_depth)
+             .map(|(&k, _)| k)
+             .collect();
+         for lk in left_keys {
+             let members: Vec<crate::handle::GNodeId> = graph.plateau_basis.basis_elements(&lk).iter().copied().collect();
+-            if !members.is_empty() {
++            if  /* ~ changed by cargo-mutants ~ */members.is_empty() {
+                 tracing::trace!(
+                     ?lk,
+                     parent_depth,
+                     members = ?members.iter().map(|g| g.index()).collect::<Vec<_>>(),
+                     "evacuating left-adjacent same-depth plateau for evict placement",
+                 );
+                 for &m in &members {
+                     graph.plateau_basis.remove(m);

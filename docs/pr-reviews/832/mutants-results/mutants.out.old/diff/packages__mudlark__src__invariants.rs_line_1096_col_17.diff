@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in check_p_i1_i_keys_are_contour_steps
+@@ -1088,17 +1088,17 @@
+                 ));
+             }
+         }
+     }
+ 
+     // Consecutive plateaus must have different depths (maximality).
+     let depths: Vec<u32> = plateaus.values().map(|p| p.depth).collect();
+     for w in depths.windows(2) {
+-        if w[0] == w[1] {
++        if w[0] != /* ~ changed by cargo-mutants ~ */ w[1] {
+             // Find the key for the second one.
+             let keys: Vec<_> = plateaus.keys().collect();
+             let idx = depths.windows(2).position(|d| d[0] == d[1]).unwrap();
+             errors.push(format!(
+                 "P-I1(i) maximality: consecutive plateaus {:?} and {:?} both have depth {}",
+                 keys[idx],
+                 keys[idx + 1],
+                 w[0]

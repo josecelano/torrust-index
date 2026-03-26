@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace << with >> in Plan<C, V>::depth_ladder
+@@ -386,17 +386,17 @@
+     /// Each successive observation shares a progressively deeper
+     /// ancestor with coordinate 0, walking down the V-Tree spine.
+     /// Repeated `reps` times to build intensity at every depth.
+     #[must_use]
+     pub fn depth_ladder(mut self, bits: u32, delta: V, reps: usize) -> Self {
+         for _ in 0..reps {
+             self.observations.push((C::from_u64(0), delta));
+             for b in (0..bits).rev() {
+-                self.observations.push((C::from_u64(1u64 << b), delta));
++                self.observations.push((C::from_u64(1u64 >> /* ~ changed by cargo-mutants ~ */ b), delta));
+             }
+         }
+         self
+     }
+ 
+     /// Staircase: progressively fill wider coordinate ranges with
+     /// escalating intensity.
+     ///

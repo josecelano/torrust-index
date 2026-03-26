@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace > with == in GvGraph<C, V, N>::fixup_plateau
+@@ -1104,17 +1104,17 @@
+         // incorrectly absorb unrelated elements.
+         //
+         // Detect this by sorting the remaining elements by `lo` and
+         // checking that each element's `lo` equals its predecessor's
+         // `hi` (i.e. they tile without gaps).  When a gap is found,
+         // evacuate every element and re-place the whole set via
+         // `place_sorted` — this is O(k log P) where k is the
+         // (typically small) number of co-basis members.
+-        if element_ids.len() > 1 {
++        if element_ids.len() == /* ~ changed by cargo-mutants ~ */ 1 {
+             let mut intervals: Vec<(GNodeId, C, C)> = element_ids
+                 .iter()
+                 .map(|&gid| {
+                     let g = self.gnodes.get(gid.index());
+                     (gid, g.lo, g.hi)
+                 })
+                 .collect();
+             intervals.sort_by(|a, b| a.1.total_cmp(&b.1));

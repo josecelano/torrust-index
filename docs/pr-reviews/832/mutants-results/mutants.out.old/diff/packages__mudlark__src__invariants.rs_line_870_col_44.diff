@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in check_plateau_basis_consistency
+@@ -862,17 +862,17 @@
+             if !graph.gnodes().is_occupied(gid.index()) {
+                 errors.push(format!(
+                     "Plateau basis: basis element {gid:?} in plateau {key:?} is not a live arena slot"
+                 ));
+                 continue;
+             }
+             // Back-pointer check.
+             match pb.plateau_key(gid) {
+-                Some(back_key) if back_key == key => {} // OK
++                Some(back_key) if back_key != /* ~ changed by cargo-mutants ~ */ key => {} // OK
+                 Some(back_key) => {
+                     errors.push(format!(
+                         "Plateau basis forward→back: {gid:?} in forward[{key:?}] but back[{gid:?}] = {back_key:?}"
+                     ));
+                 }
+                 None => {
+                     errors.push(format!(
+                         "Plateau basis forward→back: {gid:?} in forward[{key:?}] but not in back map"

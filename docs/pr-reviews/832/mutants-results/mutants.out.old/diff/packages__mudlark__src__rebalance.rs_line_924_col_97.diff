@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in push_remaining_sibling_violations_with_config
+@@ -916,17 +916,17 @@
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+     if !config.source_8_three_to_two_siblings {
+         return;
+     }
+     // Get the remaining children of p (excluding removed).
+     let remaining: Vec<VNodeId> = match &vnodes.get(p.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != removed).collect(),
++        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id == /* ~ changed by cargo-mutants ~ */ removed).collect(),
+         VKind::Entry { .. } => return,
+     };
+ 
+     // Check each remaining sibling's children for violations.
+     for sibling in remaining {
+         push_children_violations(vnodes, sibling, "3→2 transition (source 8)", violations);
+     }
+ }

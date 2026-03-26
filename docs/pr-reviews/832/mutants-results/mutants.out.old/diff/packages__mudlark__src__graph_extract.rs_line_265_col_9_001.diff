@@ -1,0 +1,44 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace <impl Iterator for Layers<'_, C, V, N>>::next -> Option<Self::Item> with Some(Default::default())
+@@ -257,40 +257,11 @@
+     graph: &'a GvGraph<C, V, N>,
+     queue: std::collections::VecDeque<(VNodeId, usize)>,
+ }
+ 
+ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, N> {
+     type Item = (usize, crate::view::Node<C, V>);
+ 
+     fn next(&mut self) -> Option<Self::Item> {
+-        use crate::vnode::VKind;
+-
+-        loop {
+-            let (vid, bfs_depth) = self.queue.pop_front()?;
+-            let vnode = self.graph.vnodes.get(vid.index());
+-
+-            match &vnode.kind {
+-                VKind::Structural { children, .. } => {
+-                    for i in 0..children.len() {
+-                        let (child_id, _) = children.get(i);
+-                        self.queue.push_back((child_id, bfs_depth + 1));
+-                    }
+-                    // Skip structural nodes — continue loop.
+-                }
+-                VKind::Entry { gnode, .. } => {
+-                    let g = self.graph.gnodes.get(gnode.index());
+-                    let g_depth = self.graph.gnode_depth(*gnode);
+-                    let node = crate::view::Node {
+-                        start: g.lo,
+-                        end: g.hi,
+-                        own: g.own,
+-                        sum: g.sum,
+-                        depth: g_depth,
+-                        state: g.state(),
+-                        gnode_id: *gnode,
+-                    };
+-                    return Some((bfs_depth, node));
+-                }
+-            }
+-        }
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }

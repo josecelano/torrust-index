@@ -1,0 +1,30 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::adversarial_zigzag -> Self with Default::default()
+@@ -121,26 +121,17 @@
+ 
+     /// Left-biased zigzag with **escalating** intensity.
+     /// Alternates between `lo` and `hi`, but the `lo` side gets
+     /// `base + i * step` intensity while `hi` stays at `base`.
+     /// Forces asymmetric growth and repeated contraction
+     /// preprocessing.
+     #[must_use]
+     pub fn adversarial_zigzag(mut self, lo: C, hi: C, base: V, step: V, n: usize) -> Self {
+-        for i in 0..n {
+-            if i % 2 == 0 {
+-                #[allow(clippy::cast_precision_loss)]
+-                let delta = V::from_f64((i as f64).mul_add(step.to_f64_approx(), base.to_f64_approx()));
+-                self.observations.push((lo, delta));
+-            } else {
+-                self.observations.push((hi, base));
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Power-law skew: lower coordinates get disproportionate
+     /// intensity.  `coord = i % domain`, `delta = if coord < domain/4
+     /// { 10 + i%7 } else { 1 + i%3 }`.
+     #[must_use]
+     pub fn skewed(mut self, domain: u64, n: usize) -> Self {
+         let quarter = domain / 4;

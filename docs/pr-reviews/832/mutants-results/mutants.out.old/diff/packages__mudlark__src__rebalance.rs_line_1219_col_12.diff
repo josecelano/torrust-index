@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in resolve
+@@ -1211,17 +1211,17 @@
+ 
+     // ── Phase 1: ensure p is a 2-node ───────────────────────────
+     if structural_child_count(vnodes, p) == 3 {
+         tracing::debug!(p = %Nd(vnodes, p), "phase 1: contracting 3-node parent");
+         let merged = contract(vnodes, p);
+         push_side_effect_violations(vnodes, p, violations);
+         push_side_effect_violations(vnodes, merged, violations);
+         push_contraction_child_violations(vnodes, p, c, violations);
+-        if !is_violated(vnodes, c) {
++        if  /* ~ changed by cargo-mutants ~ */is_violated(vnodes, c) {
+             tracing::debug!("phase 1: resolved by contraction");
+             return None;
+         }
+     }
+ 
+     let is_c_structural_2 = matches!(
+         &vnodes.get(c.index()).kind,
+         VKind::Structural { children, .. } if children.len() == 2

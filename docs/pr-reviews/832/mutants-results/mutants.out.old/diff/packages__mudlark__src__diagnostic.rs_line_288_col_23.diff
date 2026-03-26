@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace += with -= in diagnose_missed_violation
+@@ -280,17 +280,17 @@
+             node = current.index(),
+             kind,
+             intensity = n.intensity.to_f64_approx(),
+             "ancestry",
+         );
+         match n.parent {
+             Some(p) => {
+                 current = p;
+-                depth += 1;
++                depth -= /* ~ changed by cargo-mutants ~ */ 1;
+             }
+             None => break,
+         }
+     }
+ }
+ 
+ /// Check if `ancestor` is an ancestor of `descendant` in the V-tree.
+ fn is_ancestor<V: Accumulator>(vnodes: &Arena<VNode<V>>, ancestor: VNodeId, mut descendant: VNodeId) -> bool {

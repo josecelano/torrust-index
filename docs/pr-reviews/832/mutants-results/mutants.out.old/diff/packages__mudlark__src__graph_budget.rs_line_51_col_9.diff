@@ -1,0 +1,71 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace GvGraph<C, V, N>::adjust_depth_gates with ()
+@@ -43,67 +43,17 @@
+     /// `check_evictions()`. Only fires when `budget` is `Some`.
+     ///
+     /// - Over budget → tighten by 1 level (floor at `buffer + 1`).
+     /// - Under `α_relax × budget` → relax by 1 level (no ceiling).
+     /// - Inside the dead zone → no change.
+     ///
+     /// D-I3 is maintained at all times via the fixed buffer.
+     pub(crate) fn adjust_depth_gates(&mut self) {
+-        let Some(budget) = self.config.budget else {
+-            return;
+-        };
+-        let count = self.node_count as usize;
+-
+-        // Dynamic headroom: max(structural ceiling, convergence bound).
+-        // ADR-M-018: ensures S + 2(D_c − 1) ≤ H at every step.
+-        let convergence_bound = 2 * (self.live_depth_create as usize).saturating_sub(1);
+-        let required_headroom = self.headroom.max(convergence_bound);
+-        let soft_limit = budget - required_headroom;
+-        assert!(
+-            soft_limit >= 1,
+-            "soft_limit must be >= 1 (budget={budget}, headroom={required_headroom}, \
+-             D_c={}, buffer={})",
+-            self.live_depth_create,
+-            self.depth_buffer
+-        );
+-        self.soft_limit = Some(soft_limit);
+-
+-        if count > soft_limit {
+-            // Tighten: lower D_evict by 1, floor at buffer + 1.
+-            let floor = self.depth_buffer + 1;
+-            if self.live_depth_evict > floor {
+-                self.live_depth_evict -= 1;
+-                self.live_depth_create = self.live_depth_evict - self.depth_buffer;
+-                tracing::debug!(
+-                    new_d_evict = self.live_depth_evict,
+-                    new_d_create = self.live_depth_create,
+-                    count,
+-                    soft_limit,
+-                    "depth gates tightened",
+-                );
+-            }
+-        } else {
+-            #[allow(clippy::cast_precision_loss)] // node counts fit in f64 mantissa
+-            let threshold = soft_limit as f64 * self.config.alpha_relax;
+-            #[allow(clippy::cast_precision_loss)]
+-            let count_f = count as f64;
+-            if count_f < threshold {
+-                // Relax: raise D_evict by 1 (no ceiling).
+-                self.live_depth_evict += 1;
+-                self.live_depth_create = self.live_depth_evict - self.depth_buffer;
+-                tracing::debug!(
+-                    new_d_evict = self.live_depth_evict,
+-                    new_d_create = self.live_depth_create,
+-                    count,
+-                    soft_limit,
+-                    "depth gates relaxed",
+-                );
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Eviction wiring (Step 7, ADR-M-015) ───────────────────────
+ 
+     /// Evict **all** eligible candidates (unbounded mode).
+     ///
+     /// Scans the V-Tree, re-verifies each candidate, calls
+     /// `evict_tip()`, and performs a trailing rebalance if any

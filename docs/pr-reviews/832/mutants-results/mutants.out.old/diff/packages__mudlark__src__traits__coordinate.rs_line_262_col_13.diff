@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace - with + in <impl Coordinate for f32>::width
+@@ -254,17 +254,17 @@
+ 
+     #[inline]
+     fn midpoint(a: Self, b: Self) -> Self {
+         a + (b - a) / 2.0
+     }
+ 
+     #[inline]
+     fn width(start: Self, end: Self) -> Self {
+-        end - start
++        end + /* ~ changed by cargo-mutants ~ */ start
+     }
+ 
+     #[inline]
+     fn is_final(_start: Self, _end: Self, depth: u32, n: u32) -> bool {
+         depth >= n
+     }
+ 
+     #[inline]

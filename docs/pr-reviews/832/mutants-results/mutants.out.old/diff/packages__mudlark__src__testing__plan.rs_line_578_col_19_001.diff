@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace -= with /= in Plan<C, V>::pincer
+@@ -570,17 +570,17 @@
+                 if left != right {
+                     self.observations.push((C::from_u64(right), delta));
+                 }
+             }
+             left += 1;
+             if right == 0 {
+                 break;
+             }
+-            right -= 1;
++            right /= /* ~ changed by cargo-mutants ~ */ 1;
+         }
+         self
+     }
+ 
+     /// Repulsion walk: two hotspots start at the same coordinate and
+     /// gradually drift apart, one step at a time.
+     ///
+     /// Creates initially shared then diverging violation paths,

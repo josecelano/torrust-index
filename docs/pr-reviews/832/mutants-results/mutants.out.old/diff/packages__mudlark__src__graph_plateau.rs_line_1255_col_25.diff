@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::repair_p_i4
+@@ -1247,17 +1247,17 @@
+             }
+ 
+             let Some(child_id) = g.left.or(g.right) else {
+                 continue;
+             };
+             let child_lo = self.gnodes.get(child_id.index()).lo;
+             let child_pk = self.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);
+ 
+-            if child_pk == Some(pk) {
++            if child_pk != /* ~ changed by cargo-mutants ~ */ Some(pk) {
+                 self.split_for_p_i4(pk, child_id);
+             }
+         }
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]

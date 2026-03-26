@@ -1,0 +1,24 @@
+--- packages/mudlark/src/vtree.rs
++++ replace replace_child_in_parent with ()
+@@ -269,20 +269,17 @@
+ /// Replace a child in a structural parent's `PackedChildren`.
+ pub fn replace_child_in_parent<V: Accumulator>(
+     vnodes: &mut Arena<VNode<V>>,
+     parent: VNodeId,
+     old_child: VNodeId,
+     new_child: VNodeId,
+     new_intensity: V,
+ ) {
+-    let p = vnodes.get_mut(parent.index());
+-    if let VKind::Structural { children, .. } = &mut p.kind {
+-        children.replace_child(old_child, new_child, new_intensity);
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Remove a child from a 3-node structural parent (→ 2-node).
+ fn remove_child_from_structural<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, parent: VNodeId, child: VNodeId) {
+     let p = vnodes.get_mut(parent.index());
+     if let VKind::Structural { children, .. } = &mut p.kind {
+         children.remove_child(child);
+     }

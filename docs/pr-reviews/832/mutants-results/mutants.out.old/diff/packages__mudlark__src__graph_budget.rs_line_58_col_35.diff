@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace * with + in GvGraph<C, V, N>::adjust_depth_gates
+@@ -50,17 +50,17 @@
+     pub(crate) fn adjust_depth_gates(&mut self) {
+         let Some(budget) = self.config.budget else {
+             return;
+         };
+         let count = self.node_count as usize;
+ 
+         // Dynamic headroom: max(structural ceiling, convergence bound).
+         // ADR-M-018: ensures S + 2(D_c − 1) ≤ H at every step.
+-        let convergence_bound = 2 * (self.live_depth_create as usize).saturating_sub(1);
++        let convergence_bound = 2 + /* ~ changed by cargo-mutants ~ */ (self.live_depth_create as usize).saturating_sub(1);
+         let required_headroom = self.headroom.max(convergence_bound);
+         let soft_limit = budget - required_headroom;
+         assert!(
+             soft_limit >= 1,
+             "soft_limit must be >= 1 (budget={budget}, headroom={required_headroom}, \
+              D_c={}, buffer={})",
+             self.live_depth_create,
+             self.depth_buffer

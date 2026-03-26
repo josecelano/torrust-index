@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace GvGraph<C, V, N>::check_evictions_bounded -> u32 with 0
+@@ -139,17 +139,17 @@
+         let _span = tracing::debug_span!("check_evictions", d_evict = self.live_depth_evict).entered();
+         self.evict_candidates(None)
+     }
+ 
+     /// Evict candidates up to a budget-derived limit (bounded mode).
+     ///
+     /// Like `check_evictions()` but stops after `stop_at` evictions.
+     pub(crate) fn check_evictions_bounded(&mut self, stop_at: usize) -> u32 {
+-        self.evict_candidates(Some(stop_at))
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Shared implementation for bounded and unbounded eviction.
+     ///
+     /// Two-phase collect-then-evict (ADR-M-015):
+     /// 1. `scan_for_candidates()` — snapshot of eligible `VNodeId`s.
+     /// 2. Iterate, re-verify eligibility (slot occupied, still
+     ///    evictable, depth still exceeds `D_evict`, not G-root),

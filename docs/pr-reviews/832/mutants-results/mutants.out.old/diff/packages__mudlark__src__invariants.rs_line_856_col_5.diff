@@ -1,0 +1,69 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_plateau_basis_consistency with ()
+@@ -848,65 +848,17 @@
+ /// - Every back entry `(gnode, key)`: `forward[key]` contains `gnode`.
+ /// - Every basis element references a live (occupied) arena slot.
+ /// - `plateaus.keys()` == `plateau_basis.forward.keys()`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_basis_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let pb = graph.plateau_basis();
+-
+-    // Forward → back consistency + liveness.
+-    for (&key, gnodes) in pb.iter() {
+-        for &gid in gnodes {
+-            // Liveness check.
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                errors.push(format!(
+-                    "Plateau basis: basis element {gid:?} in plateau {key:?} is not a live arena slot"
+-                ));
+-                continue;
+-            }
+-            // Back-pointer check.
+-            match pb.plateau_key(gid) {
+-                Some(back_key) if back_key == key => {} // OK
+-                Some(back_key) => {
+-                    errors.push(format!(
+-                        "Plateau basis forward→back: {gid:?} in forward[{key:?}] but back[{gid:?}] = {back_key:?}"
+-                    ));
+-                }
+-                None => {
+-                    errors.push(format!(
+-                        "Plateau basis forward→back: {gid:?} in forward[{key:?}] but not in back map"
+-                    ));
+-                }
+-            }
+-        }
+-    }
+-
+-    // Back → forward consistency.
+-    for (&gid, &key) in pb.back_map() {
+-        let elements = pb.basis_elements(&key);
+-        if !elements.contains(&gid) {
+-            errors.push(format!(
+-                "Plateau basis back→forward: back[{gid:?}] = {key:?} but {gid:?} not in forward[{key:?}]"
+-            ));
+-        }
+-    }
+-
+-    // plateaus.keys() == plateau_basis.forward.keys()
+-    let btree_keys: Vec<_> = graph.plateaus.keys().copied().collect();
+-    let basis_keys: Vec<_> = pb.iter().map(|(&k, _)| k).collect();
+-    if btree_keys != basis_keys {
+-        errors.push(format!(
+-            "Plateau basis: plateaus.keys() ({} entries) != plateau_basis.forward.keys() ({} entries)",
+-            btree_keys.len(),
+-            basis_keys.len()
+-        ));
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Plateau sum consistency ─────────────────────────────────────────
+ 
+ /// For each plateau: `p.sum == Σ gnodes[r].sum for r in basis_elements(key)`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_sum_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,

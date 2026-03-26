@@ -1,0 +1,33 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_remaining_sibling_violations_with_config with ()
+@@ -911,29 +911,17 @@
+ #[inline]
+ pub fn push_remaining_sibling_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     p: VNodeId,
+     removed: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_8_three_to_two_siblings {
+-        return;
+-    }
+-    // Get the remaining children of p (excluding removed).
+-    let remaining: Vec<VNodeId> = match &vnodes.get(p.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != removed).collect(),
+-        VKind::Entry { .. } => return,
+-    };
+-
+-    // Check each remaining sibling's children for violations.
+-    for sibling in remaining {
+-        push_children_violations(vnodes, sibling, "3→2 transition (source 8)", violations);
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Check the COUSINS of the promoted node after a 2-node collapse.
+ ///
+ /// When `v_parent` collapses into `sole`, the OTHER children of grandparent
+ /// (the "cousins" of `v_parent`) have their children potentially violated
+ /// because those children's uncle changed from `v_parent` to `sole`.
+ ///

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<C, V>::plan -> Plan<C, V> with Default::default()
+@@ -269,17 +269,17 @@
+         self
+     }
+ 
+     // ── Terminal operations ─────────────────────────────────
+ 
+     /// Extract the serializable plan (without executing it).
+     #[must_use]
+     pub fn plan(self) -> Plan<C, V> {
+-        self.plan
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Extract the config.
+     #[must_use]
+     pub const fn config(&self) -> &Config<V> {
+         &self.config
+     }
+ 

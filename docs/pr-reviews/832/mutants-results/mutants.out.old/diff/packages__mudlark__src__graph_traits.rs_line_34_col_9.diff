@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_traits.rs
++++ replace <impl crate::traits::SpatialWrite for GvGraph<C, V, N>>::observe with ()
+@@ -26,17 +26,17 @@
+         self.get(coord)
+     }
+ }
+ 
+ // ── SpatialWrite impl ────────────────────────────────────────────────
+ 
+ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::SpatialWrite for GvGraph<C, V, N> {
+     fn observe<O: crate::traits::Observation<V>>(&mut self, coord: C, delta: O) {
+-        self.observe(coord, delta);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── TemporalDecay impl ──────────────────────────────────────────────
+ 
+ impl<C: Coordinate, V: Accumulator + crate::traits::Attenuatable + Inspectable, const N: u32> crate::traits::TemporalDecay
+     for GvGraph<C, V, N>
+ {

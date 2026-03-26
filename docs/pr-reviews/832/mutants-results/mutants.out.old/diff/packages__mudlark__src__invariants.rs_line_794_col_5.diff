@@ -1,0 +1,45 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_depth_gate_invariants with ()
+@@ -786,41 +786,17 @@
+ }
+ 
+ // ── D-I3: Depth gate invariants (Phase 3, ADR-M-017) ─────────────────
+ 
+ fn check_depth_gate_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let d_create = graph.depth_create();
+-    let d_evict = graph.depth_evict();
+-    let buffer = graph.depth_buffer();
+-
+-    // D-I3: D_create < D_evict (strict ordering).
+-    if d_create >= d_evict {
+-        errors.push(format!(
+-            "D-I3: live_depth_create ({d_create}) must be < live_depth_evict ({d_evict})"
+-        ));
+-    }
+-
+-    // Floor: D_evict >= buffer + 1.
+-    if d_evict < buffer + 1 {
+-        errors.push(format!(
+-            "D-I3 floor: live_depth_evict ({d_evict}) < depth_buffer ({buffer}) + 1"
+-        ));
+-    }
+-
+-    // Buffer consistency: D_create == D_evict - buffer.
+-    // Only check if floor holds (avoids underflow).
+-    if d_evict >= buffer && d_create != d_evict - buffer {
+-        errors.push(format!(
+-            "D-I3 buffer: live_depth_create ({d_create}) != live_depth_evict ({d_evict}) - depth_buffer ({buffer})"
+-        ));
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ══════════════════════════════════════════════════════════════════════
+ // Plateau invariant checks (ADR-M-026, Step 2F)
+ // ══════════════════════════════════════════════════════════════════════
+ 
+ // ── Plateau BTreeMap key consistency ────────────────────────────────
+ 

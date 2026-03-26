@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ delete ! in GvGraph<C, V, N>::normalize_plateaus
+@@ -845,17 +845,17 @@
+         //    SemiInternal's DFS recurses into a node that is also
+         //    a top-level old basis element.
+         let mut elems: Vec<(GNodeId, BasisEdge<C>, u32, C, C, V)> = Vec::new();
+         let mut seen = std::collections::HashSet::new();
+         let basis_ids: Vec<GNodeId> = self.plateau_basis.back_map().keys().copied().collect();
+         for gid in basis_ids {
+             let mut stack = vec![gid];
+             while let Some(nid) = stack.pop() {
+-                if !seen.insert(nid) {
++                if  /* ~ changed by cargo-mutants ~ */seen.insert(nid) {
+                     continue; // already collected by an ancestor's DFS
+                 }
+                 let g = self.gnodes.get(nid.index());
+                 match g.state() {
+                     GState::Terminal => {
+                         let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+                         elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+                     }

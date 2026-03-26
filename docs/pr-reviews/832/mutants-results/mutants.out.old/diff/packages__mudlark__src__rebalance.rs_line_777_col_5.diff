@@ -1,0 +1,34 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_contraction_child_violations with ()
+@@ -769,30 +769,17 @@
+ /// grandparent level, but we must NOT re-enqueue the node being
+ /// resolved (Phase 2 handles it).
+ pub fn push_contraction_child_violations<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     skip: VNodeId,
+     violations: &mut Vec<VNodeId>,
+ ) {
+-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+-        VKind::Entry { .. } => return,
+-    };
+-    for child_id in child_ids {
+-        if child_id != skip && is_violated(vnodes, child_id) {
+-            tracing::trace!(
+-                child = %Nd(vnodes, child_id),
+-                skip = skip.index(),
+-                "contraction-child violation",
+-            );
+-            violations.push(child_id);
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Walk ancestors from `start` to the root, pushing siblings' children
+ /// that are newly violated after a leaf removal.
+ ///
+ /// `vtree_remove_leaf` calls `propagate_v_sums_from`, which decreases
+ /// the intensity of every structural ancestor from the change point to
+ /// the root.  At each level, the decreased ancestor may now be a weaker

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace <impl PartialEq for BasisEdge<C>>::eq -> bool with true
+@@ -106,17 +106,17 @@
+ impl<C: Coordinate> PartialOrd for BasisEdge<C> {
+     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+         Some(self.cmp(other))
+     }
+ }
+ 
+ impl<C: Coordinate> PartialEq for BasisEdge<C> {
+     fn eq(&self, other: &Self) -> bool {
+-        self.cmp(other) == Ordering::Equal
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<C: Coordinate> Eq for BasisEdge<C> {}
+ 
+ // ── Plateau ──────────────────────────────────────────────────────────
+ 
+ /// One contiguous region of uniform resolution depth on the spatial

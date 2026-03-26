@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<u64, u64>::default_u64 -> Self with Default::default()
+@@ -297,17 +297,17 @@
+ }
+ 
+ // ── u64-specific convenience constructors ───────────────────────
+ 
+ impl GraphCreator<u64, u64> {
+     /// Start building with `default_config()`.
+     #[must_use]
+     pub const fn default_u64() -> Self {
+-        Self::new(default_config())
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Start building with `budget_config(budget)`.
+     #[must_use]
+     pub const fn with_budget(budget: usize) -> Self {
+         Self::new(budget_config(budget))
+     }
+ }

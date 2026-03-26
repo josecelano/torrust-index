@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::debug_assert_plateau_mirror_consistency
+@@ -93,17 +93,17 @@
+     pub(crate) fn debug_assert_plateau_mirror_consistency(&self, label: &str) {
+         // Always run in debug builds (cargo test); optionally in
+         // release when a tracing subscriber is active at DEBUG.
+         if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
+             return;
+         }
+ 
+         let rebuilt = self.build_plateaus();
+-        if self.plateaus != rebuilt {
++        if self.plateaus == /* ~ changed by cargo-mutants ~ */ rebuilt {
+             // Find differing keys
+             let dyn_keys: std::collections::BTreeSet<_> = self.plateaus.keys().collect();
+             let stat_keys: std::collections::BTreeSet<_> = rebuilt.keys().collect();
+             let only_dynamic: Vec<_> = dyn_keys.difference(&stat_keys).collect();
+             let only_static: Vec<_> = stat_keys.difference(&dyn_keys).collect();
+             let both: Vec<_> = dyn_keys.intersection(&stat_keys).collect();
+             let differing: Vec<_> = both.iter().filter(|&&k| self.plateaus.get(k) != rebuilt.get(k)).collect();
+ 

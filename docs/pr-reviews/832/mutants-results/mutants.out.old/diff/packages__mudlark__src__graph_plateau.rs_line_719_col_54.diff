@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::consolidate_basis_up
+@@ -711,17 +711,17 @@
+                 let pg = self.gnodes.get(parent_id.index());
+                 match (pg.left, pg.right) {
+                     (Some(l), Some(r)) => (l, r),
+                     _ => break,
+                 }
+             };
+ 
+             // Semi-internals break uniformity — cannot consolidate.
+-            if self.gnodes.get(left.index()).state() == GState::SemiInternal
++            if self.gnodes.get(left.index()).state() != /* ~ changed by cargo-mutants ~ */ GState::SemiInternal
+                 || self.gnodes.get(right.index()).state() == GState::SemiInternal
+             {
+                 tracing::trace!(
+                     from = gid.index(),
+                     parent = parent_id.index(),
+                     "consolidate_basis_up: stop — semi-internal child"
+                 );
+                 break;

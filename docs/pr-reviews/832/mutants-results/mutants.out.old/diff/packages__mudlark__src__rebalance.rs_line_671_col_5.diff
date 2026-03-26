@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_side_effect_violations with ()
+@@ -663,17 +663,17 @@
+ 
+ // ── Violation queue helpers (§IDEA M-11.11) ────────────────────────
+ 
+ /// Push grandchildren of `node` that are newly violated.
+ ///
+ /// After restructuring at `node`, its grandchildren may have weakened
+ /// uncle shields.  See §IDEA M-11.11.1.
+ pub fn push_side_effect_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {
+-    push_side_effect_violations_with_config(vnodes, node, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push grandchildren violations with configurable source (source 3).
+ ///
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_side_effect_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

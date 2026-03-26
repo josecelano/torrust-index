@@ -1,0 +1,52 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::range_sum_inner -> V with Default::default()
+@@ -339,48 +339,17 @@
+         self.range_sum_inner(self.g_root, lo, hi)
+     }
+ 
+     /// Recursive G-Tree descent for range sum.
+     ///
+     /// `query_lo..query_hi` is the half-open query range (already
+     /// clamped). `gid` is the current G-node.
+     fn range_sum_inner(&self, gid: crate::handle::GNodeId, query_lo: C, query_hi: C) -> V {
+-        let g = self.gnodes.get(gid.index());
+-        let node_lo = g.lo;
+-        let node_hi = g.hi;
+-
+-        // Fully disjoint.
+-        if query_lo >= node_hi || query_hi <= node_lo {
+-            return V::zero();
+-        }
+-
+-        // Fully contained.
+-        if query_lo <= node_lo && query_hi >= node_hi {
+-            return g.sum;
+-        }
+-
+-        // ── Partial overlap: pro-rate own, recurse children ─────
+-        let overlap_lo = if query_lo > node_lo { query_lo } else { node_lo };
+-        let overlap_hi = if query_hi < node_hi { query_hi } else { node_hi };
+-
+-        // Pro-rate g.own by overlap/width using f64 ratio arithmetic.
+-        let node_width = C::width(node_lo, node_hi).to_f64();
+-        let overlap_width = C::width(overlap_lo, overlap_hi).to_f64();
+-        let own_prorated = g.own.scale_by(overlap_width / node_width);
+-
+-        // Recurse into children.
+-        let left_sum = g
+-            .left
+-            .map_or_else(V::zero, |left_id| self.range_sum_inner(left_id, query_lo, query_hi));
+-        let right_sum = g
+-            .right
+-            .map_or_else(V::zero, |right_id| self.range_sum_inner(right_id, query_lo, query_hi));
+-
+-        V::add(own_prorated, V::add(left_sum, right_sum))
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Contour Range Query (Phase 3 — ADR-M-037, revised Phase 2) ────
+ 
+ impl<C: Coordinate, V: Accumulator + Proratable + Inspectable, const N: u32> GvGraph<C, V, N> {
+     /// Full contour-range decomposition (§CR.2–§CR.6).
+     ///

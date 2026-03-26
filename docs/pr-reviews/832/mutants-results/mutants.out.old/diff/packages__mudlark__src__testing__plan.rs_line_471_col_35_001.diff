@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::diamond
+@@ -463,17 +463,17 @@
+                 self.observations.push((C::from_u64(offset), delta));
+             } else {
+                 self.observations.push((C::from_u64(domain - 1 - offset), delta));
+             }
+         }
+         // Diverge: center → outside
+         let center = domain / 2;
+         for i in 0..(n - half) {
+-            let offset = i as u64 % (domain / 2);
++            let offset = i as u64 + /* ~ changed by cargo-mutants ~ */ (domain / 2);
+             if i % 2 == 0 {
+                 let coord = (center + offset).min(domain - 1);
+                 self.observations.push((C::from_u64(coord), delta));
+             } else {
+                 self.observations
+                     .push((C::from_u64(center.saturating_sub(offset + 1)), delta));
+             }
+         }

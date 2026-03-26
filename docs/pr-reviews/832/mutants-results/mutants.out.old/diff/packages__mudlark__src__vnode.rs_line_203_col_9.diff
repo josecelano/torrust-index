@@ -1,0 +1,24 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::add_child with ()
+@@ -195,20 +195,17 @@
+     }
+ 
+     /// Add a child (2-node → 3-node).
+     ///
+     /// # Panics
+     ///
+     /// Panics if already a 3-node.
+     pub fn add_child(&mut self, id: VNodeId, intensity: V) {
+-        assert!(self.len == 2, "add_child: already a 3-node");
+-        self.ids[2] = Some(id);
+-        self.intensities[2] = intensity;
+-        self.len = 3;
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Remove a child by ID (3-node → 2-node), returning the removed
+     /// `(id, intensity)`.
+     ///
+     /// # Panics
+     ///
+     /// Panics if not a 3-node or if `id` is not found.

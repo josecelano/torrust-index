@@ -1,0 +1,25 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::zigzag -> Self with Default::default()
+@@ -107,21 +107,17 @@
+             self.observations.push((coord, delta));
+         }
+         self
+     }
+ 
+     /// Alternating extremes: `lo`, `hi`, `lo`, `hi`, …
+     #[must_use]
+     pub fn zigzag(mut self, lo: C, hi: C, delta: V, n: usize) -> Self {
+-        for i in 0..n {
+-            let coord = if i % 2 == 0 { lo } else { hi };
+-            self.observations.push((coord, delta));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Left-biased zigzag with **escalating** intensity.
+     /// Alternates between `lo` and `hi`, but the `lo` side gets
+     /// `base + i * step` intensity while `hi` stays at `base`.
+     /// Forces asymmetric growth and repeated contraction
+     /// preprocessing.
+     #[must_use]

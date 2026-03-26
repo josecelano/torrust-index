@@ -1,0 +1,173 @@
+
+*** packages/mudlark/src/pewei.rs:402:9: replace RegionLookup<C>::build -> Self with Default::default()
+
+*** mutation diff:
+--- packages/mudlark/src/pewei.rs
++++ replace RegionLookup<C>::build -> Self with Default::default()
+@@ -394,66 +394,17 @@
+ }
+ 
+ impl<C: Coordinate> RegionLookup<C> {
+     /// Build the lookup from visible layers.
+     ///
+     /// Cost: $O(n \log n)$ — one pass to collect, then sort each
+     /// depth bucket.
+     fn build<V: Accumulator>(layers: &[Layer<C, V>]) -> Self {
+-        let max_depth = layers
+-            .iter()
+-            .flat_map(|l| {
+-                l.transitions
+-                    .iter()
+-                    .map(|t| t.depth)
+-                    .chain(l.terminals.iter().map(|t| t.depth))
+-            })
+-            .max()
+-            .unwrap_or(0) as usize;
+-
+-        // Collect (start, NodeRef) pairs per depth, then split into
+-        // parallel arrays after sorting.
+-        let mut pairs: Vec<Vec<(C, NodeRef)>> = (0..=max_depth).map(|_| Vec::new()).collect();
+-
+-        #[allow(clippy::cast_possible_truncation)] // layer/item indices ≤ u32::MAX for any realistic PEWEI
+-        for (li, layer) in layers.iter().enumerate() {
+-            for (ti, t) in layer.transitions.iter().enumerate() {
+-                pairs[t.depth as usize].push((
+-                    t.start,
+-                    NodeRef::Transition {
+-                        layer: li as u32,
+-                        idx: ti as u32,
+-                    },
+-                ));
+-            }
+-            for (ti, t) in layer.terminals.iter().enumerate() {
+-                pairs[t.depth as usize].push((
+-                    t.start,
+-                    NodeRef::Terminal {
+-                        layer: li as u32,
+-                        idx: ti as u32,
+-                    },
+-                ));
+-            }
+-        }
+-
+-        // Sort each bucket by `start`, then split into SoA.
+-        // Safety: coordinates from `extract()` are dyadic arithmetic
+-        // on valid inputs — NaN is structurally unreachable.
+-        let by_depth = pairs
+-            .into_iter()
+-            .map(|mut bucket| {
+-                bucket.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+-                let (starts, nodes) = bucket.into_iter().unzip();
+-                DepthBucket { starts, nodes }
+-            })
+-            .collect();
+-
+-        Self { by_depth }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Look up the node reference at `(g_depth, start)`.
+     ///
+     /// Binary search touches only the `starts` array. The `nodes`
+     /// entry is read once at the final index.
+     ///
+     /// Returns `None` if no PEWEI node exists at that position
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+       Fresh unicode-ident v1.0.24
+       Fresh cfg-if v1.0.4
+       Fresh autocfg v1.5.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh shlex v1.3.0
+       Fresh regex-syntax v0.8.9
+       Fresh once_cell v1.21.3
+       Fresh proc-macro2 v1.0.106
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh either v1.15.0
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh memchr v2.8.0
+       Fresh itoa v1.0.17
+       Fresh ciborium-io v0.2.2
+       Fresh plotters-backend v0.3.7
+       Fresh clap_lex v1.0.0
+       Fresh cast v0.3.0
+       Fresh log v0.4.29
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh quote v1.0.44
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh zmij v1.0.21
+       Fresh itertools v0.13.0
+       Fresh plotters-svg v0.3.7
+       Fresh libc v0.2.182
+       Fresh clap_builder v4.5.59
+       Fresh matchers v0.2.0
+       Fresh tracing-log v0.2.0
+       Fresh regex v1.12.3
+       Fresh sharded-slab v0.1.7
+       Fresh walkdir v2.5.0
+       Fresh syn v2.0.116
+       Fresh crossbeam-epoch v0.9.18
+       Fresh num-traits v0.2.19
+       Fresh serde_json v1.0.149
+       Fresh clap v4.5.59
+       Fresh criterion-plot v0.8.2
+       Fresh page_size v0.6.0
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh crossbeam-deque v0.8.6
+       Fresh tracing-attributes v0.1.31
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh tracing v0.1.44
+       Fresh rayon-core v1.13.0
+       Fresh half v2.7.1
+       Fresh tinytemplate v1.2.1
+       Fresh rayon v1.11.0
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark): the file `packages/mudlark/src/pewei.rs` has changed (1773694945.895026700s, 12s after last build at 1773694933.727093284s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/packages/mudlark)
+       Fresh ciborium-ll v0.2.2
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error[E0277]: the trait bound `RegionLookup<C>: Default` is not satisfied
+   --> packages/mudlark/src/pewei.rs:402:9
+    |
+402 |         Default::default() /* ~ changed by cargo-mutants ~ */
+    |         ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `RegionLookup<C>`
+    |
+help: consider annotating `RegionLookup<C>` with `#[derive(Default)]`
+    |
+392 + #[derive(Default)]
+393 | struct RegionLookup<C: Coordinate> {
+    |
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `torrust-mudlark` (lib) due to 1 previous error
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `torrust-mudlark` (lib test) due to 1 previous error
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-Xjf6Dz.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

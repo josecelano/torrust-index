@@ -1,0 +1,34 @@
+--- packages/mudlark/src/evict.rs
++++ delete match arm 3 in evict_tip
+@@ -218,30 +218,17 @@
+                         sole = sole.index(),
+                         grandparent = grandparent.index(),
+                         "evict_tip: calling push_cousin_violations (source 9)",
+                     );
+                     rebalance::push_cousin_violations(&graph.vnodes, sole, grandparent, &mut graph.violations);
+                 }
+             }
+         }
+-        3 => {
+-            // 3→2: check all remaining children of the parent.
+-            // v_id is already removed from the parent's children list,
+-            // so we check all current children.
+-            if let Some(p) = v_parent {
+-                tracing::debug!(parent = p.index(), "evict_tip: calling push_remaining_sibling_violations");
+-                rebalance::push_remaining_sibling_violations(
+-                    &graph.vnodes,
+-                    p,
+-                    v_id, // already removed, so filter is a no-op
+-                    &mut graph.violations,
+-                );
+-            }
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         _ => {}
+     }
+ 
+     // ── 6d. Violation source diagnosis ──────────────────────────
+     // For any missed violations, analyze exactly why they became
+     // violated to identify the missing source.
+     if tracing::enabled!(tracing::Level::ERROR) {
+         let ctx = crate::diagnostic::EvictionContext {

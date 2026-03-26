@@ -1,0 +1,20 @@
+--- packages/mudlark/src/evict.rs
++++ replace + with * in scan_dfs
+@@ -576,16 +576,16 @@
+         }
+         VKind::Structural { children, has_evictable } => {
+             // Prune: no evictable entries in this subtree.
+             if !has_evictable {
+                 return;
+             }
+             for i in 0..children.len() {
+                 let (child_id, _) = children.get(i);
+-                scan_dfs(graph, child_id, depth + 1, candidates);
++                scan_dfs(graph, child_id, depth * /* ~ changed by cargo-mutants ~ */ 1, candidates);
+             }
+         }
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::repair_p_i4
+@@ -1230,17 +1230,17 @@
+         span.record("candidates", self.pending_p_i4.len());
+ 
+         // Phase 2: drain all candidates.  Each check is O(log P).
+         // split_for_p_i4 may push new candidates via
+         // pending_p_i4 — the while-let naturally drains them.
+         while let Some((gid, pk)) = self.pending_p_i4.pop() {
+             // Guard: a prior fix may have moved this node to a
+             // different plateau or changed its state.
+-            if self.plateau_basis.plateau_key(gid) != Some(pk) {
++            if self.plateau_basis.plateau_key(gid) == /* ~ changed by cargo-mutants ~ */ Some(pk) {
+                 continue;
+             }
+             if !self.gnodes.is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = self.gnodes.get(gid.index());
+             if g.state() != GState::SemiInternal {
+                 continue;

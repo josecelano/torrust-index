@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::cousin_rivalry
+@@ -233,17 +233,17 @@
+     ///
+     /// The two regions should share a common ancestor (e.g., left and
+     /// right children of an internal node), creating concurrent
+     /// violations in adjacent subtrees — the precondition for source
+     /// 10.
+     #[must_use]
+     pub fn cousin_rivalry(mut self, a_start: u64, b_start: u64, width: u64, base: V, step: V, n: usize) -> Self {
+         for i in 0..n {
+-            let offset = i as u64 % width;
++            let offset = i as u64 + /* ~ changed by cargo-mutants ~ */ width;
+             #[allow(clippy::cast_precision_loss)]
+             let (region_start, intensity_mult) = if i % 2 == 0 {
+                 (a_start, i as f64)
+             } else {
+                 (b_start, (i as f64) * 0.7)
+             };
+             let coord = C::from_u64(region_start + offset);
+             #[allow(clippy::cast_precision_loss)]

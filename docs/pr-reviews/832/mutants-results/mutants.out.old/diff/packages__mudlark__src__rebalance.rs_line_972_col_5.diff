@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_cousin_violations with ()
+@@ -964,17 +964,17 @@
+ /// * `sole` - the promoted child
+ /// * `grandparent` - the grandparent of the evicted entry
+ pub fn push_cousin_violations<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     sole: VNodeId,
+     grandparent: VNodeId,
+     violations: &mut Vec<VNodeId>,
+ ) {
+-    push_cousin_violations_with_config(vnodes, sole, grandparent, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push cousin violations with configurable source (source 9).
+ ///
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_cousin_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

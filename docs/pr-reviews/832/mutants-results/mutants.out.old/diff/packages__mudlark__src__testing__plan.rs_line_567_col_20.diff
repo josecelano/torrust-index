@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace <= with > in Plan<C, V>::pincer
+@@ -559,17 +559,17 @@
+     ///
+     /// Step k: observe at `lo + k` and `hi − k` with `burst_per_step`
+     /// repetitions.  Creates converging violation paths that
+     /// eventually share the same ancestor at every depth.
+     #[must_use]
+     pub fn pincer(mut self, lo: u64, hi: u64, delta: V, burst_per_step: usize) -> Self {
+         let mut left = lo;
+         let mut right = hi;
+-        while left <= right {
++        while left > /* ~ changed by cargo-mutants ~ */ right {
+             for _ in 0..burst_per_step {
+                 self.observations.push((C::from_u64(left), delta));
+                 if left != right {
+                     self.observations.push((C::from_u64(right), delta));
+                 }
+             }
+             left += 1;
+             if right == 0 {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace + with - in Plan<C, V>::neighborhood_burst
+@@ -311,17 +311,17 @@
+     ///
+     /// Creates a dense cluster of violations in a small spatial
+     /// region, forcing multiple concurrent violations with shared
+     /// ancestors.
+     #[must_use]
+     pub fn neighborhood_burst(mut self, center: u64, radius: u64, base: V, n: usize) -> Self {
+         let lo = center.saturating_sub(radius);
+         let hi = center + radius;
+-        let width = hi - lo + 1;
++        let width = hi - lo - /* ~ changed by cargo-mutants ~ */ 1;
+         for i in 0..n {
+             let offset = i as u64 % width;
+             let coord = C::from_u64(lo + offset);
+             let dist = (lo + offset).abs_diff(center);
+             #[allow(clippy::cast_precision_loss)]
+             let delta = V::from_f64(base.to_f64_approx() * (1.0 + (radius as f64 - dist as f64)));
+             self.observations.push((coord, delta));
+         }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in assert_invariants
+@@ -55,17 +55,17 @@
+ ///
+ /// # Panics
+ ///
+ /// Panics with a descriptive message listing every invariant that is
+ /// violated.  The panic message includes all failures, not just the
+ /// first.
+ pub fn assert_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) {
+     let errors = check_all_invariants(graph);
+-    if !errors.is_empty() {
++    if  /* ~ changed by cargo-mutants ~ */errors.is_empty() {
+         let msg = errors.join("\n");
+         panic!("Invariant violations ({} total):\n{msg}", errors.len());
+     }
+ }
+ 
+ /// Check only plateau-related invariants. Used for debugging.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ #[allow(dead_code)]

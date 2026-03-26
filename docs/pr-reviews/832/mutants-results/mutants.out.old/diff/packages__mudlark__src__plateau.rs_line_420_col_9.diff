@@ -1,0 +1,26 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::rebuild with ()
+@@ -412,22 +412,17 @@
+     }
+ 
+     /// Rebuild both forward and back maps from an explicit list of
+     /// `(plateau_key, gnode)` assignments.
+     ///
+     /// Called by `normalize_plateaus` to re-key basis elements after
+     /// the plateau `BTreeMap` is rebuilt with the correct merge logic.
+     pub(crate) fn rebuild(&mut self, assignments: impl IntoIterator<Item = (BasisEdge<C>, GNodeId)>) {
+-        self.forward.clear();
+-        self.back.clear();
+-        for (key, gid) in assignments {
+-            self.forward.entry(key).or_default().insert(gid);
+-            self.back.insert(gid, key);
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── basis_edge_of ────────────────────────────────────────────────────
+ 
+ /// Compute the basis edge for a G-node acting as a basis element.
+ ///
+ /// Per ADR-M-026 P-I1:

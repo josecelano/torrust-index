@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::recompute_plateau
+@@ -377,17 +377,17 @@
+         let first = *elements.iter().next().unwrap();
+         let mut min_lo = self.gnodes.get(first.index()).lo;
+         let mut max_hi = self.gnodes.get(first.index()).hi;
+         let mut sum = V::zero();
+         let mut depth = 0u32;
+ 
+         for &gid in elements {
+             let g = self.gnodes.get(gid.index());
+-            if g.lo.total_cmp(&min_lo) == std::cmp::Ordering::Less {
++            if g.lo.total_cmp(&min_lo) != /* ~ changed by cargo-mutants ~ */ std::cmp::Ordering::Less {
+                 min_lo = g.lo;
+             }
+             if g.hi.total_cmp(&max_hi) == std::cmp::Ordering::Greater {
+                 max_hi = g.hi;
+             }
+             sum = V::add(sum, g.sum);
+ 
+             // Depth: contour depth contributed by this basis element.

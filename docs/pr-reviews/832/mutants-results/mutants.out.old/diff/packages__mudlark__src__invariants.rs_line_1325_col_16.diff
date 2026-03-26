@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_p_i3_basis_disjointness
+@@ -1317,17 +1317,17 @@
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     // Collect (tile_lo, tile_hi, key) for all basis elements.
+     let pb = graph.plateau_basis();
+     let mut tiles: Vec<(f64, f64, BasisEdge<C>)> = Vec::new();
+     for (&key, gnodes) in pb.iter() {
+         for &gid in gnodes {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let (tlo, thi) = tile_of(g);
+             tiles.push((tlo.to_f64(), thi.to_f64(), key));
+         }
+     }
+     tiles.sort_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.total_cmp(&b.1)));

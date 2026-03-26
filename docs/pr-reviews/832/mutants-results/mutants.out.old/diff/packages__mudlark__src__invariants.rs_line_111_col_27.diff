@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in semi_internal_lineage
+@@ -103,17 +103,17 @@
+     gnode: GNodeId,
+ ) -> String {
+     let mut parts = Vec::new();
+ 
+     // Check if this node is a child of a semi-internal.
+     let g = graph.gnodes().get(gnode.index());
+     if let Some(parent_id) = g.parent {
+         let parent = graph.gnodes().get(parent_id.index());
+-        if parent.state() == GState::SemiInternal {
++        if parent.state() != /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+             parts.push(format!("SI-child (par=G({}))", parent_id.index()));
+         }
+     }
+ 
+     // Walk ancestors: for each, if THEY are a child of a semi-internal,
+     // that means this node has an ancestor who is an SI-child.
+     let mut cur = g.parent;
+     let mut depth = 1; // 1=parent, 2=grandparent, etc.

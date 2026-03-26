@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/inspectable.rs
++++ replace <impl Inspectable for f64>::from_f64 -> Self with Default::default()
+@@ -152,11 +152,11 @@
+ impl Inspectable for f64 {
+     #[inline]
+     fn to_f64_approx(self) -> f64 {
+         self
+     }
+ 
+     #[inline]
+     fn from_f64(v: f64) -> Self {
+-        v
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }

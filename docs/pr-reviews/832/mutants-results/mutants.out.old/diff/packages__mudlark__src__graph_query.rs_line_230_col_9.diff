@@ -1,0 +1,48 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::trimmed_interval -> (C, C) with (Default::default(), Default::default())
+@@ -222,44 +222,17 @@
+     /// - **Terminal / Internal:** returns `(g.lo, g.hi)`.
+     /// - **Semi-internal (left child):** uncovered right half `[mid, hi)`.
+     /// - **Semi-internal (right child):** uncovered left half `[lo, mid)`.
+     ///
+     /// Routing guarantees `coord` falls in the uncovered half for
+     /// semi-internals; `debug_assert` validates this.
+     #[inline]
+     fn trimmed_interval(g: &GNode<C, V>, coord: C) -> (C, C) {
+-        use crate::gnode::GState;
+-        match g.state() {
+-            GState::Terminal | GState::Internal => (g.lo, g.hi),
+-            GState::SemiInternal => {
+-                let mid = C::midpoint(g.lo, g.hi);
+-                if g.left.is_some() {
+-                    // Left child covers [lo, mid);
+-                    // uncovered half is [mid, hi).
+-                    debug_assert!(
+-                        coord >= mid,
+-                        "get(): coord {coord:?} in covered half \
+-                         [lo={:?}, mid={mid:?}) of semi-internal",
+-                        g.lo,
+-                    );
+-                    (mid, g.hi)
+-                } else {
+-                    // Right child covers [mid, hi);
+-                    // uncovered half is [lo, mid).
+-                    debug_assert!(
+-                        coord < mid,
+-                        "get(): coord {coord:?} in covered half \
+-                         [mid={mid:?}, hi={:?}) of semi-internal",
+-                        g.hi,
+-                    );
+-                    (g.lo, mid)
+-                }
+-            }
+-        }
++        (Default::default(), Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Range Query (Phase 4, Step 2 — ADR-M-020) ────────────────
+ }
+ 
+ impl<C: Coordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> {
+     /// Sum of accumulated values in a range, with pro-rated partial
+     /// overlaps.

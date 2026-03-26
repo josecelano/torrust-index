@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_remaining_sibling_violations_with_config
+@@ -911,17 +911,17 @@
+ #[inline]
+ pub fn push_remaining_sibling_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     p: VNodeId,
+     removed: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_8_three_to_two_siblings {
++    if  /* ~ changed by cargo-mutants ~ */config.source_8_three_to_two_siblings {
+         return;
+     }
+     // Get the remaining children of p (excluding removed).
+     let remaining: Vec<VNodeId> = match &vnodes.get(p.index()).kind {
+         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != removed).collect(),
+         VKind::Entry { .. } => return,
+     };
+ 

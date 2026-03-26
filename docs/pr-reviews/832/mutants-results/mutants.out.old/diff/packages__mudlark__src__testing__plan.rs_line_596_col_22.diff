@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace != with == in Plan<C, V>::repulsion_walk
+@@ -588,17 +588,17 @@
+     /// topology.
+     #[must_use]
+     pub fn repulsion_walk(mut self, center: u64, delta: V, max_spread: u64, burst_per_step: usize) -> Self {
+         for offset in 0..=max_spread {
+             let a = center.saturating_sub(offset);
+             let b = center + offset;
+             for _ in 0..burst_per_step {
+                 self.observations.push((C::from_u64(a), delta));
+-                if a != b {
++                if a == /* ~ changed by cargo-mutants ~ */ b {
+                     self.observations.push((C::from_u64(b), delta));
+                 }
+             }
+         }
+         self
+     }
+ 
+     /// Sawtooth: repeated linear sweeps through `[0, width)` with

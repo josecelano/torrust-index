@@ -1,0 +1,21 @@
+--- packages/mudlark/src/gtree.rs
++++ replace < with <= in route_to_receiver
+@@ -23,17 +23,17 @@
+ ///
+ /// See §IDEA M-5.2 `route_to_receiver`.
+ #[must_use]
+ pub fn route_to_receiver<C: Coordinate, V: Accumulator>(gnodes: &Arena<GNode<C, V>>, root: GNodeId, x: C) -> GNodeId {
+     let mut current = root;
+     loop {
+         let g = gnodes.get(current.index());
+         let mid = C::midpoint(g.lo, g.hi);
+-        if x < mid {
++        if x <= /* ~ changed by cargo-mutants ~ */ mid {
+             if let Some(left) = g.left {
+                 current = left;
+             } else {
+                 return current;
+             }
+         } else if let Some(right) = g.right {
+             current = right;
+         } else {

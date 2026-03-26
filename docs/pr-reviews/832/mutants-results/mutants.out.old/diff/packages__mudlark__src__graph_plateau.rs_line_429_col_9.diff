@@ -1,0 +1,139 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::place_basis_element with ()
+@@ -421,135 +421,17 @@
+     /// | ✓ | ✓ | Merge element + right into left   |
+     /// | ✓ | ✗ | Insert into left, recompute       |
+     /// | ✗ | ✓ | Re-key right to our key, merge    |
+     /// | ✗ | ✗ | Create a brand-new plateau        |
+     ///
+     /// Called by split / evict plateau maintenance (Step 2).
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
+-        use crate::plateau::{basis_edge_of, BasisEdge, Plateau};
+-
+-        let g = self.gnodes.get(gnode.index());
+-        let key = basis_edge_of(g);
+-        let lo = g.lo;
+-        let hi = g.hi;
+-        let sum = g.sum;
+-
+-        // Left neighbour at the same depth AND spatially adjacent.
+-        // Adjacent means: left_plateau.end >= our lo (they touch or overlap).
+-        // Also ensure no intervening plateau key exists between the
+-        // left plateau's key and ours — an intervening plateau at a
+-        // different depth (e.g. a SemiInternal's child) means the
+-        // merge would skip over it, producing a plateau that
+-        // `build_plateaus`'s strict sorted sweep would never create.
+-        let left_key = self
+-            .plateaus
+-            .range(..key)
+-            .next_back()
+-            .filter(|(_, p)| p.depth == depth && p.end.total_cmp(&lo) != std::cmp::Ordering::Less)
+-            .map(|(&k, _)| k)
+-            .filter(|lk| {
+-                // Check for intervening plateaus between lk and key.
+-                self.plateaus
+-                    .range((std::ops::Bound::Excluded(*lk), std::ops::Bound::Excluded(key)))
+-                    .next()
+-                    .is_none()
+-            });
+-
+-        // Right neighbour at the same depth AND spatially adjacent.
+-        // Adjacent means: right_plateau.start <= our hi (they touch or overlap).
+-        // Same intervening-plateau guard as above.
+-        let right_key = self
+-            .plateaus
+-            .range(BasisEdge(hi)..)
+-            .next()
+-            .filter(|(_, p)| p.depth == depth && p.start.total_cmp(&hi) != std::cmp::Ordering::Greater)
+-            .map(|(&k, _)| k)
+-            .filter(|rk| {
+-                // Check for intervening plateaus between key and rk.
+-                self.plateaus
+-                    .range((std::ops::Bound::Excluded(key), std::ops::Bound::Excluded(*rk)))
+-                    .next()
+-                    .is_none()
+-            });
+-
+-        match (left_key, right_key) {
+-            (Some(lk), Some(rk)) => {
+-                // Merge: element joins left, right absorbed into left.
+-                self.plateau_basis.insert(lk, gnode);
+-                let rights: Vec<_> = self.plateau_basis.basis_elements(&rk).iter().copied().collect();
+-                for rid in rights {
+-                    self.plateau_basis.remove(rid);
+-                    self.plateau_basis.insert(lk, rid);
+-                }
+-                self.plateaus.remove(&rk);
+-                self.recompute_plateau(&lk);
+-                tracing::trace!(gnode = gnode.index(), ?lk, ?rk, "place_basis_element: merge-both");
+-            }
+-            (Some(lk), None) => {
+-                self.plateau_basis.insert(lk, gnode);
+-                self.recompute_plateau(&lk);
+-                tracing::trace!(gnode = gnode.index(), ?lk, "place_basis_element: insert-left");
+-            }
+-            (None, Some(rk)) => {
+-                // Our element is left of the right neighbour → re-key.
+-                let rights: Vec<_> = self.plateau_basis.basis_elements(&rk).iter().copied().collect();
+-                for rid in rights {
+-                    self.plateau_basis.remove(rid);
+-                    self.plateau_basis.insert(key, rid);
+-                }
+-                self.plateau_basis.insert(key, gnode);
+-                self.plateaus.remove(&rk);
+-                self.plateaus.insert(
+-                    key,
+-                    Plateau {
+-                        basis_edge: key,
+-                        start: lo,
+-                        end: lo, // recomputed below
+-                        depth,
+-                        sum,
+-                    },
+-                );
+-                self.recompute_plateau(&key);
+-                tracing::trace!(gnode = gnode.index(), ?rk, "place_basis_element: rekey-right");
+-            }
+-            (None, None) => {
+-                self.plateau_basis.insert(key, gnode);
+-                if let std::collections::btree_map::Entry::Vacant(e) = self.plateaus.entry(key) {
+-                    e.insert(Plateau {
+-                        basis_edge: key,
+-                        start: lo,
+-                        end: hi,
+-                        depth,
+-                        sum,
+-                    });
+-                } else {
+-                    // A plateau already exists at this key but at a
+-                    // different depth (the left/right neighbour checks
+-                    // skipped it because of the depth mismatch).
+-                    // Join the existing plateau and recompute.
+-                    self.recompute_plateau(&key);
+-                }
+-                tracing::trace!(gnode = gnode.index(), "place_basis_element: new-plateau");
+-            }
+-        }
+-
+-        // Consolidate: if gnode's tree-structural sibling is also a
+-        // basis element of the same plateau, merge both into the
+-        // parent — maintaining the minimal basis (§IDEA M-5.6.1 rule 2).
+-        self.consolidate_basis_up(gnode);
+-
+-        // If the placed node is semi-internal, it may violate P-I4
+-        // (thatch one-hop).  Queue it for the drain in repair_p_i4.
+-        // (consolidation never removes semi-internals, so this is safe.)
+-        if self.gnodes.get(gnode.index()).state() == crate::gnode::GState::SemiInternal {
+-            let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
+-            self.pending_p_i4.push((gnode, final_key));
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Collect `(GNodeId, u32)` pairs for a subtree's basis elements
+     /// without placing them.  Read-only counterpart to
+     /// `place_subtree_basis_elements`.
+     ///
+     /// # `SemiInternal` non-recursion
+     ///

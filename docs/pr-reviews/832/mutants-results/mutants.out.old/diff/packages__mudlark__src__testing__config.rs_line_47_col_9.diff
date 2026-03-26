@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field budget from struct Config expression in budget_config
+@@ -39,17 +39,17 @@
+ pub const fn default_config() -> Config<u64> {
+     BASE_U64
+ }
+ 
+ /// Standard budgeted config: θ=5, `D_create`=3, `D_evict`=6.
+ #[must_use]
+ pub const fn budget_config(budget: usize) -> Config<u64> {
+     Config {
+-        budget: Some(budget),
++         /* ~ changed by cargo-mutants ~ */
+         ..BASE_U64
+     }
+ }
+ 
+ /// Budgeted config with unbounded eviction mode.
+ #[must_use]
+ pub const fn budget_config_unbounded(budget: usize) -> Config<u64> {
+     Config {

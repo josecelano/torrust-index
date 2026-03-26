@@ -1,0 +1,58 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::split_for_p_i4 with ()
+@@ -1268,54 +1268,17 @@
+     ///
+     /// Finds a descendant of `child_id` whose `basis_edge` falls
+     /// strictly after `parent_pk`.  If that descendant is already a
+     /// basis element of a merged plateau, extracts it and
+     /// re-inserts it as a standalone so the `BTreeMap` key sequence
+     /// includes a key between the parent and the child's `lo`.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     fn split_for_p_i4(&mut self, parent_pk: crate::plateau::BasisEdge<C>, child_id: GNodeId) {
+-        use crate::gnode::GState;
+-        use crate::plateau::{basis_edge_of, Plateau};
+-
+-        // Find the node to use as a tile boundary. Walk leftmost
+-        // down the child subtree until we find a node whose
+-        // basis_edge > parent_pk.
+-        let boundary_id = self.find_boundary_node(child_id, parent_pk);
+-        let Some(boundary_id) = boundary_id else { return };
+-
+-        let bg = self.gnodes.get(boundary_id.index());
+-        let boundary_key = basis_edge_of(bg);
+-        let boundary_depth = match bg.state() {
+-            GState::Terminal | GState::SemiInternal => crate::gtree::gnode_depth_from_interval(bg.lo, bg.hi, N),
+-            GState::Internal => crate::gtree::gnode_depth_from_interval(bg.lo, bg.hi, N) + 1,
+-        };
+-        let b_lo = bg.lo;
+-        let b_hi = bg.hi;
+-        let b_sum = bg.sum;
+-
+-        // If the boundary node is already a basis element, extract it
+-        // from its current plateau.
+-        if let Some(old_pk) = self.plateau_basis.remove(boundary_id) {
+-            self.fixup_plateau(old_pk);
+-        }
+-
+-        // Insert as a standalone plateau at boundary_key.
+-        // This creates a BTreeMap entry that splits the parent's tile.
+-        self.plateau_basis.insert(boundary_key, boundary_id);
+-        if let std::collections::btree_map::Entry::Vacant(e) = self.plateaus.entry(boundary_key) {
+-            e.insert(Plateau {
+-                basis_edge: boundary_key,
+-                start: b_lo,
+-                end: b_hi,
+-                depth: boundary_depth,
+-                sum: b_sum,
+-            });
+-        }
+-        self.recompute_plateau(&boundary_key);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Walk the subtree rooted at `gid` to find a node whose
+     /// `basis_edge > parent_pk`.  Prefers the leftmost such node
+     /// (to split as close to the parent as possible).
+     #[cfg(feature = "dynamic-contour-tracking")]
+     fn find_boundary_node(&self, gid: GNodeId, parent_pk: crate::plateau::BasisEdge<C>) -> Option<GNodeId> {
+         use crate::plateau::basis_edge_of;

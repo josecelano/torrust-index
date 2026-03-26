@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace += with -= in check_p_i5_thatch_depth
+@@ -1432,17 +1432,17 @@
+             let covers = gnodes.iter().any(|&gid| {
+                 if !graph.gnodes().is_occupied(gid.index()) {
+                     return false;
+                 }
+                 let g = graph.gnodes().get(gid.index());
+                 g.lo.total_cmp(x) != std::cmp::Ordering::Greater && x.total_cmp(&g.hi) == std::cmp::Ordering::Less
+             });
+             if covers {
+-                thatch_count += 1;
++                thatch_count -= /* ~ changed by cargo-mutants ~ */ 1;
+             }
+         }
+ 
+         // Compute d_geo(x) by routing from root to the terminal.
+         let d_geo = route_to_depth(graph, *x);
+ 
+         if thatch_count > d_geo + 1 {
+             errors.push(format!(

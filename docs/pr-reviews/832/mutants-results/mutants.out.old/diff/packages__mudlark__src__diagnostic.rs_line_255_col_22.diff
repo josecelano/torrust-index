@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace == with != in diagnose_missed_violation
+@@ -247,17 +247,17 @@
+                 node = violated.index(),
+                 collapse_sibling = sole.index(),
+                 "node is NOT a descendant of collapse_sibling",
+             );
+         }
+     }
+ 
+     if let Some(evicted_p) = context.evicted_parent {
+-        if evicted_p == grandparent_id {
++        if evicted_p != /* ~ changed by cargo-mutants ~ */ grandparent_id {
+             tracing::error!(
+                 node = violated.index(),
+                 evicted_parent = evicted_p.index(),
+                 "node's grandparent = evicted_parent → parent is sibling of removed entry. Check source 8.",
+             );
+         }
+     }
+ 

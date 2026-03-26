@@ -1,0 +1,242 @@
+
+*** packages/mudlark/src/graph_plateau.rs:429:9: replace GvGraph<C, V, N>::place_basis_element with ()
+
+*** mutation diff:
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::place_basis_element with ()
+@@ -421,135 +421,17 @@
+     /// | ✓ | ✓ | Merge element + right into left   |
+     /// | ✓ | ✗ | Insert into left, recompute       |
+     /// | ✗ | ✓ | Re-key right to our key, merge    |
+     /// | ✗ | ✗ | Create a brand-new plateau        |
+     ///
+     /// Called by split / evict plateau maintenance (Step 2).
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
+-        use crate::plateau::{basis_edge_of, BasisEdge, Plateau};
+-
+-        let g = self.gnodes.get(gnode.index());
+-        let key = basis_edge_of(g);
+-        let lo = g.lo;
+-        let hi = g.hi;
+-        let sum = g.sum;
+-
+-        // Left neighbour at the same depth AND spatially adjacent.
+-        // Adjacent means: left_plateau.end >= our lo (they touch or overlap).
+-        // Also ensure no intervening plateau key exists between the
+-        // left plateau's key and ours — an intervening plateau at a
+-        // different depth (e.g. a SemiInternal's child) means the
+-        // merge would skip over it, producing a plateau that
+-        // `build_plateaus`'s strict sorted sweep would never create.
+-        let left_key = self
+-            .plateaus
+-            .range(..key)
+-            .next_back()
+-            .filter(|(_, p)| p.depth == depth && p.end.total_cmp(&lo) != std::cmp::Ordering::Less)
+-            .map(|(&k, _)| k)
+-            .filter(|lk| {
+-                // Check for intervening plateaus between lk and key.
+-                self.plateaus
+-                    .range((std::ops::Bound::Excluded(*lk), std::ops::Bound::Excluded(key)))
+-                    .next()
+-                    .is_none()
+-            });
+-
+-        // Right neighbour at the same depth AND spatially adjacent.
+-        // Adjacent means: right_plateau.start <= our hi (they touch or overlap).
+-        // Same intervening-plateau guard as above.
+-        let right_key = self
+-            .plateaus
+-            .range(BasisEdge(hi)..)
+-            .next()
+-            .filter(|(_, p)| p.depth == depth && p.start.total_cmp(&hi) != std::cmp::Ordering::Greater)
+-            .map(|(&k, _)| k)
+-            .filter(|rk| {
+-                // Check for intervening plateaus between key and rk.
+-                self.plateaus
+-                    .range((std::ops::Bound::Excluded(key), std::ops::Bound::Excluded(*rk)))
+-                    .next()
+-                    .is_none()
+-            });
+-
+-        match (left_key, right_key) {
+-            (Some(lk), Some(rk)) => {
+-                // Merge: element joins left, right absorbed into left.
+-                self.plateau_basis.insert(lk, gnode);
+-                let rights: Vec<_> = self.plateau_basis.basis_elements(&rk).iter().copied().collect();
+-                for rid in rights {
+-                    self.plateau_basis.remove(rid);
+-                    self.plateau_basis.insert(lk, rid);
+-                }
+-                self.plateaus.remove(&rk);
+-                self.recompute_plateau(&lk);
+-                tracing::trace!(gnode = gnode.index(), ?lk, ?rk, "place_basis_element: merge-both");
+-            }
+-            (Some(lk), None) => {
+-                self.plateau_basis.insert(lk, gnode);
+-                self.recompute_plateau(&lk);
+-                tracing::trace!(gnode = gnode.index(), ?lk, "place_basis_element: insert-left");
+-            }
+-            (None, Some(rk)) => {
+-                // Our element is left of the right neighbour → re-key.
+-                let rights: Vec<_> = self.plateau_basis.basis_elements(&rk).iter().copied().collect();
+-                for rid in rights {
+-                    self.plateau_basis.remove(rid);
+-                    self.plateau_basis.insert(key, rid);
+-                }
+-                self.plateau_basis.insert(key, gnode);
+-                self.plateaus.remove(&rk);
+-                self.plateaus.insert(
+-                    key,
+-                    Plateau {
+-                        basis_edge: key,
+-                        start: lo,
+-                        end: lo, // recomputed below
+-                        depth,
+-                        sum,
+-                    },
+-                );
+-                self.recompute_plateau(&key);
+-                tracing::trace!(gnode = gnode.index(), ?rk, "place_basis_element: rekey-right");
+-            }
+-            (None, None) => {
+-                self.plateau_basis.insert(key, gnode);
+-                if let std::collections::btree_map::Entry::Vacant(e) = self.plateaus.entry(key) {
+-                    e.insert(Plateau {
+-                        basis_edge: key,
+-                        start: lo,
+-                        end: hi,
+-                        depth,
+-                        sum,
+-                    });
+-                } else {
+-                    // A plateau already exists at this key but at a
+-                    // different depth (the left/right neighbour checks
+-                    // skipped it because of the depth mismatch).
+-                    // Join the existing plateau and recompute.
+-                    self.recompute_plateau(&key);
+-                }
+-                tracing::trace!(gnode = gnode.index(), "place_basis_element: new-plateau");
+-            }
+-        }
+-
+-        // Consolidate: if gnode's tree-structural sibling is also a
+-        // basis element of the same plateau, merge both into the
+-        // parent — maintaining the minimal basis (§IDEA M-5.6.1 rule 2).
+-        self.consolidate_basis_up(gnode);
+-
+-        // If the placed node is semi-internal, it may violate P-I4
+-        // (thatch one-hop).  Queue it for the drain in repair_p_i4.
+-        // (consolidation never removes semi-internals, so this is safe.)
+-        if self.gnodes.get(gnode.index()).state() == crate::gnode::GState::SemiInternal {
+-            let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
+-            self.pending_p_i4.push((gnode, final_key));
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Collect `(GNodeId, u32)` pairs for a subtree's basis elements
+     /// without placing them.  Read-only counterpart to
+     /// `place_subtree_basis_elements`.
+     ///
+     /// # `SemiInternal` non-recursion
+     ///
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh zerocopy-derive v0.8.39
+       Fresh serde_derive v1.0.228
+       Fresh once_cell v1.21.3
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh find-msvc-tools v0.1.9
+       Fresh shlex v1.3.0
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh serde v1.0.228
+       Fresh zerocopy v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh clap_lex v1.0.0
+       Fresh plotters-backend v0.3.7
+       Fresh ciborium-io v0.2.2
+       Fresh memchr v2.8.0
+       Fresh anstyle v1.0.13
+       Fresh pin-project-lite v0.2.16
+       Fresh itoa v1.0.17
+       Fresh serde_json v1.0.149
+       Fresh tracing v0.1.44
+       Fresh clap_builder v4.5.59
+       Fresh ciborium-ll v0.2.2
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh cast v0.3.0
+       Fresh lazy_static v1.5.0
+       Fresh same-file v1.0.6
+       Fresh log v0.4.29
+       Fresh tracing-log v0.2.0
+       Fresh walkdir v2.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh criterion-plot v0.8.2
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh ciborium v0.2.2
+       Fresh clap v4.5.59
+       Fresh tinytemplate v1.2.1
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh smallvec v1.15.1
+       Fresh nu-ansi-term v0.50.3
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh rand_core v0.10.0
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): the file `packages/mudlark/src/graph_plateau.rs` has changed (1773695996.919683881s, 15s after last build at 1773695981.027402010s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+error: unused variable: `gnode`
+   --> packages/mudlark/src/graph_plateau.rs:428:50
+    |
+428 |     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
+    |                                                  ^^^^^ help: if this is intentional, prefix it with an underscore: `_gnode`
+    |
+    = note: `-D unused-variables` implied by `-D unused`
+    = help: to override `-D unused` add `#[allow(unused_variables)]`
+
+error: unused variable: `depth`
+   --> packages/mudlark/src/graph_plateau.rs:428:66
+    |
+428 |     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
+    |                                                                  ^^^^^ help: if this is intentional, prefix it with an underscore: `_depth`
+
+error: could not compile `torrust-mudlark` (lib) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `torrust-mudlark` (lib test) due to 2 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

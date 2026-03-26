@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_v_i1_structural_sum
+@@ -449,17 +449,17 @@
+                         cached_int.to_f64_approx(),
+                         actual_int.to_f64_approx()
+                     ));
+                 }
+                 sum += cached_int.to_f64_approx();
+             }
+ 
+             let node_int = v.intensity.to_f64_approx();
+-            if (node_int - sum).abs() > 1e-9 {
++            if (node_int - sum).abs() < /* ~ changed by cargo-mutants ~ */ 1e-9 {
+                 errors.push(format!(
+                     "V-I1 violated at V-node {idx}: intensity={node_int}, sum of children={sum}"
+                 ));
+             }
+         }
+     }
+ }
+ 

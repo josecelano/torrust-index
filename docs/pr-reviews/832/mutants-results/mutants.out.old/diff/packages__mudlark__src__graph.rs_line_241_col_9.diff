@@ -1,0 +1,48 @@
+--- packages/mudlark/src/graph.rs
++++ replace Config<V>::validate with ()
+@@ -233,44 +233,17 @@
+ impl<V: Accumulator> Config<V> {
+     /// Validate the configuration.
+     ///
+     /// Checks:
+     /// - D-I3: `D_create < D_evict`.
+     /// - `D_create ≥ 1` (root must be able to subdivide).
+     /// - `alpha_relax ∈ (0.0, 1.0)`.
+     fn validate(&self) {
+-        assert!(
+-            self.depth_create < self.depth_evict,
+-            "Config: D_create ({}) must be < D_evict ({}) (idea.md D-I3)",
+-            self.depth_create,
+-            self.depth_evict
+-        );
+-        assert!(
+-            self.depth_create >= 1,
+-            "Config: D_create ({}) must be >= 1",
+-            self.depth_create
+-        );
+-        assert!(
+-            self.alpha_relax > 0.0 && self.alpha_relax < 1.0,
+-            "Config: alpha_relax ({}) must be in (0.0, 1.0)",
+-            self.alpha_relax
+-        );
+-        if let Some(budget) = self.budget {
+-            let buffer = self.depth_evict - self.depth_create;
+-            let headroom = 3usize.pow(buffer + 1);
+-            let convergence = 2 * (self.depth_create as usize).saturating_sub(1);
+-            let required = headroom.max(convergence);
+-            assert!(
+-                budget > required,
+-                "Config: budget ({budget}) must be > max(3^(buffer+1), 2*(D_c-1)) \
+-                 = {required} (ADR-M-018: budget must exceed required headroom \
+-                 for hard ceiling guarantee)"
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Uniform contour depth helper ──────────────────────────────────
+ 
+ /// Check whether a G-node's subtree has uniform contour depth.
+ ///
+ /// Returns `Some(d)` if *every* contour cell (terminal or uncovered

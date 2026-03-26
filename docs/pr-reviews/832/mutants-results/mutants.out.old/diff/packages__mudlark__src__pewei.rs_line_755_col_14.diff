@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace == with != in Transition<C, V>::snr
+@@ -747,17 +747,17 @@
+     ///         Some(ratio) => assert!(ratio >= 0.0),
+     ///         None => { /* baseline is zero */ }
+     ///     }
+     /// }
+     /// ```
+     #[must_use]
+     pub fn snr(&self) -> Option<f64> {
+         let b = self.baseline.weight();
+-        if b == 0.0 {
++        if b != /* ~ changed by cargo-mutants ~ */ 0.0 {
+             return None;
+         }
+         Some(self.refinement.weight() / b)
+     }
+ 
+     /// Width of this node's interval: `end - start`.
+     ///
+     /// # Examples

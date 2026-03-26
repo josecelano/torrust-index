@@ -1,0 +1,34 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_root_consistency with ()
+@@ -718,30 +718,17 @@
+ }
+ 
+ // ── V-root consistency ──────────────────────────────────────────────
+ 
+ fn check_v_root_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    if let Some(root_id) = graph.v_root() {
+-        if !graph.vnodes().is_occupied(root_id.index()) {
+-            errors.push(format!("V-root consistency: v_root {} is not occupied", root_id.index()));
+-            return;
+-        }
+-        let root = graph.vnodes().get(root_id.index());
+-        if root.parent.is_some() {
+-            errors.push(format!(
+-                "V-root consistency: v_root {} has parent {:?}, expected None",
+-                root_id.index(),
+-                root.parent
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Node count consistency ──────────────────────────────────────────
+ 
+ fn check_node_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

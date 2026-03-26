@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_clean_accounting
+@@ -629,17 +629,17 @@
+ ) {
+     let mut total_v = 0.0_f64;
+     for (_, v) in graph.vnodes().iter_occupied() {
+         if matches!(v.kind, VKind::Entry { .. }) {
+             total_v += v.intensity.to_f64_approx();
+         }
+     }
+     let g_root_sum = graph.gnodes().get(graph.g_root().index()).sum.to_f64_approx();
+-    if (total_v - g_root_sum).abs() > 1e-9 {
++    if (total_v - g_root_sum).abs() < /* ~ changed by cargo-mutants ~ */ 1e-9 {
+         errors.push(format!(
+             "Clean accounting violated: V-entry sum={total_v}, G-root sum={g_root_sum}"
+         ));
+     }
+ }
+ 
+ // ── Parent link consistency ─────────────────────────────────────────
+ 

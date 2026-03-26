@@ -1,0 +1,25 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Transition<C, V>::snr -> Option<f64> with Some(1.0)
+@@ -746,21 +746,17 @@
+     ///     match tr.snr() {
+     ///         Some(ratio) => assert!(ratio >= 0.0),
+     ///         None => { /* baseline is zero */ }
+     ///     }
+     /// }
+     /// ```
+     #[must_use]
+     pub fn snr(&self) -> Option<f64> {
+-        let b = self.baseline.weight();
+-        if b == 0.0 {
+-            return None;
+-        }
+-        Some(self.refinement.weight() / b)
++        Some(1.0) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Width of this node's interval: `end - start`.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph};

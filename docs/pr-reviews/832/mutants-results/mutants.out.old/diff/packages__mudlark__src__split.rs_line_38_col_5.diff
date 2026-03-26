@@ -1,0 +1,73 @@
+--- packages/mudlark/src/split.rs
++++ replace attempt_split with ()
+@@ -30,69 +30,17 @@
+ /// 6. Preprocessing: contract 3-node parent if needed
+ /// 7. Depth gate: `v_depth(entry) <= D_create`
+ ///
+ /// # Panics
+ ///
+ /// Panics if the entry's V-parent link is inconsistent (the parent
+ /// was confirmed to exist but is `None` after the bootstrap check).
+ pub fn attempt_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+-    let g = graph.gnodes.get(g_id.index());
+-
+-    // Guard: must be terminal (no G-children).
+-    if g.left.is_some() || g.right.is_some() {
+-        return;
+-    }
+-
+-    // Guard: interval must be divisible.
+-    let mid = C::midpoint(g.lo, g.hi);
+-    if mid.partial_cmp(&g.lo) != Some(std::cmp::Ordering::Greater) {
+-        return;
+-    }
+-
+-    // Guard: sum must exceed split threshold θ.
+-    if g.sum.partial_cmp(&graph.config.split_threshold) != Some(std::cmp::Ordering::Greater) {
+-        return;
+-    }
+-
+-    // Guard: entry must exist.
+-    let Some(entry_id) = g.entry else {
+-        return;
+-    };
+-
+-    // Bootstrap case: entry is V-root with no parent.
+-    if graph.vnodes.get(entry_id.index()).parent.is_none() {
+-        bootstrap_split(graph, g_id);
+-        return;
+-    }
+-
+-    // Preprocessing: if V-parent is 3-node, contract first.
+-    let p_id = graph.vnodes.get(entry_id.index()).parent.unwrap();
+-    if let VKind::Structural { children, .. } = &graph.vnodes.get(p_id.index()).kind {
+-        if children.len() == 3 {
+-            let _span = tracing::debug_span!(
+-                "split_preprocess",
+-                p = %Nd(&graph.vnodes, p_id),
+-            )
+-            .entered();
+-            let merged = contract(&mut graph.vnodes, p_id);
+-            push_side_effect_violations(&graph.vnodes, p_id, &mut graph.violations);
+-            push_side_effect_violations(&graph.vnodes, merged, &mut graph.violations);
+-            push_promoted_violations(&graph.vnodes, p_id, &mut graph.violations);
+-        }
+-    }
+-
+-    // Depth gate (checked against post-contraction position).
+-    // Re-read entry_id — the G-node's entry link is unchanged by contraction.
+-    let entry_id = graph.gnodes.get(g_id.index()).entry.unwrap();
+-    if v_depth(&graph.vnodes, entry_id) > graph.live_depth_create {
+-        return;
+-    }
+-
+-    catalytic_split(graph, g_id);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Bootstrap split: first split when V-root is a lone entry.
+ ///
+ /// Creates:
+ /// - 2 G-children `[lo, mid)` and `[mid, hi)`
+ /// - 2 V-entries (intensity 0, exposed)
+ /// - 1 child structural (2-node wrapping the entries)

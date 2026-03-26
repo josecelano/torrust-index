@@ -1,0 +1,59 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::range_sum -> V with Default::default()
+@@ -293,55 +293,17 @@
+     /// // Full domain.
+     /// assert_eq!(g.range_sum(..), 10);
+     ///
+     /// // Sub-range containing only the first observation.
+     /// assert!(g.range_sum(0..128) >= 3);
+     /// ```
+     #[must_use]
+     pub fn range_sum<R: std::ops::RangeBounds<C>>(&self, range: R) -> V {
+-        use std::ops::Bound;
+-
+-        // ── Resolve to half-open [lo, hi) ───────────────────────
+-        let lo = match range.start_bound() {
+-            Bound::Included(&x) => {
+-                assert!(!x.is_nan(), "range_sum: start bound is NaN");
+-                x
+-            }
+-            Bound::Excluded(&x) => {
+-                assert!(!x.is_nan(), "range_sum: start bound is NaN");
+-                x.next_value()
+-            }
+-            Bound::Unbounded => C::zero(),
+-        };
+-        let hi = match range.end_bound() {
+-            Bound::Included(&x) => {
+-                assert!(!x.is_nan(), "range_sum: end bound is NaN");
+-                x.next_value()
+-            }
+-            Bound::Excluded(&x) => {
+-                assert!(!x.is_nan(), "range_sum: end bound is NaN");
+-                x
+-            }
+-            Bound::Unbounded => C::domain_max(N),
+-        };
+-
+-        // ── Clamp to domain ─────────────────────────────────────
+-        let domain_lo = C::zero();
+-        let domain_hi = C::domain_max(N);
+-
+-        let lo = if lo < domain_lo { domain_lo } else { lo };
+-        let hi = if hi > domain_hi { domain_hi } else { hi };
+-
+-        // Empty range after clamping.
+-        if lo >= hi {
+-            return V::zero();
+-        }
+-
+-        self.range_sum_inner(self.g_root, lo, hi)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Recursive G-Tree descent for range sum.
+     ///
+     /// `query_lo..query_hi` is the half-open query range (already
+     /// clamped). `gid` is the current G-node.
+     fn range_sum_inner(&self, gid: crate::handle::GNodeId, query_lo: C, query_hi: C) -> V {
+         let g = self.gnodes.get(gid.index());

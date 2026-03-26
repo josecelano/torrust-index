@@ -1,0 +1,123 @@
+--- packages/mudlark/src/invariants.rs
++++ replace dump_plateaus -> String with String::new()
+@@ -185,119 +185,17 @@
+ /// Dump the full plateau map to a `String` for debugging.
+ ///
+ /// Shows each plateau with its basis edge, depth, start/end, sum,
+ /// and all basis elements with their spatial spans and states.
+ /// Also flags P-I3 violations inline.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ #[allow(dead_code)]
+ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> String {
+-    use std::fmt::Write;
+-    let mut out = String::new();
+-
+-    // Access the raw field directly — this function is called during
+-    // incremental mutation hooks where the map may not yet match
+-    // `build_plateaus()`.  Using `&graph.plateaus` would trigger
+-    // the debug_assert_eq that lives there.
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    let plateaus = &graph.plateaus;
+-    #[cfg(not(feature = "dynamic-contour-tracking"))]
+-    let plateaus = graph.build_plateaus();
+-
+-    writeln!(
+-        out,
+-        "═══ Plateau dump ({} plateaus, {} basis members) ═══",
+-        plateaus.len(),
+-        graph.plateau_basis().basis_count()
+-    )
+-    .unwrap();
+-
+-    for (key, plateau) in plateaus {
+-        // Tiling range: from this key to the next key.
+-        let next_key = plateaus
+-            .range(std::ops::RangeFrom {
+-                start: crate::plateau::BasisEdge(plateau.end),
+-            })
+-            .find(|&(k, _)| *k != *key)
+-            .map(|(k, _)| k.0.to_f64());
+-        let tile_end = next_key.map_or_else(|| "∞".to_string(), |v| format!("{v:.1}"));
+-
+-        writeln!(
+-            out,
+-            "  Plateau {key:?}  depth={}  tile=[{:.1}, {tile_end})  span=[{:.1},{:.1})  sum={:.1}",
+-            plateau.depth,
+-            key.0.to_f64(),
+-            plateau.start.to_f64(),
+-            plateau.end.to_f64(),
+-            plateau.sum.to_f64_approx(),
+-        )
+-        .unwrap();
+-
+-        let elements = graph.plateau_basis().basis_elements(key);
+-        let raw_ids: Vec<usize> = elements.iter().map(|g| g.index()).collect();
+-        writeln!(out, "    basis_elements (raw): {raw_ids:?}").unwrap();
+-
+-        for &gid in elements {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                writeln!(out, "    !! DANGLING GNodeId({}) — slot deallocated !!", gid.index()).unwrap();
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            let state = state_label(g.state());
+-            let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-            let contour_depth = match g.state() {
+-                GState::Terminal | GState::SemiInternal => g_depth,
+-                GState::Internal => g_depth + 1,
+-            };
+-            let parent_str = g.parent.map_or_else(|| "None".to_string(), |p| format!("G({})", p.index()));
+-            let left_str = g.left.map_or_else(|| "_".to_string(), |l| format!("G({})", l.index()));
+-            let right_str = g.right.map_or_else(|| "_".to_string(), |r| format!("G({})", r.index()));
+-            let lineage = semi_internal_lineage(graph, gid);
+-
+-            writeln!(out,
+-                "    G({:>3}) {state} [{:>6.1}, {:>6.1})  d={g_depth} contour_d={contour_depth}  par={parent_str} L={left_str} R={right_str}  sum={:.1}{lineage}",
+-                gid.index(), g.lo.to_f64(), g.hi.to_f64(), g.sum.to_f64_approx(),
+-            ).unwrap();
+-        }
+-    }
+-
+-    // Back-map dump for cross-reference.
+-    writeln!(out, "  ─── Back map ({} entries) ───", graph.plateau_basis().back_map().len()).unwrap();
+-    let mut back_entries: Vec<_> = graph
+-        .plateau_basis()
+-        .back_map()
+-        .iter()
+-        .map(|(&gid, &key)| (gid.index(), key))
+-        .collect();
+-    back_entries.sort_by_key(|(idx, _)| *idx);
+-    for (idx, key) in &back_entries {
+-        writeln!(out, "    G({idx}) → {key:?}").unwrap();
+-    }
+-
+-    // Append P-I3 check inline.
+-    let mut p_i3_errors = Vec::new();
+-    check_p_i3_basis_disjointness(graph, &mut p_i3_errors);
+-    if !p_i3_errors.is_empty() {
+-        writeln!(out, "  ─── P-I3 violations ───").unwrap();
+-        for e in &p_i3_errors {
+-            writeln!(out, "    !! {e}").unwrap();
+-        }
+-    }
+-
+-    // Append P-I4 check.
+-    let mut p_i4_errors = Vec::new();
+-    check_p_i4_thatch_one_hop(graph, &mut p_i4_errors);
+-    if !p_i4_errors.is_empty() {
+-        writeln!(out, "  ─── P-I4 violations ───").unwrap();
+-        for e in &p_i4_errors {
+-            writeln!(out, "    !! {e}").unwrap();
+-        }
+-    }
+-
+-    out
++    String::new() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Check all invariants and return errors as a Vec instead of panicking.
+ ///
+ /// Useful for programmatic testing — the caller can inspect which
+ /// invariants failed and dump diagnostic info before asserting.
+ #[allow(dead_code)]
+ pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<String> {

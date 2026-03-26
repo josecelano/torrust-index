@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vtree.rs
++++ replace != with == in sole_sibling
+@@ -289,17 +289,17 @@
+ }
+ 
+ /// Get the sole sibling of `child` in a 2-node `parent`.
+ fn sole_sibling<V: Accumulator>(vnodes: &Arena<VNode<V>>, parent: VNodeId, child: VNodeId) -> VNodeId {
+     let p = vnodes.get(parent.index());
+     if let VKind::Structural { children, .. } = &p.kind {
+         for i in 0..children.len() {
+             let (id, _) = children.get(i);
+-            if id != child {
++            if id == /* ~ changed by cargo-mutants ~ */ child {
+                 return id;
+             }
+         }
+     }
+     unreachable!("sole_sibling: child not found in parent");
+ }
+ 
+ /// Recompute a structural node's intensity from its children.

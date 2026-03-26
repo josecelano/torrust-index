@@ -1,0 +1,33 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace <impl fmt::Display for Pl<'_, C, V, N>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -337,29 +337,11 @@
+ ///
+ /// Shows the thatched range, depth, and total energy of the plateau.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(pub &'a GvGraph<C, V, N>, pub GNodeId);
+ 
+ #[cfg(feature = "dynamic-contour-tracking")]
+ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> fmt::Display for Pl<'_, C, V, N> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        let idx = self.1.index();
+-        let key = self.0.plateau_basis.plateau_key(self.1);
+-        match key {
+-            Some(k) => {
+-                if let Some(plateau) = self.0.plateaus.get(&k) {
+-                    write!(
+-                        f,
+-                        "P([{},{}),d={},sum={})",
+-                        plateau.start.to_f64(),
+-                        plateau.end.to_f64(),
+-                        plateau.depth,
+-                        plateau.sum.to_f64_approx()
+-                    )
+-                } else {
+-                    write!(f, "P(G{idx},key={k:?},NO_PLATEAU)")
+-                }
+-            }
+-            None => write!(f, "P(G{idx},not_basis)"),
+-        }
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }

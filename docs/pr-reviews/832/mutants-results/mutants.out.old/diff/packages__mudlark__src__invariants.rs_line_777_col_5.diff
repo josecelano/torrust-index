@@ -1,0 +1,29 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_hard_budget with ()
+@@ -769,25 +769,17 @@
+ }
+ 
+ // ── Hard budget (ADR-M-018) ───────────────────────────────────────────
+ 
+ fn check_hard_budget<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    if let Some(budget) = graph.config().budget {
+-        if graph.node_count() as usize > budget {
+-            errors.push(format!(
+-                "Hard budget violated (ADR-M-018): node_count ({}) > budget ({})",
+-                graph.node_count(),
+-                budget
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── D-I3: Depth gate invariants (Phase 3, ADR-M-017) ─────────────────
+ 
+ fn check_depth_gate_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

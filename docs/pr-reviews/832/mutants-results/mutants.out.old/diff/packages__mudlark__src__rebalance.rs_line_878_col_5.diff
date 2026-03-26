@@ -1,0 +1,25 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_collapse_violations_with_config with ()
+@@ -870,21 +870,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_collapse_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     sole: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_7_collapse_children {
+-        return;
+-    }
+-    tracing::debug!(sole = sole.index(), "push_collapse_violations: checking node");
+-    push_children_violations(vnodes, sole, "collapse (source 7)", violations);
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Check the remaining siblings' children after a 3→2 transition.
+ ///
+ /// When an entry is removed from a 3-node parent, the remaining siblings'
+ /// children lose that entry as a potential uncle. Their `max_uncle` may
+ /// decrease, causing violations.
+ ///

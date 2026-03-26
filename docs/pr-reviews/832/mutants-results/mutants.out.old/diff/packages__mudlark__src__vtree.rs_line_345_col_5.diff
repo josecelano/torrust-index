@@ -1,0 +1,20 @@
+--- packages/mudlark/src/vtree.rs
++++ replace set_has_evictable with ()
+@@ -337,16 +337,13 @@
+             return true;
+         }
+     }
+     false
+ }
+ 
+ /// Set the `has_evictable` flag on a structural node.
+ fn set_has_evictable<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId, flag: bool) {
+-    let node = vnodes.get_mut(id.index());
+-    if let VKind::Structural { has_evictable, .. } = &mut node.kind {
+-        *has_evictable = flag;
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

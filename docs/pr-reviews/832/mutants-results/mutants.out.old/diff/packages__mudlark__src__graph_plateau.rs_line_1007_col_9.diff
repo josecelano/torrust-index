@@ -1,0 +1,46 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::consolidate_all_basis with ()
+@@ -999,42 +999,17 @@
+     pub(crate) fn normalize_plateaus(&mut self) {}
+ 
+     /// Sweep every basis element and attempt to consolidate upward
+     /// (promote sibling pairs to their parent).  Enforces P-I2
+     /// (minimal deterministic basis) after any pipeline stage that
+     /// may have introduced new fine-grained basis elements.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn consolidate_all_basis(&mut self) {
+-        let basis_snapshot: Vec<GNodeId> = self.plateau_basis.back_map().keys().copied().collect();
+-        let count = basis_snapshot.len();
+-        let mut merged = 0u32;
+-        for gid in basis_snapshot {
+-            // The element may have been consumed by a prior iteration's
+-            // consolidation (its sibling was processed first).
+-            if self.plateau_basis.plateau_key(gid).is_some() {
+-                let before = self.plateau_basis.basis_count();
+-                self.consolidate_basis_up(gid);
+-                let after = self.plateau_basis.basis_count();
+-                if after < before {
+-                    #[allow(clippy::cast_possible_truncation)]
+-                    {
+-                        merged += (before - after) as u32;
+-                    }
+-                }
+-            }
+-        }
+-        if merged > 0 {
+-            tracing::debug!(
+-                basis_before = count,
+-                basis_after = self.plateau_basis.basis_count(),
+-                merged,
+-                "consolidate_all_basis: completed",
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn consolidate_all_basis(&mut self) {}
+ 

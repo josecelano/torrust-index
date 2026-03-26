@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace > with < in GvGraph<C, V, N>::decompose_basis
+@@ -660,17 +660,17 @@
+         }
+ 
+         // ── Left child ──────────────────────────────────────────
+         if let Some(left_id) = g.left {
+             self.decompose_basis(left_id, query_lo, query_hi, basis);
+         } else {
+             // No left child — semi-internal.  Uncovered half is [g.lo, mid).
+             // If this overlaps the query, it's a boundary thatching element.
+-            let tile_lo = if query_lo > g.lo { query_lo } else { g.lo };
++            let tile_lo = if query_lo < /* ~ changed by cargo-mutants ~ */ g.lo { query_lo } else { g.lo };
+             let tile_hi = if query_hi < mid { query_hi } else { mid };
+             if tile_lo < tile_hi {
+                 basis.push(BasisElement {
+                     gnode_id: gid,
+                     start: tile_lo,
+                     end: tile_hi,
+                     own: g.own,
+                     sum: g.sum,

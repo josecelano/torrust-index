@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::sibling_flood
+@@ -503,17 +503,17 @@
+     /// The halves share the root as their common ancestor.  The
+     /// abrupt shift forces massive restructuring at the shallowest
+     /// tree level.
+     #[must_use]
+     pub fn sibling_flood(mut self, domain: u64, delta_first: V, delta_second: V, n_per_half: usize) -> Self {
+         let half = domain / 2;
+         // Flood lower half
+         for i in 0..n_per_half {
+-            self.observations.push((C::from_u64(i as u64 % half), delta_first));
++            self.observations.push((C::from_u64(i as u64 + /* ~ changed by cargo-mutants ~ */ half), delta_first));
+         }
+         // Flood upper half
+         for i in 0..n_per_half {
+             self.observations.push((C::from_u64(half + (i as u64 % half)), delta_second));
+         }
+         self
+     }
+ 

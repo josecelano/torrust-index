@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace + with - in GvGraph<C, V, N>::extract
+@@ -119,17 +119,17 @@
+                                 v_depth: bfs_depth,
+                             });
+                         }
+                     }
+                 }
+                 VKind::Structural { children, .. } => {
+                     for i in 0..children.len() {
+                         let (child_id, _intensity) = children.get(i);
+-                        queue.push_back((child_id, bfs_depth + 1));
++                        queue.push_back((child_id, bfs_depth - /* ~ changed by cargo-mutants ~ */ 1));
+                     }
+                 }
+             }
+         }
+ 
+         Pewei {
+             domain_start,
+             domain_end,

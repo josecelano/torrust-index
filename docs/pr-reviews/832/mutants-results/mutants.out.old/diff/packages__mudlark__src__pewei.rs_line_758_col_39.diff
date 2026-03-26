@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace / with % in Transition<C, V>::snr
+@@ -750,17 +750,17 @@
+     /// }
+     /// ```
+     #[must_use]
+     pub fn snr(&self) -> Option<f64> {
+         let b = self.baseline.weight();
+         if b == 0.0 {
+             return None;
+         }
+-        Some(self.refinement.weight() / b)
++        Some(self.refinement.weight() % /* ~ changed by cargo-mutants ~ */ b)
+     }
+ 
+     /// Width of this node's interval: `end - start`.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph};

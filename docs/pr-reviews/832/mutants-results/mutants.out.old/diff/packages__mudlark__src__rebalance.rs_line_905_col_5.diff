@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_remaining_sibling_violations with ()
+@@ -897,17 +897,17 @@
+ ///
+ /// See §IDEA M-11.11.3.
+ pub fn push_remaining_sibling_violations<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     p: VNodeId,
+     removed: VNodeId,
+     violations: &mut Vec<VNodeId>,
+ ) {
+-    push_remaining_sibling_violations_with_config(vnodes, p, removed, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push 3→2 transition violations with configurable source (source 8).
+ ///
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_remaining_sibling_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

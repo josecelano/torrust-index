@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/inspectable.rs
++++ replace <impl Inspectable for f32>::to_f64_approx -> f64 with 1.0
+@@ -134,17 +134,17 @@
+ 
+ impl_inspectable_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Inspectable for f32 {
+     #[inline]
+     fn to_f64_approx(self) -> f64 {
+-        f64::from(self)
++        1.0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     #[allow(clippy::cast_possible_truncation)]
+     fn from_f64(v: f64) -> Self {
+         v as Self
+     }
+ }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f32>::is_nan -> bool with true
+@@ -280,17 +280,17 @@
+ 
+     #[inline]
+     fn to_f64(self) -> f64 {
+         f64::from(self)
+     }
+ 
+     #[inline]
+     fn is_nan(self) -> bool {
+-        self.is_nan()
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+         Self::total_cmp(self, other)
+     }
+ }
+ 

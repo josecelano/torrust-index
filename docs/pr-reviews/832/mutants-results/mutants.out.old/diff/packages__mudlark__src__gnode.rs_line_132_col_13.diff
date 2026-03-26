@@ -1,0 +1,21 @@
+--- packages/mudlark/src/gnode.rs
++++ delete match arm (Some(_), Some(_)) in GNode<C, V>::state
+@@ -124,17 +124,17 @@
+ 
+ impl<C, V> GNode<C, V> {
+     /// Derive the categorical state from child pointers (ADR-M-016).
+     #[inline]
+     #[must_use]
+     pub const fn state(&self) -> GState {
+         match (self.left, self.right) {
+             (None, None) => GState::Terminal,
+-            (Some(_), Some(_)) => GState::Internal,
++             /* ~ changed by cargo-mutants ~ */
+             _ => GState::SemiInternal,
+         }
+     }
+ 
+     /// True iff this node has zero G-children.
+     #[inline]
+     #[must_use]
+     pub const fn is_terminal(&self) -> bool {

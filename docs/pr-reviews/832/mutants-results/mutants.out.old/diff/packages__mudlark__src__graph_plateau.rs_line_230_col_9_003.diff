@@ -1,0 +1,107 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())])
+@@ -222,103 +222,17 @@
+     ///
+     /// Cost: O(G + B log B) where G = total G-nodes, B = basis size.
+     ///
+     /// # Panics
+     ///
+     /// Panics if an `Internal` G-node is missing a child pointer.
+     #[must_use]
+     pub fn build_plateaus(&self) -> BTreeMap<BasisEdge<C>, Plateau<C, V>> {
+-        use crate::gnode::GState;
+-        use crate::gtree::gnode_depth_from_interval;
+-        use crate::plateau::basis_edge_of;
+-
+-        // 1. DFS collecting basis elements.
+-        //    One-level balanced internals (both children terminals at
+-        //    the same depth) are used as single basis elements.
+-        //    All other internals are recursed through.
+-        let mut basis: Vec<(BasisEdge<C>, u32, C, C, V)> = Vec::new();
+-        let mut stack = vec![self.g_root];
+-        while let Some(gid) = stack.pop() {
+-            let g = self.gnodes.get(gid.index());
+-            match g.state() {
+-                GState::Terminal => {
+-                    let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                    basis.push((BasisEdge(g.lo), depth, g.lo, g.hi, g.sum));
+-                }
+-                GState::SemiInternal => {
+-                    // Semi-internal is always a basis element.
+-                    let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+-                    basis.push((basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+-                    // Recurse into child subtree for its own basis elements.
+-                    if let Some(left) = g.left {
+-                        stack.push(left);
+-                    }
+-                    if let Some(right) = g.right {
+-                        stack.push(right);
+-                    }
+-                }
+-                GState::Internal => {
+-                    // Uniform-depth subtree: all leaves at the same
+-                    // depth → single basis element (P-I2 minimal).
+-                    // This matches consolidate_all_basis behaviour
+-                    // which merges multi-level balanced subtrees.
+-                    if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
+-                        basis.push((basis_edge_of(g), ud, g.lo, g.hi, g.sum));
+-                    } else {
+-                        // Non-uniform: decompose into children.
+-                        if let Some(left) = g.left {
+-                            stack.push(left);
+-                        }
+-                        if let Some(right) = g.right {
+-                            stack.push(right);
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-
+-        // 2. Sort by basis edge (left-to-right spatial order).
+-        basis.sort_by_key(|a| a.0);
+-
+-        // 3. Left-to-right sweep: merge adjacent same-depth entries.
+-        //    Matches `place_basis_element`'s left-neighbour merge rule.
+-        let mut result: BTreeMap<BasisEdge<C>, Plateau<C, V>> = BTreeMap::new();
+-        for (be, depth, lo, hi, sum) in basis {
+-            let merged = if let Some((_, prev)) = result.iter_mut().next_back() {
+-                if prev.depth == depth {
+-                    if hi.total_cmp(&prev.end) == std::cmp::Ordering::Greater {
+-                        prev.end = hi;
+-                    }
+-                    if lo.total_cmp(&prev.start) == std::cmp::Ordering::Less {
+-                        prev.start = lo;
+-                    }
+-                    prev.sum = V::add(prev.sum, sum);
+-                    true
+-                } else {
+-                    false
+-                }
+-            } else {
+-                false
+-            };
+-            if !merged {
+-                result.insert(
+-                    be,
+-                    Plateau {
+-                        basis_edge: be,
+-                        start: lo,
+-                        end: hi,
+-                        depth,
+-                        sum,
+-                    },
+-                );
+-            }
+-        }
+-
+-        result
++        BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())]) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Basis accessors ─────────────────────────────────────────
+ 
+     /// Crate-internal access to the plateau basis bookkeeping.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[must_use]
+     #[inline]

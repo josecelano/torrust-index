@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with == in check_g_i2_variable_fanout
+@@ -362,17 +362,17 @@
+ // ── G-I2: Variable fanout ───────────────────────────────────────────
+ 
+ fn check_g_i2_variable_fanout<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (idx, g) in graph.gnodes().iter_occupied() {
+         let count = usize::from(g.left.is_some()) + usize::from(g.right.is_some());
+-        if count > 2 {
++        if count == /* ~ changed by cargo-mutants ~ */ 2 {
+             errors.push(format!("G-I2 violated at G-node {idx}: {count} children (max 2)"));
+         }
+     }
+ }
+ 
+ // ── G-I4: Entry consistency ─────────────────────────────────────────
+ 
+ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(

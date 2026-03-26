@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::new()))))
+@@ -396,17 +396,17 @@
+         self.back.len()
+     }
+ 
+     /// Iterator over all (key, basis-elements) pairs, in key order.
+     ///
+     /// Used by `assert_invariants` for the full O(n) sweep.
+     #[allow(unused)] // Available for future use; not called yet.
+     pub(crate) fn iter(&self) -> impl Iterator<Item = (&BasisEdge<C>, &HashSet<GNodeId>)> {
+-        self.forward.iter()
++        ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::new())))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Reference to the back-pointer map.
+     ///
+     /// Used by `assert_invariants` for cross-checking.
+     pub(crate) const fn back_map(&self) -> &HashMap<GNodeId, BasisEdge<C>> {
+         &self.back
+     }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace || with && in contour_steps
+@@ -1032,17 +1032,17 @@
+         }
+     }
+     cells.sort_by(|a, b| a.0.total_cmp(&b.0));
+ 
+     // Extract step coordinates: position 0 is always a step; after
+     // that, every depth change is a step.
+     let mut steps: Vec<(C, u32)> = Vec::new();
+     for &(lo, depth) in &cells {
+-        if steps.is_empty() || steps.last().unwrap().1 != depth {
++        if steps.is_empty() && /* ~ changed by cargo-mutants ~ */ steps.last().unwrap().1 != depth {
+             steps.push((lo, depth));
+         }
+     }
+     steps
+ }
+ 
+ /// **P-I1(i): Keys = contour steps.**
+ ///

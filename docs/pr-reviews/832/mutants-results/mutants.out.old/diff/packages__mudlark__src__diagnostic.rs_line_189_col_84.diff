@@ -1,0 +1,21 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace != with == in diagnose_missed_violation
+@@ -181,17 +181,17 @@
+             "DIAGNOSIS: parent has no grandparent (depth 1?), should not be violated",
+         );
+         return;
+     };
+ 
+     // Find uncles (siblings of parent under grandparent).
+     let grandparent = vnodes.get(grandparent_id.index());
+     let uncles: Vec<(VNodeId, V)> = match &grandparent.kind {
+-        VKind::Structural { children, .. } => children.iter().filter(|(id, _)| *id != parent_id).collect(),
++        VKind::Structural { children, .. } => children.iter().filter(|(id, _)| *id == /* ~ changed by cargo-mutants ~ */ parent_id).collect(),
+         VKind::Entry { .. } => vec![],
+     };
+ 
+     let max_uncle_intensity = uncles.iter().map(|(_, int)| int.to_f64_approx()).fold(0.0_f64, f64::max);
+ 
+     let uncle_desc: Vec<String> = uncles
+         .iter()
+         .map(|(id, int)| format!("v{}({})", id.index(), int.to_f64_approx()))

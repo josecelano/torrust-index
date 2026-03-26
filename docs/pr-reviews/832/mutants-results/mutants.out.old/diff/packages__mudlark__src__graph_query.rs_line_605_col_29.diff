@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace || with && in GvGraph<C, V, N>::decompose_basis
+@@ -597,17 +597,17 @@
+     ///
+     /// Collects the minimal G-node cover of `[query_lo, query_hi)`.
+     /// Semi-internal nodes with an uncovered half overlapping the
+     /// range are flagged as boundary thatching elements (§CR.3.2).
+     fn decompose_basis(&self, gid: GNodeId, query_lo: C, query_hi: C, basis: &mut Vec<BasisElement<C, V>>) {
+         let g = self.gnodes.get(gid.index());
+ 
+         // 1. Disjoint — no overlap with query range.
+-        if query_lo >= g.hi || query_hi <= g.lo {
++        if query_lo >= g.hi && /* ~ changed by cargo-mutants ~ */ query_hi <= g.lo {
+             return;
+         }
+ 
+         // 2. Fully contained — this is a basis element (not thatching).
+         if query_lo <= g.lo && query_hi >= g.hi {
+             basis.push(BasisElement {
+                 gnode_id: gid,
+                 start: g.lo,

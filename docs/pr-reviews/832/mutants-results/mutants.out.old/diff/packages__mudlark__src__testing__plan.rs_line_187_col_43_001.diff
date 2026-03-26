@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with + in Plan<C, V>::random_spray
+@@ -179,17 +179,17 @@
+     /// Uses an inline LCG (no external RNG dependency).
+     #[must_use]
+     pub fn random_spray(mut self, seed: u64, domain: u64, delta: V, n: usize) -> Self {
+         let mut state = seed;
+         for _ in 0..n {
+             state = state
+                 .wrapping_mul(6_364_136_223_846_793_005)
+                 .wrapping_add(1_442_695_040_888_963_407);
+-            let coord = C::from_u64(state % domain);
++            let coord = C::from_u64(state + /* ~ changed by cargo-mutants ~ */ domain);
+             self.observations.push((coord, delta));
+         }
+         self
+     }
+ 
+     /// Oscillating hotspot: every `burst` observations the target
+     /// switches between `a` and `b`.  Forces repeated deep refinement
+     /// followed by abandonment and eviction.

@@ -1,0 +1,34 @@
+--- packages/mudlark/src/vtree.rs
++++ replace v_depth -> u32 with 1
+@@ -199,30 +199,17 @@
+ /// The V-root has depth 0. Used by the depth gate in `attempt_split`
+ /// and eviction re-verification.
+ ///
+ /// Uses opportunistic caching with path warming (ADR-M-029):
+ /// - Fast path: return cached depth if valid
+ /// - Slow path: recurse to parent, cache all nodes on path
+ #[must_use]
+ pub fn v_depth<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
+-    let node = vnodes.get(id.index());
+-    let cached = node.cached_depth.load(Ordering::Relaxed);
+-
+-    // Fast path: cached and valid
+-    if cached != DEPTH_STALE {
+-        #[cfg(debug_assertions)]
+-        assert_eq!(cached, v_depth_uncached(vnodes, id), "cached depth mismatch for VNode {id:?}");
+-        return cached;
+-    }
+-
+-    // Slow path: recurse to parent, cache on return
+-    let depth = node.parent.map_or(0, |p| v_depth(vnodes, p) + 1);
+-    node.cached_depth.store(depth, Ordering::Relaxed);
+-    depth
++    1 /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Invalidate cached depth for a subtree rooted at `root`.
+ ///
+ /// Uses early-exit: if a node is already stale, its entire subtree
+ /// must also be stale (ancestor invariant from ADR-M-029).
+ pub fn invalidate_depth_subtree<V: Accumulator>(vnodes: &Arena<VNode<V>>, root: VNodeId) {
+     let mut stack = vec![root];

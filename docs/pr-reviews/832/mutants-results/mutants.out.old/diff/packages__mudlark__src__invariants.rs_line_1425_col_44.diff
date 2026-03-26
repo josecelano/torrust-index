@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace == with != in check_p_i5_thatch_depth
+@@ -1417,17 +1417,17 @@
+     for (_, gnodes) in pb.iter() {
+         for &gid in gnodes {
+             if graph.gnodes().is_occupied(gid.index()) {
+                 samples.push(graph.gnodes().get(gid.index()).lo);
+             }
+         }
+     }
+     samples.sort_by(Coordinate::total_cmp);
+-    samples.dedup_by(|a, b| a.total_cmp(b) == std::cmp::Ordering::Equal);
++    samples.dedup_by(|a, b| a.total_cmp(b) != /* ~ changed by cargo-mutants ~ */ std::cmp::Ordering::Equal);
+ 
+     for x in &samples {
+         // Count thatch depth: how many plateaus have a basis element
+         // whose [lo, hi) contains x.
+         let mut thatch_count = 0u32;
+         for (&_key, gnodes) in pb.iter() {
+             let covers = gnodes.iter().any(|&gid| {
+                 if !graph.gnodes().is_occupied(gid.index()) {

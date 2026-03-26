@@ -1,0 +1,34 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace <impl fmt::Display for Ch<'_, V>>::fmt -> fmt::Result with Ok(Default::default())
+@@ -133,30 +133,17 @@
+     }
+ }
+ 
+ /// Bracketed children list: `[v1(18), v2(15)]` or `∅` for entries.
+ struct Ch<'a, V: Accumulator>(&'a Arena<VNode<V>>, VNodeId);
+ 
+ impl<V: Accumulator> fmt::Display for Ch<'_, V> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        match &self.0.get(self.1.index()).kind {
+-            VKind::Entry { .. } => f.write_str("∅"),
+-            VKind::Structural { children, .. } => {
+-                f.write_str("[")?;
+-                for i in 0..children.len() {
+-                    if i > 0 {
+-                        f.write_str(", ")?;
+-                    }
+-                    let (id, int) = children.get(i);
+-                    write!(f, "v{}({:?})", id.index(), int)?;
+-                }
+-                f.write_str("]")
+-            }
+-        }
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// Full violation context: ancestry chain with uncle info.
+ ///
+ /// Example output:
+ /// `v3(E,18) ← v5(S2,21) [v3(18), v4(3)] ← v7(S2,42) [v5(21), v6(21)]  uncle_max=21`
+ pub struct Ctx<'a, V: Accumulator>(pub &'a Arena<VNode<V>>, pub VNodeId);

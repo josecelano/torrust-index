@@ -1,0 +1,315 @@
+
+*** packages/mudlark/src/observe.rs:53:9: replace GvGraph<C, V, N>::observe with ()
+
+*** mutation diff:
+--- packages/mudlark/src/observe.rs
++++ replace GvGraph<C, V, N>::observe with ()
+@@ -45,130 +45,14 @@
+     /// g.observe(42, 10u64);
+     /// assert_eq!(g.total_sum(), 10);
+     ///
+     /// g.observe(42, 5u64);
+     /// assert_eq!(g.total_sum(), 15);
+     /// ```
+     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
+         // 1. Route to receiver.
+-        let g_id = gtree::route_to_receiver(&self.gnodes, self.g_root, coord);
+-        let _span = tracing::debug_span!("observe", g = g_id.index()).entered();
+-
+-        // 2a. Accumulate into G-node own value.
+-        let g = self.gnodes.get_mut(g_id.index());
+-        g.own = O::accumulate(g.own, delta);
+-
+-        // 2b. Accumulate into V-entry intensity and propagate V-sums.
+-        if let Some(entry_id) = self.gnodes.get(g_id.index()).entry {
+-            let v = self.vnodes.get_mut(entry_id.index());
+-            v.intensity = O::accumulate(v.intensity, delta);
+-            let new_intensity = v.intensity;
+-
+-            vtree::update_parent_cached_intensity(&mut self.vnodes, entry_id, new_intensity);
+-            vtree::propagate_v_sums(&mut self.vnodes, entry_id);
+-
+-            // 2b (cont). Violation check — enqueue entry and all
+-            //    structural ancestors whose intensity increased via
+-            //    propagation.  The spec's step 6 (rebalance) finds
+-            //    violated nodes; our queue must push eagerly.
+-            //    Cost: O(depth_v), matching propagate_v_sums.
+-            let mut check_id = Some(entry_id);
+-            while let Some(id) = check_id {
+-                if rebalance::is_violated(&self.vnodes, id) {
+-                    tracing::debug!(
+-                        violated = %rebalance::Nd(&self.vnodes, id),
+-                        entry = entry_id.index(),
+-                        "enqueuing violated ancestor",
+-                    );
+-                    self.violations.push(id);
+-                }
+-                check_id = self.vnodes.get(id.index()).parent;
+-            }
+-        }
+-
+-        // 3. Recompute G-sums from receiver to root (ADR-M-012).
+-        gtree::recompute_g_sums(&mut self.gnodes, g_id);
+-
+-        // 4. Plateau sum maintenance (no-op without `plateau` feature).
+-        self.plateau_after_observe::<O>(g_id, delta);
+-
+-        // 5. Attempt split.
+-        split::attempt_split(self, g_id);
+-
+-        // Post-split audit: check for untracked violations.
+-        if tracing::enabled!(tracing::Level::DEBUG) {
+-            crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-SPLIT");
+-        }
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_assert_plateau_mirror_consistency("POST-SPLIT");
+-        }
+-
+-        // 6. Drain violation queue.
+-        let new_gnodes = rebalance::rebalance(
+-            &mut self.vnodes,
+-            &mut self.gnodes,
+-            &mut self.violations,
+-            self.live_depth_evict,
+-        );
+-        if !new_gnodes.is_empty() {
+-            self.handle_legacy_promotes(&new_gnodes);
+-            self.repair_p_i4();
+-        }
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
+-        }
+-
+-        // 7. Dynamic depth control (§IDEA M-7.1, ADR-M-017).
+-        self.adjust_depth_gates();
+-
+-        // 8. Budget-guarded eviction (ADR-M-015, ADR-M-018).
+-        if let Some(soft_limit) = self.soft_limit {
+-            if self.node_count as usize > soft_limit {
+-                if self.config.bounded_eviction {
+-                    self.check_evictions_bounded(self.node_count as usize - soft_limit);
+-                } else {
+-                    self.check_evictions();
+-                }
+-            }
+-        }
+-
+-        // 9. [ADR-M-031] Normalize plateau map — gated behind dirty
+-        //    flag so it's O(1) no-op for simple observations that
+-        //    don't trigger structural changes (splits / promotes).
+-        //    Sorted placement (Phases 2a/2b) reduces frequency;
+-        //    remaining cross-step interactions within observe()
+-        //    still need normalize when structural changes occur.
+-        self.normalize_plateaus();
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_check_plateau_sums("POST-NORMALIZE");
+-        }
+-
+-        // 10. Re-run P-I4 repair — normalization may re-key basis
+-        //     elements, re-introducing thatch-hop violations.
+-        self.repair_p_i4();
+-
+-        // Post-observe audit: catch violations missed by any pipeline
+-        // stage.
+-        //
+-        // The O(n) scan always runs in debug builds (ensures the assert
+-        // fires during `cargo test`) and optionally in release when a
+-        // tracing subscriber is active at DEBUG.
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            let remaining = crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-OBSERVE");
+-            debug_assert!(remaining.is_empty(), "POST-OBSERVE: residual violations: {remaining:?}");
+-        }
+-
+-        #[cfg(feature = "dynamic-contour-tracking")]
+-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
+-            self.debug_assert_plateau_mirror_consistency("POST-OBSERVE");
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {}
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh once_cell v1.21.3
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh ciborium-io v0.2.2
+       Fresh itoa v1.0.17
+       Fresh clap_lex v1.0.0
+       Fresh memchr v2.8.0
+       Fresh plotters-backend v0.3.7
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh plotters-svg v0.3.7
+       Fresh serde_json v1.0.149
+       Fresh ciborium-ll v0.2.2
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh cast v0.3.0
+       Fresh same-file v1.0.6
+       Fresh log v0.4.29
+       Fresh lazy_static v1.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh tracing-log v0.2.0
+       Fresh walkdir v2.5.0
+       Fresh criterion-plot v0.8.2
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh alloca v0.4.0
+       Fresh plotters v0.3.7
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh clap v4.5.59
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh nu-ansi-term v0.50.3
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh anes v0.1.6
+       Fresh criterion v0.8.2
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error: unused imports: `gtree`, `rebalance`, `split`, and `vtree`
+  --> packages/mudlark/src/observe.rs:12:13
+   |
+12 | use crate::{gtree, rebalance, split, vtree};
+   |             ^^^^^  ^^^^^^^^^  ^^^^^  ^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_imports)]`
+
+error: unused variable: `coord`
+  --> packages/mudlark/src/observe.rs:51:50
+   |
+51 |     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
+   |                                                  ^^^^^ help: if this is intentional, prefix it with an underscore: `_coord`
+   |
+   = note: `-D unused-variables` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_variables)]`
+
+error: unused variable: `delta`
+  --> packages/mudlark/src/observe.rs:51:60
+   |
+51 |     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
+   |                                                            ^^^^^ help: if this is intentional, prefix it with an underscore: `_delta`
+
+error: methods `adjust_depth_gates` and `check_evictions_bounded` are never used
+   --> packages/mudlark/src/graph_budget.rs:50:19
+    |
+ 16 | impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+    | -------------------------------------------------------------------------------- methods in this implementation
+...
+ 50 |     pub(crate) fn adjust_depth_gates(&mut self) {
+    |                   ^^^^^^^^^^^^^^^^^^
+...
+146 |     pub(crate) fn check_evictions_bounded(&mut self, stop_at: usize) -> u32 {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D unused`
+    = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: methods `plateau_after_observe`, `plateau_after_bootstrap_split`, and `plateau_after_catalytic_split` are never used
+    --> packages/mudlark/src/graph_plateau.rs:1352:19
+     |
+  24 | impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+     | -------------------------------------------------------------------------------- methods in this implementation
+...
+1352 |     pub(crate) fn plateau_after_observe<O: crate::traits::Observation<V>>(&mut self, g_id: GNodeId, delta: O) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^
+...
+1409 |     pub(crate) fn plateau_after_bootstrap_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1466 |     pub(crate) fn plateau_after_catalytic_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `attempt_split` is never used
+  --> packages/mudlark/src/split.rs:37:8
+   |
+37 | pub fn attempt_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+   |        ^^^^^^^^^^^^^
+
+error: function `bootstrap_split` is never used
+   --> packages/mudlark/src/split.rs:104:4
+    |
+104 | fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+    |    ^^^^^^^^^^^^^^^
+
+error: function `catalytic_split` is never used
+   --> packages/mudlark/src/split.rs:185:4
+    |
+185 | fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+    |    ^^^^^^^^^^^^^^^
+
+error: function `alloc_g_child` is never used
+   --> packages/mudlark/src/split.rs:275:4
+    |
+275 | fn alloc_g_child<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, lo: C, hi: C, parent: GNodeId) -> GNodeId {
+    |    ^^^^^^^^^^^^^
+
+error: function `alloc_v_entry` is never used
+   --> packages/mudlark/src/split.rs:290:4
+    |
+290 | fn alloc_v_entry<C: Coordinate, V: Accumulator>(
+    |    ^^^^^^^^^^^^^
+
+error: function `alloc_v_structural_2` is never used
+   --> packages/mudlark/src/split.rs:311:4
+    |
+311 | fn alloc_v_structural_2<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, a: VNodeId, b: VNodeId) -> VNodeId {
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+error: method `add_child` is never used
+   --> packages/mudlark/src/vnode.rs:202:12
+    |
+110 | impl<V: Copy + Default + PartialOrd> PackedChildren<V> {
+    | ------------------------------------------------------ method in this implementation
+...
+202 |     pub fn add_child(&mut self, id: VNodeId, intensity: V) {
+    |            ^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 12 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-wj9SvP.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+
+*** result: Failure(101)

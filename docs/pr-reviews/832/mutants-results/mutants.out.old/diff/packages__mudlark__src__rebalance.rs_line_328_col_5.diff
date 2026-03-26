@@ -1,0 +1,87 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace standard_promote with ()
+@@ -320,83 +320,17 @@
+ /// 2-node. `c` is a child of `p`.
+ ///
+ /// See §IDEA M-11.4.
+ ///
+ /// # Panics
+ ///
+ /// Panics if `c` is not a structural 2-node, or if `c` has no parent.
+ pub fn standard_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId) {
+-    let p = vnodes.get(c.index()).parent.expect("standard_promote: c must have a parent");
+-    let _span = tracing::debug_span!(
+-        "standard_promote",
+-        c = %Nd(vnodes, c),
+-        children = %Ch(vnodes, c),
+-    )
+-    .entered();
+-
+-    // Read c's two children.
+-    let (c1_id, c1_int, c2_id, c2_int) = {
+-        let node = vnodes.get(c.index());
+-        match &node.kind {
+-            VKind::Structural { children, .. } => {
+-                assert!(children.len() == 2, "standard_promote: c must be a 2-node");
+-                let (id1, int1) = children.get(0);
+-                let (id2, int2) = children.get(1);
+-                (id1, int1, id2, int2)
+-            }
+-            VKind::Entry { .. } => panic!("standard_promote: c must be structural"),
+-        }
+-    };
+-
+-    // Find the sibling of c in p.
+-    let sibling_id = {
+-        let p_node = vnodes.get(p.index());
+-        match &p_node.kind {
+-            VKind::Structural { children, .. } => {
+-                let mut sib = None;
+-                for i in 0..children.len() {
+-                    let (id, _) = children.get(i);
+-                    if id != c {
+-                        sib = Some(children.get(i));
+-                        break;
+-                    }
+-                }
+-                sib.expect("standard_promote: sibling not found")
+-            }
+-            VKind::Entry { .. } => panic!("standard_promote: parent must be structural"),
+-        }
+-    };
+-
+-    // Rewrite p as a 3-node: [c1, c2, sibling].
+-    let sib_terminal = node_has_evictable(vnodes, sibling_id.0);
+-    let c1_terminal = node_has_evictable(vnodes, c1_id);
+-    let c2_terminal = node_has_evictable(vnodes, c2_id);
+-
+-    let p_node = vnodes.get_mut(p.index());
+-    if let VKind::Structural { children, has_evictable } = &mut p_node.kind {
+-        *children = PackedChildren::new_3((c1_id, c1_int), (c2_id, c2_int), sibling_id);
+-        *has_evictable = c1_terminal || c2_terminal || sib_terminal;
+-    }
+-
+-    // Re-parent c1, c2 to p.
+-    vnodes.get_mut(c1_id.index()).parent = Some(p);
+-    vnodes.get_mut(c2_id.index()).parent = Some(p);
+-
+-    // Invalidate depth cache for c1 and c2 subtrees (they moved up one level)
+-    invalidate_depth_subtree(vnodes, c1_id);
+-    invalidate_depth_subtree(vnodes, c2_id);
+-
+-    // Destroy c.
+-    vnodes.dealloc(c.index());
+-
+-    // Propagate terminal flags upward from p.
+-    propagate_evictable_flags(vnodes, p);
+-
+-    tracing::debug!(result = %Ch(vnodes, p), "c destroyed, p is 3-node");
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Skip Promote (§IDEA M-11.5) ─────────────────────────────────────
+ 
+ /// Skip promotion: elevate node `c` by destroying its parent `p`
+ /// and installing `c` and its sibling as direct children of
+ /// grandparent `g`. `g` becomes a 3-node.
+ ///

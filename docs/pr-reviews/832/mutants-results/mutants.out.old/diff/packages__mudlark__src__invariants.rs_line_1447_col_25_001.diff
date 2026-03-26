@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with < in check_p_i5_thatch_depth
+@@ -1439,17 +1439,17 @@
+             if covers {
+                 thatch_count += 1;
+             }
+         }
+ 
+         // Compute d_geo(x) by routing from root to the terminal.
+         let d_geo = route_to_depth(graph, *x);
+ 
+-        if thatch_count > d_geo + 1 {
++        if thatch_count < /* ~ changed by cargo-mutants ~ */ d_geo + 1 {
+             errors.push(format!(
+                 "P-I5 thatch depth: at x={x:?}, thatch_depth={thatch_count} > d_geo={d_geo} + 1"
+             ));
+         }
+     }
+ }
+ 
+ /// Route from G-root to the terminal containing `x`, returning its

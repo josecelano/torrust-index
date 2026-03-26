@@ -1,0 +1,29 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace ViolationSources::all_enabled -> Self with Default::default()
+@@ -91,25 +91,17 @@
+     }
+ }
+ 
+ impl ViolationSources {
+     /// All violation sources enabled (production default).
+     #[inline]
+     #[must_use]
+     pub const fn all_enabled() -> Self {
+-        Self {
+-            source_3_contraction_grandchildren: true,
+-            source_4_promotion_children: true,
+-            source_6_leaf_removal_ancestors: true,
+-            source_7_collapse_children: true,
+-            source_8_three_to_two_siblings: true,
+-            source_9_collapse_cousins: true,
+-            source_10_g_contraction_promotion: true,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Tracing display helpers ─────────────────────────────────────────
+ //
+ // Zero-allocation `Display` wrappers for `%field` in tracing macros.
+ // They borrow the arena and format on demand — no heap allocation
+ // unless a subscriber actually captures the formatted output.

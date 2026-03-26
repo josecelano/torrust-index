@@ -1,0 +1,35 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_grandchild_violations with ()
+@@ -707,31 +707,17 @@
+     if !config.source_10_g_contraction_promotion {
+         return;
+     }
+     push_grandchild_violations(vnodes, node, violations);
+ }
+ 
+ /// Shared grandchild-scan logic used by sources 3 and 10.
+ fn push_grandchild_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {
+-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+-        VKind::Entry { .. } => return,
+-    };
+-    for child_id in child_ids {
+-        if let VKind::Structural { children, .. } = &vnodes.get(child_id.index()).kind {
+-            for i in 0..children.len() {
+-                let (gc_id, _) = children.get(i);
+-                if is_violated(vnodes, gc_id) {
+-                    tracing::trace!(gc = %Nd(vnodes, gc_id), at = %Nd(vnodes, node), "side-effect violation");
+-                    violations.push(gc_id);
+-                }
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push direct children of `node` that are violated.
+ ///
+ /// After promotion or contraction, children move to a new uncle
+ /// context.  The spec's `find_deepest_violated_node()` (§IDEA M-11.8) would
+ /// discover these; our queue-based approach pushes them explicitly.
+ pub fn push_promoted_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {

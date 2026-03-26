@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace > with == in PackedChildren<V>::heaviest_child_index
+@@ -165,17 +165,17 @@
+ 
+     /// Index of the child with the highest intensity.
+     /// Ties broken by leftmost (index 0) wins.
+     #[must_use]
+     pub fn heaviest_child_index(&self) -> usize {
+         let mut max_idx = 0;
+         for i in 1..self.len() {
+             // Strict greater-than: leftmost wins ties.
+-            if self.intensities[i] > self.intensities[max_idx] {
++            if self.intensities[i] == /* ~ changed by cargo-mutants ~ */ self.intensities[max_idx] {
+                 max_idx = i;
+             }
+         }
+         max_idx
+     }
+ 
+     /// Find the position of `id` in this node's children.
+     #[must_use]

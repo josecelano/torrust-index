@@ -1,0 +1,21 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::basis_count -> usize with 0
+@@ -388,17 +388,17 @@
+     #[inline]
+     pub(crate) fn plateau_count(&self) -> usize {
+         self.forward.len()
+     }
+ 
+     /// Number of tracked basis elements (back map entries).
+     #[inline]
+     pub(crate) fn basis_count(&self) -> usize {
+-        self.back.len()
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Iterator over all (key, basis-elements) pairs, in key order.
+     ///
+     /// Used by `assert_invariants` for the full O(n) sweep.
+     #[allow(unused)] // Available for future use; not called yet.
+     pub(crate) fn iter(&self) -> impl Iterator<Item = (&BasisEdge<C>, &HashSet<GNodeId>)> {
+         self.forward.iter()

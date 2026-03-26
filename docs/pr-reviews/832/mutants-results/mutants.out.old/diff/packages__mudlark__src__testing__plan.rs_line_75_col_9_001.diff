@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::is_empty -> bool with false
+@@ -67,17 +67,17 @@
+     #[must_use]
+     pub fn len(&self) -> usize {
+         self.observations.len()
+     }
+ 
+     /// Whether the plan has zero observations.
+     #[must_use]
+     pub fn is_empty(&self) -> bool {
+-        self.observations.is_empty()
++        false /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<C: Copy + Debug + Default, V: Copy + Debug> Default for Plan<C, V> {
+     fn default() -> Self {
+         Self::new()
+     }
+ }

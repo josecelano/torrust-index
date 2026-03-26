@@ -1,0 +1,33 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_promoted_violations_with_config with ()
+@@ -743,29 +743,17 @@
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_promoted_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     node: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_4_promotion_children {
+-        return;
+-    }
+-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+-        VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+-        VKind::Entry { .. } => return,
+-    };
+-    for child_id in child_ids {
+-        if is_violated(vnodes, child_id) {
+-            tracing::trace!(child = %Nd(vnodes, child_id), at = %Nd(vnodes, node), "promoted violation");
+-            violations.push(child_id);
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push direct children of `node` that are violated, excluding `skip`.
+ ///
+ /// Used after Phase 1 contraction: children may be violated at the
+ /// grandparent level, but we must NOT re-enqueue the node being
+ /// resolved (Phase 2 handles it).
+ pub fn push_contraction_child_violations<V: Accumulator>(

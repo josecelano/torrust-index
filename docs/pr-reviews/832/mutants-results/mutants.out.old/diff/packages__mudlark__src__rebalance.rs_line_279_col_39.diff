@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace || with && in contract
+@@ -271,17 +271,17 @@
+ 
+     // Create the merged structural node.
+     let merged = VNode {
+         intensity: V::add(a_int, b_int),
+         parent: Some(p),
+         cached_depth: AtomicU32::new(m_depth),
+         kind: VKind::Structural {
+             children: PackedChildren::new_2((a_id, a_int), (b_id, b_int)),
+-            has_evictable: a_terminal || b_terminal,
++            has_evictable: a_terminal && /* ~ changed by cargo-mutants ~ */ b_terminal,
+         },
+     };
+     let m_id = VNodeId::from_index(vnodes.alloc(merged));
+ 
+     // Re-parent a and b.
+     vnodes.get_mut(a_id.index()).parent = Some(m_id);
+     vnodes.get_mut(b_id.index()).parent = Some(m_id);
+ 

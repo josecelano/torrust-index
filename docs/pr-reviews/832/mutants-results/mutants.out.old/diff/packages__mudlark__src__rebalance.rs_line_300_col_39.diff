@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace || with && in contract
+@@ -292,17 +292,17 @@
+     // Rewrite p as a 2-node: [isolate, merged].
+     let merged_int = V::add(a_int, b_int);
+     let iso_terminal = node_has_evictable(vnodes, isolate.0);
+     let m_terminal = a_terminal || b_terminal;
+ 
+     let p_node = vnodes.get_mut(p.index());
+     if let VKind::Structural { children, has_evictable } = &mut p_node.kind {
+         *children = PackedChildren::new_2(isolate, (m_id, merged_int));
+-        *has_evictable = iso_terminal || m_terminal;
++        *has_evictable = iso_terminal && /* ~ changed by cargo-mutants ~ */ m_terminal;
+     }
+ 
+     // Propagate terminal flags upward from p.
+     propagate_evictable_flags(vnodes, p);
+ 
+     tracing::debug!(
+         merged = %Nd(vnodes, m_id),
+         result = %Ch(vnodes, p),

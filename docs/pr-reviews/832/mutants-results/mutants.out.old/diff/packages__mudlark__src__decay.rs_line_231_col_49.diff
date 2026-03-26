@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace - with + in GvGraph<C, V, N>::decay_selective
+@@ -223,17 +223,17 @@
+         // 2. DFS walk: collect nodes in pre-order for bottom-up
+         //    reversal, scale g.own per depth.
+         let mut order = Vec::new();
+         let mut stack = vec![root];
+         while let Some(gid) = stack.pop() {
+             order.push(gid);
+ 
+             let g = self.gnodes.get(gid.index());
+-            let d_local = self.gnode_depth(gid) - d_root;
++            let d_local = self.gnode_depth(gid) + /* ~ changed by cargo-mutants ~ */ d_root;
+             let factor = factors[d_local as usize];
+ 
+             // Scale own.
+             let new_own = g.own.attenuate(factor);
+             // Drop immutable borrow before mutable access.
+             let g = self.gnodes.get_mut(gid.index());
+             g.own = new_own;
+ 

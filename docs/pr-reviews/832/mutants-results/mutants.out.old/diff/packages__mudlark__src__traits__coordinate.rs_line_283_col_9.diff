@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f32>::to_f64 -> f64 with 0.0
+@@ -275,17 +275,17 @@
+ 
+     #[inline]
+     fn next_value(self) -> Self {
+         panic!("next_value is not supported for f32 coordinates; use Excluded/Included bounds directly")
+     }
+ 
+     #[inline]
+     fn to_f64(self) -> f64 {
+-        f64::from(self)
++        0.0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     fn is_nan(self) -> bool {
+         self.is_nan()
+     }
+ 
+     #[inline]

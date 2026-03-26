@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::node_count -> u32 with 0
+@@ -640,17 +640,17 @@
+     /// for _ in 0..10 {
+     ///     g.observe(42, 1u64);
+     /// }
+     /// assert!(g.node_count() > 1);
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn node_count(&self) -> u32 {
+-        self.node_count
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Number of terminal G-nodes (leaves with zero G-children).
+     ///
+     /// Maintained incrementally: +1 net per split, −1 per eviction
+     /// (unless the parent becomes terminal, in which case net 0).
+     ///
+     /// # Examples

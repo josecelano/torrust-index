@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace == with != in evict_tip
+@@ -68,17 +68,17 @@
+ 
+     graph.gnodes.get_mut(parent_id.index()).own = V::add(graph.gnodes.get(parent_id.index()).own, child_sum);
+ 
+     // ── 2. Unlink child from parent ─────────────────────────────
+     {
+         let p = graph.gnodes.get_mut(parent_id.index());
+         if p.left == Some(gnode_id) {
+             p.left = None;
+-        } else if p.right == Some(gnode_id) {
++        } else if p.right != /* ~ changed by cargo-mutants ~ */ Some(gnode_id) {
+             p.right = None;
+         } else {
+             panic!(
+                 "evict_tip: G-node {} is not a child of parent {}",
+                 gnode_id.index(),
+                 parent_id.index()
+             );
+         }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace && with || in GvGraph<C, V, N>::repair_p_i4
+@@ -1216,17 +1216,17 @@
+         .entered();
+ 
+         // Phase 1: one-time scan of all semi-internal basis elements
+         // to catch violations from tile boundary changes not tracked
+         // by the place_basis_element work-list.
+         let mut candidates: Vec<(GNodeId, BasisEdge<C>)> = Vec::new();
+         for (&key, elements) in self.plateau_basis.iter() {
+             for &gid in elements {
+-                if self.gnodes.is_occupied(gid.index()) && self.gnodes.get(gid.index()).state() == GState::SemiInternal {
++                if self.gnodes.is_occupied(gid.index()) || /* ~ changed by cargo-mutants ~ */ self.gnodes.get(gid.index()).state() == GState::SemiInternal {
+                     candidates.push((gid, key));
+                 }
+             }
+         }
+         self.pending_p_i4.extend(candidates);
+         span.record("candidates", self.pending_p_i4.len());
+ 
+         // Phase 2: drain all candidates.  Each check is O(log P).

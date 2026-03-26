@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace <= with > in GvGraph<C, V, N>::extract
+@@ -85,17 +85,17 @@
+             let vnode = self.vnodes.get(vid.index());
+ 
+             match &vnode.kind {
+                 VKind::Entry { gnode, .. } => {
+                     let g = self.gnodes.get(gnode.index());
+                     let g_depth = self.gnode_depth(*gnode);
+ 
+                     // Ensure the layer exists.
+-                    while layers.len() <= bfs_depth as usize {
++                    while layers.len() > /* ~ changed by cargo-mutants ~ */ bfs_depth as usize {
+                         layers.push(Layer {
+                             transitions: Vec::new(),
+                             terminals: Vec::new(),
+                         });
+                     }
+                     let layer = &mut layers[bfs_depth as usize];
+ 
+                     match g.state() {

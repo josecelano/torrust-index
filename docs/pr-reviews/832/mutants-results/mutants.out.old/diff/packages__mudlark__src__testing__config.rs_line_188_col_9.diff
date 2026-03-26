@@ -1,0 +1,16 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field depth_evict from struct Config expression in f64_deep_config
+@@ -180,12 +180,12 @@
+ }
+ 
+ /// Deep f64 config for depth-saturation testing: θ=5.0,
+ /// `D_create`=8, `D_evict`=16.
+ #[must_use]
+ pub const fn f64_deep_config() -> Config<f64> {
+     Config {
+         depth_create: 8,
+-        depth_evict: 16,
++         /* ~ changed by cargo-mutants ~ */
+         ..BASE_F64
+     }
+ }

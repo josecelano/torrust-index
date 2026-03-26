@@ -1,0 +1,48 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::place_subtree_basis_elements with ()
+@@ -632,44 +632,17 @@
+     /// This matches the logic in `build_plateaus()` and ensures
+     /// Internal nodes with non-uniform subtrees are properly split.
+     ///
+     /// Note: after ADR-M-031, all callers use `collect_subtree_basis_elements`
+     /// + `place_sorted` instead. Retained for potential future use.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[allow(dead_code)]
+     pub(crate) fn place_subtree_basis_elements(&mut self, gid: GNodeId) {
+-        use crate::gnode::GState;
+-
+-        let g = self.gnodes.get(gid.index());
+-        match g.state() {
+-            GState::Terminal | GState::SemiInternal => {
+-                let depth = crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N);
+-                self.place_basis_element(gid, depth);
+-            }
+-            GState::Internal => {
+-                // Check if subtree is uniform
+-                if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
+-                    // Uniform subtree: place as single basis element
+-                    self.place_basis_element(gid, ud);
+-                } else {
+-                    // Non-uniform: decompose into children
+-                    let (left, right) = {
+-                        let g = self.gnodes.get(gid.index());
+-                        (g.left, g.right)
+-                    };
+-                    if let Some(l) = left {
+-                        self.place_subtree_basis_elements(l);
+-                    }
+-                    if let Some(r) = right {
+-                        self.place_subtree_basis_elements(r);
+-                    }
+-                }
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(dead_code, clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn place_subtree_basis_elements(&mut self, _gid: GNodeId) {}
+ 

@@ -2,104 +2,106 @@ packages/mudlark/src/contour_range.rs:303:5: replace validate_endpoints -> Optio
 packages/mudlark/src/contour_range.rs:303:5: replace validate_endpoints -> Option<()> with Some(())
 packages/mudlark/src/contour_range.rs:328:5: replace compute_plateau_energy -> (V, usize) with (Default::default(), 0)
 packages/mudlark/src/contour_range.rs:328:5: replace compute_plateau_energy -> (V, usize) with (Default::default(), 1)
-packages/mudlark/src/contour_range.rs:362:5: replace debug_assert_contour_range_invariants with ()
-packages/mudlark/src/gnode.rs:130:9: replace GNode<C, V>::state -> GState with Default::default()
-packages/mudlark/src/pewei.rs:322:9: replace Pewei<C, V>::reconstruct -> Vec<Span<C, V>> with vec![]
-packages/mudlark/src/pewei.rs:322:9: replace Pewei<C, V>::reconstruct -> Vec<Span<C, V>> with vec![Default::default()]
-packages/mudlark/src/pewei.rs:402:9: replace RegionLookup<C>::build -> Self with Default::default()
-packages/mudlark/src/pewei.rs:462:9: replace RegionLookup<C>::get -> Option<NodeRef> with None
-packages/mudlark/src/pewei.rs:462:9: replace RegionLookup<C>::get -> Option<NodeRef> with Some(Default::default())
-packages/mudlark/src/pewei.rs:475:5: replace node_total -> V with Default::default()
-packages/mudlark/src/pewei.rs:497:5: replace descend with ()
+packages/mudlark/src/contour_range.rs:363:5: replace debug_assert_contour_range_invariants with ()
+packages/mudlark/src/gnode.rs:138:9: replace GNode<C, V>::state -> GState with Default::default()
+packages/mudlark/src/pewei.rs:326:9: replace Pewei<C, V>::reconstruct -> Vec<Span<C, V>> with vec![]
+packages/mudlark/src/pewei.rs:326:9: replace Pewei<C, V>::reconstruct -> Vec<Span<C, V>> with vec![Default::default()]
+packages/mudlark/src/pewei.rs:406:9: replace RegionLookup<C>::build -> Self with Default::default()
+packages/mudlark/src/pewei.rs:466:9: replace RegionLookup<C>::get -> Option<NodeRef> with None
+packages/mudlark/src/pewei.rs:466:9: replace RegionLookup<C>::get -> Option<NodeRef> with Some(Default::default())
+packages/mudlark/src/pewei.rs:479:5: replace node_total -> V with Default::default()
+packages/mudlark/src/pewei.rs:501:5: replace descend with ()
 packages/mudlark/src/plateau.rs:102:9: replace <impl Ord for BasisEdge<C>>::cmp -> Ordering with Default::default()
 packages/mudlark/src/plateau.rs:108:9: replace <impl PartialOrd for BasisEdge<C>>::partial_cmp -> Option<Ordering> with None
 packages/mudlark/src/plateau.rs:108:9: replace <impl PartialOrd for BasisEdge<C>>::partial_cmp -> Option<Ordering> with Some(Default::default())
 packages/mudlark/src/plateau.rs:114:9: replace <impl PartialEq for BasisEdge<C>>::eq -> bool with true
 packages/mudlark/src/plateau.rs:114:9: replace <impl PartialEq for BasisEdge<C>>::eq -> bool with false
-packages/mudlark/src/plateau.rs:282:9: replace Plateau<C, V>::to_span -> Span<C, V> with Default::default()
-packages/mudlark/src/plateau.rs:334:9: replace PlateauBasis<C>::insert with ()
-packages/mudlark/src/plateau.rs:352:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with None
-packages/mudlark/src/plateau.rs:352:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::new())
-packages/mudlark/src/plateau.rs:352:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::from_iter([Default::default()]))
-packages/mudlark/src/plateau.rs:352:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::new(Default::default()))
-packages/mudlark/src/plateau.rs:352:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::from(Default::default()))
-packages/mudlark/src/plateau.rs:368:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with None
-packages/mudlark/src/plateau.rs:368:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::new())
-packages/mudlark/src/plateau.rs:368:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::new(Default::default()))
-packages/mudlark/src/plateau.rs:368:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::from_iter([Default::default()]))
-packages/mudlark/src/plateau.rs:368:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::from(Default::default()))
-packages/mudlark/src/plateau.rs:376:9: replace PlateauBasis<C>::basis_elements -> &HashSet<GNodeId> with Box::leak(Box::new(HashSet::new()))
-packages/mudlark/src/plateau.rs:376:9: replace PlateauBasis<C>::basis_elements -> &HashSet<GNodeId> with Box::leak(Box::new(HashSet::from_iter([Default::default()])))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::new()))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from_iter([Default::default()]))), Box::leak(Box::new(HashSet::new()))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from_iter([Default::default()]))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new(Default::default()))), Box::leak(Box::new(HashSet::new()))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new(Default::default()))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new()))))
-packages/mudlark/src/plateau.rs:404:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
-packages/mudlark/src/plateau.rs:411:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::new()))
-packages/mudlark/src/plateau.rs:411:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::new())])))
-packages/mudlark/src/plateau.rs:411:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from_iter([Default::default()]))])))
-packages/mudlark/src/plateau.rs:411:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from(Default::default()))])))
-packages/mudlark/src/plateau.rs:411:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::new(Default::default()))])))
-packages/mudlark/src/plateau.rs:449:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::new()
-packages/mudlark/src/plateau.rs:420:9: replace PlateauBasis<C>::rebuild with ()
-packages/mudlark/src/plateau.rs:449:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::new(Default::default())
-packages/mudlark/src/plateau.rs:449:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::from_iter([Default::default()])
-packages/mudlark/src/plateau.rs:449:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::from(Default::default())
-packages/mudlark/src/view.rs:172:9: replace Cell<C, V>::to_span -> Span<C, V> with Default::default()
-packages/mudlark/src/view.rs:236:9: replace Cell<C, V>::is_final -> bool with true
-packages/mudlark/src/view.rs:236:9: replace Cell<C, V>::is_final -> bool with false
-packages/mudlark/src/view.rs:321:9: replace Node<C, V>::to_span -> Span<C, V> with Default::default()
-packages/mudlark/src/view.rs:357:9: replace Node<C, V>::to_cell -> Option<Cell<C, V>> with Some(Default::default())
-packages/mudlark/src/graph.rs:285:5: replace uniform_contour_depth_of -> Option<u32> with None
-packages/mudlark/src/graph.rs:285:5: replace uniform_contour_depth_of -> Option<u32> with Some(0)
-packages/mudlark/src/graph.rs:285:5: replace uniform_contour_depth_of -> Option<u32> with Some(1)
-packages/mudlark/src/graph.rs:719:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::new()))
-packages/mudlark/src/graph.rs:719:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::from_iter([Default::default()])))
-packages/mudlark/src/graph.rs:719:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::new(Default::default())))
-packages/mudlark/src/graph.rs:719:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::from(Default::default())))
-packages/mudlark/src/graph.rs:791:9: replace GvGraph<C, V, N>::g_root -> GNodeId with Default::default()
-packages/mudlark/src/graph.rs:818:9: replace GvGraph<C, V, N>::v_root -> Option<VNodeId> with Some(Default::default())
-packages/mudlark/src/graph.rs:859:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::new()))
-packages/mudlark/src/graph.rs:859:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::from_iter([Default::default()])))
-packages/mudlark/src/graph.rs:859:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::new(Default::default())))
-packages/mudlark/src/graph.rs:859:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::from(Default::default())))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new()))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::new()])))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::new())))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::new())))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::from_iter([Default::default()]))))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::from_iter([Default::default()])])))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::from_iter([Default::default()]))))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::new(Default::default())])))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::new(Default::default()))))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::new(Default::default()))))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::from(Default::default())])))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::from(Default::default()))))
-packages/mudlark/src/graph.rs:868:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::from(Default::default()))))
-packages/mudlark/src/graph.rs:1058:9: replace GvGraph<C, V, N>::gnode_depth -> u32 with 0
-packages/mudlark/src/graph.rs:1058:9: replace GvGraph<C, V, N>::gnode_depth -> u32 with 1
-packages/mudlark/src/graph.rs:1107:9: replace GvGraph<C, V, N>::gnode_info -> Option<GNodeInfo<C, V>> with None
-packages/mudlark/src/graph.rs:1107:9: replace GvGraph<C, V, N>::gnode_info -> Option<GNodeInfo<C, V>> with Some(Default::default())
-packages/mudlark/src/graph.rs:1167:9: replace GvGraph<C, V, N>::is_ancestor_of -> bool with true
-packages/mudlark/src/graph.rs:1167:9: replace GvGraph<C, V, N>::is_ancestor_of -> bool with false
+packages/mudlark/src/plateau.rs:288:9: replace Plateau<C, V>::to_span -> Span<C, V> with Default::default()
+packages/mudlark/src/plateau.rs:340:9: replace PlateauBasis<C>::insert with ()
+packages/mudlark/src/plateau.rs:358:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with None
+packages/mudlark/src/plateau.rs:358:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::new())
+packages/mudlark/src/plateau.rs:358:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::from_iter([Default::default()]))
+packages/mudlark/src/plateau.rs:358:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::new(Default::default()))
+packages/mudlark/src/plateau.rs:358:9: replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::from(Default::default()))
+packages/mudlark/src/plateau.rs:374:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with None
+packages/mudlark/src/plateau.rs:374:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::new())
+packages/mudlark/src/plateau.rs:374:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::from_iter([Default::default()]))
+packages/mudlark/src/plateau.rs:374:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::new(Default::default()))
+packages/mudlark/src/plateau.rs:374:9: replace PlateauBasis<C>::plateau_key -> Option<BasisEdge<C>> with Some(BasisEdge::from(Default::default()))
+packages/mudlark/src/plateau.rs:382:9: replace PlateauBasis<C>::basis_elements -> &HashSet<GNodeId> with Box::leak(Box::new(HashSet::new()))
+packages/mudlark/src/plateau.rs:382:9: replace PlateauBasis<C>::basis_elements -> &HashSet<GNodeId> with Box::leak(Box::new(HashSet::from_iter([Default::default()])))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::new()))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new())), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from_iter([Default::default()]))), Box::leak(Box::new(HashSet::new()))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from_iter([Default::default()]))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new(Default::default()))), Box::leak(Box::new(HashSet::new()))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::new(Default::default()))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::new()))))
+packages/mudlark/src/plateau.rs:410:9: replace PlateauBasis<C>::iter -> impl Iterator<Item =(&BasisEdge<C>, &HashSet<GNodeId>)> with ::std::iter::once((Box::leak(Box::new(BasisEdge::from(Default::default()))), Box::leak(Box::new(HashSet::from_iter([Default::default()])))))
+packages/mudlark/src/plateau.rs:417:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::new()))
+packages/mudlark/src/plateau.rs:417:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::new())])))
+packages/mudlark/src/plateau.rs:417:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from_iter([Default::default()]))])))
+packages/mudlark/src/plateau.rs:417:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::new(Default::default()))])))
+packages/mudlark/src/plateau.rs:417:9: replace PlateauBasis<C>::back_map -> &HashMap<GNodeId, BasisEdge<C>> with Box::leak(Box::new(HashMap::from_iter([(Default::default(), BasisEdge::from(Default::default()))])))
+packages/mudlark/src/plateau.rs:426:9: replace PlateauBasis<C>::rebuild with ()
+packages/mudlark/src/plateau.rs:455:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::new()
+packages/mudlark/src/plateau.rs:455:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::from_iter([Default::default()])
+packages/mudlark/src/plateau.rs:455:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::new(Default::default())
+packages/mudlark/src/plateau.rs:455:5: replace basis_edge_of -> BasisEdge<C> with BasisEdge::from(Default::default())
+packages/mudlark/src/view.rs:198:9: replace Cell<C, V>::to_span -> Span<C, V> with Default::default()
+packages/mudlark/src/view.rs:262:9: replace Cell<C, V>::is_final -> bool with true
+packages/mudlark/src/view.rs:262:9: replace Cell<C, V>::is_final -> bool with false
+packages/mudlark/src/view.rs:351:9: replace Node<C, V>::to_span -> Span<C, V> with Default::default()
+packages/mudlark/src/view.rs:387:9: replace Node<C, V>::to_cell -> Option<Cell<C, V>> with Some(Default::default())
+packages/mudlark/src/graph.rs:248:5: replace uniform_contour_depth_of -> Option<u32> with None
+packages/mudlark/src/graph.rs:248:5: replace uniform_contour_depth_of -> Option<u32> with Some(0)
+packages/mudlark/src/graph.rs:248:5: replace uniform_contour_depth_of -> Option<u32> with Some(1)
+packages/mudlark/src/graph.rs:678:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::new()))
+packages/mudlark/src/graph.rs:678:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::from_iter([Default::default()])))
+packages/mudlark/src/graph.rs:678:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::new(Default::default())))
+packages/mudlark/src/graph.rs:678:9: replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::from(Default::default())))
+packages/mudlark/src/graph.rs:750:9: replace GvGraph<C, V, N>::g_root -> GNodeId with Default::default()
+packages/mudlark/src/graph.rs:764:9: replace GvGraph<C, V, N>::v_root -> Option<VNodeId> with Some(Default::default())
+packages/mudlark/src/graph.rs:808:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::new()))
+packages/mudlark/src/graph.rs:808:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::from_iter([Default::default()])))
+packages/mudlark/src/graph.rs:808:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::new(Default::default())))
+packages/mudlark/src/graph.rs:808:9: replace GvGraph<C, V, N>::gnodes -> &Arena<GNode<C, V>> with Box::leak(Box::new(Arena::from(Default::default())))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new()))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::new()])))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::new())))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::new())))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::from_iter([Default::default()])])))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::from_iter([Default::default()]))))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::from_iter([Default::default()]))))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::new(Default::default())])))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::new(Default::default()))))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::new(Default::default()))))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from_iter([VNode::from(Default::default())])))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::new(VNode::from(Default::default()))))
+packages/mudlark/src/graph.rs:817:9: replace GvGraph<C, V, N>::vnodes -> &Arena<VNode<V>> with Box::leak(Box::new(Arena::from(VNode::from(Default::default()))))
+packages/mudlark/src/graph.rs:1007:9: replace GvGraph<C, V, N>::gnode_depth -> u32 with 0
+packages/mudlark/src/graph.rs:1007:9: replace GvGraph<C, V, N>::gnode_depth -> u32 with 1
+packages/mudlark/src/graph.rs:1054:9: replace GvGraph<C, V, N>::gnode_info -> Option<Node<C, V>> with None
+packages/mudlark/src/graph.rs:1054:9: replace GvGraph<C, V, N>::gnode_info -> Option<Node<C, V>> with Some(Default::default())
+packages/mudlark/src/graph.rs:1117:9: replace GvGraph<C, V, N>::gnode_children -> Option<GNodeChildren> with None
+packages/mudlark/src/graph.rs:1117:9: replace GvGraph<C, V, N>::gnode_children -> Option<GNodeChildren> with Some(Default::default())
+packages/mudlark/src/graph.rs:1170:9: replace GvGraph<C, V, N>::is_ancestor_of -> bool with true
+packages/mudlark/src/graph.rs:1170:9: replace GvGraph<C, V, N>::is_ancestor_of -> bool with false
 packages/mudlark/src/arena.rs:51:9: replace Arena<T>::alloc -> usize with 0
 packages/mudlark/src/arena.rs:51:9: replace Arena<T>::alloc -> usize with 1
 packages/mudlark/src/arena.rs:77:9: replace Arena<T>::dealloc -> T with Default::default()
-packages/mudlark/src/arena.rs:104:9: replace Arena<T>::get_mut -> &mut T with Box::leak(Box::new(Default::default()))
 packages/mudlark/src/arena.rs:93:9: replace Arena<T>::get -> &T with Box::leak(Box::new(Default::default()))
-packages/mudlark/src/arena.rs:112:9: replace Arena<T>::is_occupied -> bool with false
+packages/mudlark/src/arena.rs:104:9: replace Arena<T>::get_mut -> &mut T with Box::leak(Box::new(Default::default()))
 packages/mudlark/src/arena.rs:112:9: replace Arena<T>::is_occupied -> bool with true
+packages/mudlark/src/arena.rs:112:9: replace Arena<T>::is_occupied -> bool with false
 packages/mudlark/src/arena.rs:122:9: replace Arena<T>::iter_occupied -> impl Iterator<Item =(usize, &T)>+'_ with ::std::iter::once((0, Box::leak(Box::new(Default::default()))))
 packages/mudlark/src/arena.rs:122:9: replace Arena<T>::iter_occupied -> impl Iterator<Item =(usize, &T)>+'_ with ::std::iter::once((1, Box::leak(Box::new(Default::default()))))
 packages/mudlark/src/arena.rs:130:9: replace Arena<T>::set_occupied with ()
 packages/mudlark/src/arena.rs:135:36: delete ! in Arena<T>::set_occupied
 packages/mudlark/src/arena.rs:148:9: replace <impl fmt::Debug for Arena<T>>::fmt -> fmt::Result with Ok(Default::default())
-packages/mudlark/src/decay.rs:80:9: replace GvGraph<C, V, N>::decay with ()
-packages/mudlark/src/decay.rs:119:9: replace GvGraph<C, V, N>::decay_uniform with ()
-packages/mudlark/src/decay.rs:204:9: replace GvGraph<C, V, N>::decay_selective with ()
+packages/mudlark/src/decay.rs:84:9: replace GvGraph<C, V, N>::decay with ()
+packages/mudlark/src/decay.rs:123:9: replace GvGraph<C, V, N>::decay_uniform with ()
+packages/mudlark/src/decay.rs:216:9: replace GvGraph<C, V, N>::decay_selective with ()
 packages/mudlark/src/diagnostic.rs:46:5: replace audit_violations -> Vec<VNodeId> with vec![]
 packages/mudlark/src/diagnostic.rs:46:5: replace audit_violations -> Vec<VNodeId> with vec![Default::default()]
 packages/mudlark/src/diagnostic.rs:94:5: replace audit_plateau_consistency with ()
@@ -110,22 +112,22 @@ packages/mudlark/src/diagnostic.rs:316:9: replace <impl fmt::Display for Gn<'_, 
 packages/mudlark/src/diagnostic.rs:345:9: replace <impl fmt::Display for Pl<'_, C, V, N>>::fmt -> fmt::Result with Ok(Default::default())
 packages/mudlark/src/evict.rs:37:5: replace evict_tip with ()
 packages/mudlark/src/evict.rs:161:13: delete match arm 2 in evict_tip
-packages/mudlark/src/evict.rs:208:9: delete match arm 2 in evict_tip
-packages/mudlark/src/evict.rs:226:9: delete match arm 3 in evict_tip
-packages/mudlark/src/evict.rs:329:5: replace plateau_after_evict with ()
-packages/mudlark/src/evict.rs:554:5: replace scan_for_candidates -> Vec<VNodeId> with vec![]
-packages/mudlark/src/evict.rs:554:5: replace scan_for_candidates -> Vec<VNodeId> with vec![Default::default()]
-packages/mudlark/src/evict.rs:570:5: replace scan_dfs with ()
-packages/mudlark/src/evict.rs:579:16: delete ! in scan_dfs
+packages/mudlark/src/evict.rs:204:9: delete match arm 2 in evict_tip
+packages/mudlark/src/evict.rs:222:9: delete match arm 3 in evict_tip
+packages/mudlark/src/evict.rs:325:5: replace plateau_after_evict with ()
+packages/mudlark/src/evict.rs:550:5: replace scan_for_candidates -> Vec<VNodeId> with vec![]
+packages/mudlark/src/evict.rs:550:5: replace scan_for_candidates -> Vec<VNodeId> with vec![Default::default()]
+packages/mudlark/src/evict.rs:566:5: replace scan_dfs with ()
+packages/mudlark/src/evict.rs:575:16: delete ! in scan_dfs
 packages/mudlark/src/graph_budget.rs:30:9: replace GvGraph<C, V, N>::handle_legacy_promotes with ()
-packages/mudlark/src/graph_budget.rs:147:9: replace GvGraph<C, V, N>::check_evictions_bounded -> u32 with 0
-packages/mudlark/src/graph_budget.rs:147:9: replace GvGraph<C, V, N>::check_evictions_bounded -> u32 with 1
-packages/mudlark/src/graph_budget.rs:160:9: replace GvGraph<C, V, N>::evict_candidates -> u32 with 0
-packages/mudlark/src/graph_budget.rs:160:9: replace GvGraph<C, V, N>::evict_candidates -> u32 with 1
-packages/mudlark/src/graph_budget.rs:167:37: replace >= with < in GvGraph<C, V, N>::evict_candidates
-packages/mudlark/src/graph_budget.rs:179:24: delete ! in GvGraph<C, V, N>::evict_candidates
-packages/mudlark/src/graph_budget.rs:213:20: replace > with < in GvGraph<C, V, N>::evict_candidates
-packages/mudlark/src/graph_budget.rs:213:20: replace > with >= in GvGraph<C, V, N>::evict_candidates
+packages/mudlark/src/graph_budget.rs:149:9: replace GvGraph<C, V, N>::check_evictions_bounded -> u32 with 0
+packages/mudlark/src/graph_budget.rs:149:9: replace GvGraph<C, V, N>::check_evictions_bounded -> u32 with 1
+packages/mudlark/src/graph_budget.rs:162:9: replace GvGraph<C, V, N>::evict_candidates -> u32 with 0
+packages/mudlark/src/graph_budget.rs:162:9: replace GvGraph<C, V, N>::evict_candidates -> u32 with 1
+packages/mudlark/src/graph_budget.rs:169:37: replace >= with < in GvGraph<C, V, N>::evict_candidates
+packages/mudlark/src/graph_budget.rs:181:24: delete ! in GvGraph<C, V, N>::evict_candidates
+packages/mudlark/src/graph_budget.rs:215:20: replace > with < in GvGraph<C, V, N>::evict_candidates
+packages/mudlark/src/graph_budget.rs:215:20: replace > with >= in GvGraph<C, V, N>::evict_candidates
 packages/mudlark/src/graph_extract.rs:61:9: replace GvGraph<C, V, N>::extract -> crate::pewei::Pewei<C, V> with Default::default()
 packages/mudlark/src/graph_extract.rs:170:9: replace GvGraph<C, V, N>::layers -> impl Iterator<Item =(usize, crate::view::Node<C, V>)>+'_ with ::std::iter::empty()
 packages/mudlark/src/graph_extract.rs:170:9: replace GvGraph<C, V, N>::layers -> impl Iterator<Item =(usize, crate::view::Node<C, V>)>+'_ with ::std::iter::once((0, Default::default()))
@@ -144,105 +146,106 @@ packages/mudlark/src/graph_plateau.rs:73:9: replace GvGraph<C, V, N>::plateaus -
 packages/mudlark/src/graph_plateau.rs:73:9: replace GvGraph<C, V, N>::plateaus -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]))
 packages/mudlark/src/graph_plateau.rs:73:9: replace GvGraph<C, V, N>::plateaus -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> with Cow::Owned(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]).to_owned())
 packages/mudlark/src/graph_plateau.rs:96:9: replace GvGraph<C, V, N>::debug_assert_plateau_mirror_consistency with ()
-packages/mudlark/src/graph_plateau.rs:230:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::new(), Default::default())])
-packages/mudlark/src/graph_plateau.rs:230:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])
-packages/mudlark/src/graph_plateau.rs:230:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())])
-packages/mudlark/src/graph_plateau.rs:230:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())])
-packages/mudlark/src/graph_plateau.rs:326:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::new()))
-packages/mudlark/src/graph_plateau.rs:326:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::from_iter([Default::default()])))
-packages/mudlark/src/graph_plateau.rs:326:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::new(Default::default())))
-packages/mudlark/src/graph_plateau.rs:326:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::from(Default::default())))
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "", 1)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
-packages/mudlark/src/graph_plateau.rs:339:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
-packages/mudlark/src/graph_plateau.rs:372:9: replace GvGraph<C, V, N>::recompute_plateau with ()
-packages/mudlark/src/graph_plateau.rs:429:9: replace GvGraph<C, V, N>::place_basis_element with ()
-packages/mudlark/src/graph_plateau.rs:584:9: replace GvGraph<C, V, N>::collect_subtree_basis_elements with ()
-packages/mudlark/src/graph_plateau.rs:614:9: replace GvGraph<C, V, N>::place_sorted with ()
-packages/mudlark/src/graph_plateau.rs:694:9: replace GvGraph<C, V, N>::consolidate_basis_up with ()
-packages/mudlark/src/graph_plateau.rs:640:9: replace GvGraph<C, V, N>::place_subtree_basis_elements with ()
-packages/mudlark/src/graph_plateau.rs:713:21: delete match arm (Some(l), Some(r)) in GvGraph<C, V, N>::consolidate_basis_up
-packages/mudlark/src/graph_plateau.rs:820:9: replace GvGraph<C, V, N>::normalize_plateaus with ()
-packages/mudlark/src/graph_plateau.rs:1025:19: replace > with < in GvGraph<C, V, N>::consolidate_all_basis
-packages/mudlark/src/graph_plateau.rs:1025:19: replace > with >= in GvGraph<C, V, N>::consolidate_all_basis
-packages/mudlark/src/graph_plateau.rs:1050:9: replace GvGraph<C, V, N>::debug_check_plateau_sums with ()
-packages/mudlark/src/graph_plateau.rs:1087:9: replace GvGraph<C, V, N>::fixup_plateau with ()
-packages/mudlark/src/graph_plateau.rs:1208:9: replace GvGraph<C, V, N>::repair_p_i4 with ()
-packages/mudlark/src/graph_plateau.rs:1276:9: replace GvGraph<C, V, N>::split_for_p_i4 with ()
-packages/mudlark/src/graph_plateau.rs:1321:9: replace GvGraph<C, V, N>::find_boundary_node -> Option<GNodeId> with None
-packages/mudlark/src/graph_plateau.rs:1321:9: replace GvGraph<C, V, N>::find_boundary_node -> Option<GNodeId> with Some(Default::default())
-packages/mudlark/src/graph_plateau.rs:1353:9: replace GvGraph<C, V, N>::plateau_after_observe with ()
-packages/mudlark/src/graph_plateau.rs:1410:9: replace GvGraph<C, V, N>::plateau_after_bootstrap_split with ()
-packages/mudlark/src/graph_plateau.rs:1467:9: replace GvGraph<C, V, N>::plateau_after_catalytic_split with ()
-packages/mudlark/src/graph_plateau.rs:1577:9: replace GvGraph<C, V, N>::plateau_after_legacy_promote with ()
-packages/mudlark/src/graph_plateau.rs:1621:9: replace GvGraph<C, V, N>::plateau_after_legacy_promotes_batched with ()
-packages/mudlark/src/graph_plateau.rs:1672:9: replace GvGraph<C, V, N>::plateau_recompute_sums with ()
-packages/mudlark/src/graph_query.rs:69:9: replace GvGraph<C, V, N>::sample -> Option<crate::view::Cell<C, V>> with None
-packages/mudlark/src/graph_query.rs:69:9: replace GvGraph<C, V, N>::sample -> Option<crate::view::Cell<C, V>> with Some(Default::default())
-packages/mudlark/src/graph_query.rs:104:9: replace GvGraph<C, V, N>::sample_child -> VNodeId with Default::default()
-packages/mudlark/src/graph_query.rs:165:9: replace GvGraph<C, V, N>::get -> crate::view::Cell<C, V> with Default::default()
-packages/mudlark/src/graph_query.rs:209:9: replace GvGraph<C, V, N>::clamp_to_domain -> C with Default::default()
-packages/mudlark/src/graph_query.rs:230:9: replace GvGraph<C, V, N>::trimmed_interval -> (C, C) with (Default::default(), Default::default())
-packages/mudlark/src/graph_query.rs:301:9: replace GvGraph<C, V, N>::range_sum -> V with Default::default()
-packages/mudlark/src/graph_query.rs:347:9: replace GvGraph<C, V, N>::range_sum_inner -> V with Default::default()
-packages/mudlark/src/graph_query.rs:429:9: replace GvGraph<C, V, N>::contour_range -> Option<ContourRange<C, V>> with None
-packages/mudlark/src/graph_query.rs:429:9: replace GvGraph<C, V, N>::contour_range -> Option<ContourRange<C, V>> with Some(Default::default())
-packages/mudlark/src/graph_query.rs:512:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with None
-packages/mudlark/src/graph_query.rs:512:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::new())
-packages/mudlark/src/graph_query.rs:512:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::from_iter([Default::default()]))
-packages/mudlark/src/graph_query.rs:512:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::new(Default::default()))
-packages/mudlark/src/graph_query.rs:512:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::from(Default::default()))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with None
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::new()))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::from_iter([Default::default()])))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::new(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::from(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new()))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::from_iter([Default::default()])))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::from(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::new()))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()])))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::new(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::new()))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::from_iter([Default::default()])))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::from(Default::default())))
-packages/mudlark/src/graph_query.rs:564:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::new(Default::default())))
-packages/mudlark/src/graph_query.rs:602:9: replace GvGraph<C, V, N>::decompose_basis with ()
+packages/mudlark/src/graph_plateau.rs:231:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::new(), Default::default())])
+packages/mudlark/src/graph_plateau.rs:231:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())])
+packages/mudlark/src/graph_plateau.rs:231:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())])
+packages/mudlark/src/graph_plateau.rs:231:9: replace GvGraph<C, V, N>::build_plateaus -> BTreeMap<BasisEdge<C>, Plateau<C, V>> with BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())])
+packages/mudlark/src/graph_plateau.rs:327:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::new()))
+packages/mudlark/src/graph_plateau.rs:327:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::from_iter([Default::default()])))
+packages/mudlark/src/graph_plateau.rs:327:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::new(Default::default())))
+packages/mudlark/src/graph_plateau.rs:327:9: replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::from(Default::default())))
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from_iter([Default::default()]), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::new(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "", 1)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 0)])]
+packages/mudlark/src/graph_plateau.rs:341:9: replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(1, Default::default(), Default::default(), "xyzzy", 1)])]
+packages/mudlark/src/graph_plateau.rs:374:9: replace GvGraph<C, V, N>::recompute_plateau with ()
+packages/mudlark/src/graph_plateau.rs:431:9: replace GvGraph<C, V, N>::place_basis_element with ()
+packages/mudlark/src/graph_plateau.rs:586:9: replace GvGraph<C, V, N>::collect_subtree_basis_elements with ()
+packages/mudlark/src/graph_plateau.rs:616:9: replace GvGraph<C, V, N>::place_sorted with ()
+packages/mudlark/src/graph_plateau.rs:642:9: replace GvGraph<C, V, N>::place_subtree_basis_elements with ()
+packages/mudlark/src/graph_plateau.rs:696:9: replace GvGraph<C, V, N>::consolidate_basis_up with ()
+packages/mudlark/src/graph_plateau.rs:715:21: delete match arm (Some(l), Some(r)) in GvGraph<C, V, N>::consolidate_basis_up
+packages/mudlark/src/graph_plateau.rs:822:9: replace GvGraph<C, V, N>::normalize_plateaus with ()
+packages/mudlark/src/graph_plateau.rs:1027:19: replace > with < in GvGraph<C, V, N>::consolidate_all_basis
+packages/mudlark/src/graph_plateau.rs:1027:19: replace > with >= in GvGraph<C, V, N>::consolidate_all_basis
+packages/mudlark/src/graph_plateau.rs:1053:9: replace GvGraph<C, V, N>::debug_check_plateau_sums with ()
+packages/mudlark/src/graph_plateau.rs:1090:9: replace GvGraph<C, V, N>::fixup_plateau with ()
+packages/mudlark/src/graph_plateau.rs:1211:9: replace GvGraph<C, V, N>::repair_p_i4 with ()
+packages/mudlark/src/graph_plateau.rs:1279:9: replace GvGraph<C, V, N>::split_for_p_i4 with ()
+packages/mudlark/src/graph_plateau.rs:1324:9: replace GvGraph<C, V, N>::find_boundary_node -> Option<GNodeId> with None
+packages/mudlark/src/graph_plateau.rs:1324:9: replace GvGraph<C, V, N>::find_boundary_node -> Option<GNodeId> with Some(Default::default())
+packages/mudlark/src/graph_plateau.rs:1356:9: replace GvGraph<C, V, N>::plateau_after_observe with ()
+packages/mudlark/src/graph_plateau.rs:1413:9: replace GvGraph<C, V, N>::plateau_after_bootstrap_split with ()
+packages/mudlark/src/graph_plateau.rs:1470:9: replace GvGraph<C, V, N>::plateau_after_catalytic_split with ()
+packages/mudlark/src/graph_plateau.rs:1580:9: replace GvGraph<C, V, N>::plateau_after_legacy_promote with ()
+packages/mudlark/src/graph_plateau.rs:1624:9: replace GvGraph<C, V, N>::plateau_after_legacy_promotes_batched with ()
+packages/mudlark/src/graph_plateau.rs:1675:9: replace GvGraph<C, V, N>::plateau_recompute_sums with ()
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with None
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::new()))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::from_iter([Default::default()])))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::new(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(), BasisEdge::from(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new()))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::from_iter([Default::default()])))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::new(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from_iter([Default::default()]), BasisEdge::from(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::new()))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from_iter([Default::default()])))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::new(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::new(Default::default()), BasisEdge::from(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::new()))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::from_iter([Default::default()])))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::new(Default::default())))
+packages/mudlark/src/graph_plateau.rs:1746:9: replace GvGraph<C, V, N>::select_plateaus -> Option<(BasisEdge<C>, BasisEdge<C>)> with Some((BasisEdge::from(Default::default()), BasisEdge::from(Default::default())))
+packages/mudlark/src/graph_query.rs:80:9: replace GvGraph<C, V, N>::sample -> Option<crate::view::Cell<C, V>> with None
+packages/mudlark/src/graph_query.rs:80:9: replace GvGraph<C, V, N>::sample -> Option<crate::view::Cell<C, V>> with Some(Default::default())
+packages/mudlark/src/graph_query.rs:116:9: replace GvGraph<C, V, N>::sample_child -> VNodeId with Default::default()
+packages/mudlark/src/graph_query.rs:177:9: replace GvGraph<C, V, N>::get -> crate::view::Cell<C, V> with Default::default()
+packages/mudlark/src/graph_query.rs:221:9: replace GvGraph<C, V, N>::clamp_to_domain -> C with Default::default()
+packages/mudlark/src/graph_query.rs:244:9: replace GvGraph<C, V, N>::uncovered_interval -> (C, C) with (Default::default(), Default::default())
+packages/mudlark/src/graph_query.rs:265:9: replace GvGraph<C, V, N>::trimmed_interval -> (C, C) with (Default::default(), Default::default())
+packages/mudlark/src/graph_query.rs:336:9: replace GvGraph<C, V, N>::range_sum -> V with Default::default()
+packages/mudlark/src/graph_query.rs:382:9: replace GvGraph<C, V, N>::range_sum_inner -> V with Default::default()
+packages/mudlark/src/graph_query.rs:464:9: replace GvGraph<C, V, N>::contour_range -> Option<ContourRange<C, V>> with None
+packages/mudlark/src/graph_query.rs:464:9: replace GvGraph<C, V, N>::contour_range -> Option<ContourRange<C, V>> with Some(Default::default())
+packages/mudlark/src/graph_query.rs:546:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with None
+packages/mudlark/src/graph_query.rs:546:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::new())
+packages/mudlark/src/graph_query.rs:546:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::from_iter([Default::default()]))
+packages/mudlark/src/graph_query.rs:546:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::new(Default::default()))
+packages/mudlark/src/graph_query.rs:546:9: replace GvGraph<C, V, N>::contour_range_energy -> Option<ContourRangeEnergy<V>> with Some(ContourRangeEnergy::from(Default::default()))
+packages/mudlark/src/graph_query.rs:562:9: replace GvGraph<C, V, N>::decompose_basis with ()
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Borrowed(BTreeMap::new())
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Owned(BTreeMap::new().to_owned())
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::new(), Default::default())]))
@@ -251,10 +254,10 @@ packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialR
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Owned(BTreeMap::from_iter([(BasisEdge::from_iter([Default::default()]), Default::default())]).to_owned())
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())]))
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Owned(BTreeMap::from_iter([(BasisEdge::new(Default::default()), Default::default())]).to_owned())
-packages/mudlark/src/graph_traits.rs:26:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::get -> crate::view::Cell<C, V> with Default::default()
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Borrowed(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]))
-packages/mudlark/src/graph_traits.rs:34:9: replace <impl crate::traits::SpatialWrite for GvGraph<C, V, N>>::observe with ()
 packages/mudlark/src/graph_traits.rs:22:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::plateaus -> std::borrow::Cow<'_, std::collections::BTreeMap<crate::plateau::BasisEdge<C>, crate::plateau::Plateau<C, V>>> with Cow::Owned(BTreeMap::from_iter([(BasisEdge::from(Default::default()), Default::default())]).to_owned())
+packages/mudlark/src/graph_traits.rs:26:9: replace <impl crate::traits::SpatialRead for GvGraph<C, V, N>>::get -> crate::view::Cell<C, V> with Default::default()
+packages/mudlark/src/graph_traits.rs:34:9: replace <impl crate::traits::SpatialWrite for GvGraph<C, V, N>>::observe with ()
 packages/mudlark/src/graph_traits.rs:44:9: replace <impl crate::traits::TemporalDecay for GvGraph<C, V, N>>::decay with ()
 packages/mudlark/src/graph_traits.rs:54:9: replace <impl crate::traits::WeightedSampler for GvGraph<C, V, N>>::sample -> Option<crate::view::Cell<C, V>> with None
 packages/mudlark/src/graph_traits.rs:54:9: replace <impl crate::traits::WeightedSampler for GvGraph<C, V, N>>::sample -> Option<crate::view::Cell<C, V>> with Some(Default::default())
@@ -263,8 +266,8 @@ packages/mudlark/src/gtree.rs:61:5: replace gnode_depth_from_interval -> u32 wit
 packages/mudlark/src/gtree.rs:61:5: replace gnode_depth_from_interval -> u32 with 1
 packages/mudlark/src/gtree.rs:85:5: replace recompute_g_sums with ()
 packages/mudlark/src/gtree.rs:109:5: replace recompute_g_sums_subtree with ()
-packages/mudlark/src/observe.rs:53:9: replace GvGraph<C, V, N>::observe with ()
-packages/mudlark/src/observe.rs:129:41: replace > with < in GvGraph<C, V, N>::observe
+packages/mudlark/src/observe.rs:61:9: replace GvGraph<C, V, N>::observe with ()
+packages/mudlark/src/observe.rs:148:41: replace > with < in GvGraph<C, V, N>::observe
 packages/mudlark/src/rebalance.rs:99:9: replace ViolationSources::all_enabled -> Self with Default::default()
 packages/mudlark/src/rebalance.rs:122:9: replace <impl fmt::Display for Nd<'_, V>>::fmt -> fmt::Result with Ok(Default::default())
 packages/mudlark/src/rebalance.rs:141:9: replace <impl fmt::Display for Ch<'_, V>>::fmt -> fmt::Result with Ok(Default::default())
@@ -350,14 +353,14 @@ packages/mudlark/src/vtree.rs:329:5: replace compute_has_evictable -> bool with 
 packages/mudlark/src/vtree.rs:329:5: replace compute_has_evictable -> bool with false
 packages/mudlark/src/vtree.rs:345:5: replace set_has_evictable with ()
 packages/mudlark/src/invariants.rs:28:5: replace state_label -> &'static str with ""
-packages/mudlark/src/invariants.rs:37:5: replace fmt_optional_gnode -> String with String::new()
 packages/mudlark/src/invariants.rs:28:5: replace state_label -> &'static str with "xyzzy"
+packages/mudlark/src/invariants.rs:37:5: replace fmt_optional_gnode -> String with String::new()
 packages/mudlark/src/invariants.rs:37:5: replace fmt_optional_gnode -> String with "xyzzy".into()
 packages/mudlark/src/invariants.rs:42:5: replace ancestor_name -> String with String::new()
-packages/mudlark/src/invariants.rs:62:5: replace assert_invariants with ()
 packages/mudlark/src/invariants.rs:42:5: replace ancestor_name -> String with "xyzzy".into()
-packages/mudlark/src/invariants.rs:93:5: replace check_p_i3_only with ()
+packages/mudlark/src/invariants.rs:62:5: replace assert_invariants with ()
 packages/mudlark/src/invariants.rs:76:5: replace check_plateau_only with ()
+packages/mudlark/src/invariants.rs:93:5: replace check_p_i3_only with ()
 packages/mudlark/src/invariants.rs:105:5: replace semi_internal_lineage -> String with String::new()
 packages/mudlark/src/invariants.rs:105:5: replace semi_internal_lineage -> String with "xyzzy".into()
 packages/mudlark/src/invariants.rs:151:5: replace dump_gtree -> String with String::new()
@@ -367,43 +370,43 @@ packages/mudlark/src/invariants.rs:193:5: replace dump_plateaus -> String with "
 packages/mudlark/src/invariants.rs:304:5: replace check_all_invariants -> Vec<String> with vec![]
 packages/mudlark/src/invariants.rs:304:5: replace check_all_invariants -> Vec<String> with vec![String::new()]
 packages/mudlark/src/invariants.rs:304:5: replace check_all_invariants -> Vec<String> with vec!["xyzzy".into()]
-packages/mudlark/src/invariants.rs:347:5: replace check_g_i1_summation with ()
-packages/mudlark/src/invariants.rs:368:5: replace check_g_i2_variable_fanout with ()
-packages/mudlark/src/invariants.rs:382:5: replace check_g_i4_entry_consistency with ()
-packages/mudlark/src/invariants.rs:428:5: replace check_v_i1_structural_sum with ()
-packages/mudlark/src/invariants.rs:472:5: replace check_v_i2_branching_factor with ()
-packages/mudlark/src/invariants.rs:488:5: replace check_v_i3_max_uncle with ()
-packages/mudlark/src/invariants.rs:516:5: replace check_v_i5_entry_leaf with ()
-packages/mudlark/src/invariants.rs:537:5: replace check_v_i6_exposed_flag with ()
-packages/mudlark/src/invariants.rs:565:5: replace check_v_i6b_evictable_flag with ()
-packages/mudlark/src/invariants.rs:601:5: replace check_v_i7_structural_flag with ()
-packages/mudlark/src/invariants.rs:630:5: replace check_clean_accounting with ()
-packages/mudlark/src/invariants.rs:651:5: replace check_parent_link_consistency with ()
-packages/mudlark/src/invariants.rs:726:5: replace check_v_root_consistency with ()
-packages/mudlark/src/invariants.rs:748:5: replace check_node_count_consistency with ()
-packages/mudlark/src/invariants.rs:761:5: replace check_terminal_count_consistency with ()
-packages/mudlark/src/invariants.rs:777:5: replace check_hard_budget with ()
-packages/mudlark/src/invariants.rs:778:40: replace > with < in check_hard_budget
-packages/mudlark/src/invariants.rs:794:5: replace check_depth_gate_invariants with ()
-packages/mudlark/src/invariants.rs:833:5: replace check_plateau_btreemap_key_consistency with ()
-packages/mudlark/src/invariants.rs:856:5: replace check_plateau_basis_consistency with ()
-packages/mudlark/src/invariants.rs:870:35: replace match guard back_key == key with true in check_plateau_basis_consistency
-packages/mudlark/src/invariants.rs:870:35: replace match guard back_key == key with false in check_plateau_basis_consistency
-packages/mudlark/src/invariants.rs:915:5: replace check_plateau_sum_consistency with ()
-packages/mudlark/src/invariants.rs:944:5: replace check_plateau_depth_consistency with ()
-packages/mudlark/src/invariants.rs:987:5: replace tile_of -> (C, C) with (Default::default(), Default::default())
-packages/mudlark/src/invariants.rs:998:5: replace contour_steps -> Vec<(C, u32)> with vec![]
-packages/mudlark/src/invariants.rs:998:5: replace contour_steps -> Vec<(C, u32)> with vec![(Default::default(), 0)]
-packages/mudlark/src/invariants.rs:998:5: replace contour_steps -> Vec<(C, u32)> with vec![(Default::default(), 1)]
-packages/mudlark/src/invariants.rs:1057:5: replace check_p_i1_i_keys_are_contour_steps with ()
-packages/mudlark/src/invariants.rs:1119:5: replace check_p_i1_ii_tile_contiguity with ()
-packages/mudlark/src/invariants.rs:1191:5: replace check_p_i1_iii_run_contains_tile with ()
-packages/mudlark/src/invariants.rs:1269:5: replace check_p_i2_basis_minimality with ()
-packages/mudlark/src/invariants.rs:1321:5: replace check_p_i3_basis_disjointness with ()
-packages/mudlark/src/invariants.rs:1356:5: replace check_p_i4_thatch_one_hop with ()
-packages/mudlark/src/invariants.rs:1413:5: replace check_p_i5_thatch_depth with ()
-packages/mudlark/src/invariants.rs:1459:5: replace route_to_depth -> u32 with 0
-packages/mudlark/src/invariants.rs:1459:5: replace route_to_depth -> u32 with 1
+packages/mudlark/src/invariants.rs:348:5: replace check_g_i1_summation with ()
+packages/mudlark/src/invariants.rs:369:5: replace check_g_i2_variable_fanout with ()
+packages/mudlark/src/invariants.rs:383:5: replace check_g_i4_entry_consistency with ()
+packages/mudlark/src/invariants.rs:431:5: replace check_v_i1_structural_sum with ()
+packages/mudlark/src/invariants.rs:477:5: replace check_v_i2_branching_factor with ()
+packages/mudlark/src/invariants.rs:493:5: replace check_v_i3_max_uncle with ()
+packages/mudlark/src/invariants.rs:521:5: replace check_v_i5_entry_leaf with ()
+packages/mudlark/src/invariants.rs:542:5: replace check_v_i6_exposed_flag with ()
+packages/mudlark/src/invariants.rs:570:5: replace check_v_i6b_evictable_flag with ()
+packages/mudlark/src/invariants.rs:606:5: replace check_v_i7_structural_flag with ()
+packages/mudlark/src/invariants.rs:636:5: replace check_clean_accounting with ()
+packages/mudlark/src/invariants.rs:657:5: replace check_parent_link_consistency with ()
+packages/mudlark/src/invariants.rs:732:5: replace check_v_root_consistency with ()
+packages/mudlark/src/invariants.rs:754:5: replace check_node_count_consistency with ()
+packages/mudlark/src/invariants.rs:767:5: replace check_terminal_count_consistency with ()
+packages/mudlark/src/invariants.rs:783:5: replace check_hard_budget with ()
+packages/mudlark/src/invariants.rs:784:40: replace > with < in check_hard_budget
+packages/mudlark/src/invariants.rs:800:5: replace check_depth_gate_invariants with ()
+packages/mudlark/src/invariants.rs:839:5: replace check_plateau_btreemap_key_consistency with ()
+packages/mudlark/src/invariants.rs:862:5: replace check_plateau_basis_consistency with ()
+packages/mudlark/src/invariants.rs:876:35: replace match guard back_key == key with true in check_plateau_basis_consistency
+packages/mudlark/src/invariants.rs:876:35: replace match guard back_key == key with false in check_plateau_basis_consistency
+packages/mudlark/src/invariants.rs:922:5: replace check_plateau_sum_consistency with ()
+packages/mudlark/src/invariants.rs:951:5: replace check_plateau_depth_consistency with ()
+packages/mudlark/src/invariants.rs:994:5: replace tile_of -> (C, C) with (Default::default(), Default::default())
+packages/mudlark/src/invariants.rs:1005:5: replace contour_steps -> Vec<(C, u32)> with vec![]
+packages/mudlark/src/invariants.rs:1005:5: replace contour_steps -> Vec<(C, u32)> with vec![(Default::default(), 0)]
+packages/mudlark/src/invariants.rs:1005:5: replace contour_steps -> Vec<(C, u32)> with vec![(Default::default(), 1)]
+packages/mudlark/src/invariants.rs:1064:5: replace check_p_i1_i_keys_are_contour_steps with ()
+packages/mudlark/src/invariants.rs:1126:5: replace check_p_i1_ii_tile_contiguity with ()
+packages/mudlark/src/invariants.rs:1198:5: replace check_p_i1_iii_run_contains_tile with ()
+packages/mudlark/src/invariants.rs:1276:5: replace check_p_i2_basis_minimality with ()
+packages/mudlark/src/invariants.rs:1328:5: replace check_p_i3_basis_disjointness with ()
+packages/mudlark/src/invariants.rs:1363:5: replace check_p_i4_thatch_one_hop with ()
+packages/mudlark/src/invariants.rs:1420:5: replace check_p_i5_thatch_depth with ()
+packages/mudlark/src/invariants.rs:1466:5: replace route_to_depth -> u32 with 0
+packages/mudlark/src/invariants.rs:1466:5: replace route_to_depth -> u32 with 1
 packages/mudlark/src/traits/coordinate.rs:252:9: replace <impl Coordinate for f32>::domain_max -> Self with Default::default()
 packages/mudlark/src/traits/coordinate.rs:257:9: replace <impl Coordinate for f32>::midpoint -> Self with Default::default()
 packages/mudlark/src/traits/coordinate.rs:262:9: replace <impl Coordinate for f32>::width -> Self with Default::default()
@@ -422,21 +425,21 @@ packages/mudlark/src/traits/accumulator.rs:257:9: replace <impl Accumulator for 
 packages/mudlark/src/traits/accumulator.rs:262:9: replace <impl Accumulator for f32>::sub -> Self with Default::default()
 packages/mudlark/src/traits/accumulator.rs:274:9: replace <impl Accumulator for f64>::add -> Self with Default::default()
 packages/mudlark/src/traits/accumulator.rs:279:9: replace <impl Accumulator for f64>::sub -> Self with Default::default()
-packages/mudlark/src/traits/attenuatable.rs:135:9: replace <impl Attenuatable for f32>::attenuate -> Self with Default::default()
-packages/mudlark/src/traits/attenuatable.rs:142:9: replace <impl Attenuatable for f64>::attenuate -> Self with Default::default()
+packages/mudlark/src/traits/attenuatable.rs:139:9: replace <impl Attenuatable for f32>::attenuate -> Self with Default::default()
+packages/mudlark/src/traits/attenuatable.rs:149:9: replace <impl Attenuatable for f64>::attenuate -> Self with Default::default()
 packages/mudlark/src/traits/proratable.rs:130:9: replace <impl Proratable for f32>::prorate -> Self with Default::default()
 packages/mudlark/src/traits/proratable.rs:139:9: replace <impl Proratable for f32>::scale_by -> Self with Default::default()
 packages/mudlark/src/traits/proratable.rs:147:9: replace <impl Proratable for f64>::prorate -> Self with Default::default()
 packages/mudlark/src/traits/proratable.rs:155:9: replace <impl Proratable for f64>::scale_by -> Self with Default::default()
-packages/mudlark/src/traits/inspectable.rs:148:9: replace <impl Inspectable for f32>::from_f64 -> Self with Default::default()
-packages/mudlark/src/traits/inspectable.rs:160:9: replace <impl Inspectable for f64>::from_f64 -> Self with Default::default()
-packages/mudlark/src/traits/observation.rs:138:9: replace <impl Observation<V> for V>::accumulate -> V with Default::default()
-packages/mudlark/src/traits/observation.rs:169:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with 0.0
-packages/mudlark/src/traits/observation.rs:169:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with 1.0
-packages/mudlark/src/traits/observation.rs:169:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with -1.0
-packages/mudlark/src/traits/observation.rs:175:9: replace <impl Observation<f32> for f64>::scale -> f32 with 0.0
-packages/mudlark/src/traits/observation.rs:175:9: replace <impl Observation<f32> for f64>::scale -> f32 with 1.0
-packages/mudlark/src/traits/observation.rs:175:9: replace <impl Observation<f32> for f64>::scale -> f32 with -1.0
+packages/mudlark/src/traits/inspectable.rs:150:9: replace <impl Inspectable for f32>::from_f64 -> Self with Default::default()
+packages/mudlark/src/traits/inspectable.rs:162:9: replace <impl Inspectable for f64>::from_f64 -> Self with Default::default()
+packages/mudlark/src/traits/observation.rs:143:9: replace <impl Observation<V> for V>::accumulate -> V with Default::default()
+packages/mudlark/src/traits/observation.rs:176:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with 0.0
+packages/mudlark/src/traits/observation.rs:176:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with 1.0
+packages/mudlark/src/traits/observation.rs:176:9: replace <impl Observation<f32> for f64>::accumulate -> f32 with -1.0
+packages/mudlark/src/traits/observation.rs:185:9: replace <impl ScalableObservation<f32> for f64>::scale -> f32 with 0.0
+packages/mudlark/src/traits/observation.rs:185:9: replace <impl ScalableObservation<f32> for f64>::scale -> f32 with 1.0
+packages/mudlark/src/traits/observation.rs:185:9: replace <impl ScalableObservation<f32> for f64>::scale -> f32 with -1.0
 packages/mudlark/src/testing/builder.rs:152:9: replace GraphCreator<C, V>::adversarial_cousins -> Self with Default::default()
 packages/mudlark/src/testing/builder.rs:258:9: replace GraphCreator<C, V>::then -> Self with Default::default()
 packages/mudlark/src/testing/builder.rs:268:9: replace GraphCreator<C, V>::check_every -> Self with Default::default()
@@ -446,125 +449,156 @@ packages/mudlark/src/testing/builder.rs:283:9: replace GraphCreator<C, V>::confi
 packages/mudlark/src/testing/builder.rs:283:9: replace GraphCreator<C, V>::config -> &Config<V> with Box::leak(Box::new(Config::from(Default::default())))
 packages/mudlark/src/testing/builder.rs:292:9: replace GraphCreator<C, V>::build -> GvGraph<C, V, N> with Default::default()
 packages/mudlark/src/testing/builder.rs:305:9: replace GraphCreator<u64, u64>::default_u64 -> Self with Default::default()
-packages/mudlark/src/testing/builder.rs:319:9: replace GraphCreator<f64, f64>::default_f64 -> Self with Default::default()
 packages/mudlark/src/testing/builder.rs:311:9: replace GraphCreator<u64, u64>::with_budget -> Self with Default::default()
+packages/mudlark/src/testing/builder.rs:319:9: replace GraphCreator<f64, f64>::default_f64 -> Self with Default::default()
 packages/mudlark/src/testing/builder.rs:325:9: replace GraphCreator<f64, f64>::deep_f64 -> Self with Default::default()
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::new()
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::from_iter([0])
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::new(1)
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::from(0)
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::new(1)
 packages/mudlark/src/testing/config.rs:40:5: replace default_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:46:5: replace budget_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:47:9: delete field budget from struct Config expression in budget_config
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:55:5: replace budget_config_unbounded -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:56:9: delete field budget from struct Config expression in budget_config_unbounded
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:66:5: replace tight_budget_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:76:5: replace small_buffer_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:78:9: delete field budget from struct Config expression in small_buffer_config
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:87:5: replace low_threshold_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:98:5: replace cascade_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:109:5: replace deep_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:122:5: replace aggressive_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:135:5: replace wide_shallow_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:147:5: replace worked_example_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:154:5: replace range_tree_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::new()
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::from_iter([0])
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::new(0)
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::from(0)
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::from_iter([1])
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::new(1)
-packages/mudlark/src/testing/config.rs:168:5: replace evictable_config -> Config<u64> with Config::from(1)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::new()
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from_iter([0.0])
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::new(0.0)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from(0.0)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from_iter([1.0])
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::new(1.0)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from(1.0)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from_iter([-1.0])
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::new(-1.0)
-packages/mudlark/src/testing/config.rs:179:5: replace f64_default_config -> Config<f64> with Config::from(-1.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::new()
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from_iter([0.0])
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::new(0.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from_iter([1.0])
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from(0.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::new(1.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from(-1.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from(1.0)
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::from_iter([-1.0])
-packages/mudlark/src/testing/config.rs:186:5: replace f64_deep_config -> Config<f64> with Config::new(-1.0)
-packages/mudlark/src/testing/plan.rs:49:9: replace Plan<C, V>::observe_n -> Self with Default::default()
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:47:5: replace no_split_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:56:5: replace budget_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:57:9: delete field budget from struct Config expression in budget_config
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:65:5: replace budget_config_unbounded -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:66:9: delete field budget from struct Config expression in budget_config_unbounded
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:76:5: replace tight_budget_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:86:5: replace small_buffer_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:88:9: delete field budget from struct Config expression in small_buffer_config
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:97:5: replace low_threshold_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:108:5: replace cascade_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:119:5: replace deep_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:132:5: replace aggressive_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:145:5: replace wide_shallow_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:157:5: replace worked_example_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:167:5: replace decay_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:177:5: replace range_tree_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:189:5: replace contour_range_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::new()
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::from_iter([0])
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::new(0)
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::from(0)
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::from_iter([1])
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::new(1)
+packages/mudlark/src/testing/config.rs:205:5: replace evictable_config -> Config<u64> with Config::from(1)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::new()
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from_iter([0.0])
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::new(0.0)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from(0.0)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from_iter([1.0])
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::new(1.0)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from(1.0)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from_iter([-1.0])
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::new(-1.0)
+packages/mudlark/src/testing/config.rs:216:5: replace f64_default_config -> Config<f64> with Config::from(-1.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::new()
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from_iter([0.0])
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::new(0.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from(0.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from_iter([1.0])
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::new(1.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from(1.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from_iter([-1.0])
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::new(-1.0)
+packages/mudlark/src/testing/config.rs:223:5: replace f64_no_split_config -> Config<f64> with Config::from(-1.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::new()
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from_iter([0.0])
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::new(0.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from(0.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from_iter([1.0])
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::new(1.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from(1.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from_iter([-1.0])
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::new(-1.0)
+packages/mudlark/src/testing/config.rs:233:5: replace f64_deep_config -> Config<f64> with Config::from(-1.0)
 packages/mudlark/src/testing/plan.rs:42:9: replace Plan<C, V>::observe -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:49:9: replace Plan<C, V>::observe_n -> Self with Default::default()
 packages/mudlark/src/testing/plan.rs:56:9: replace Plan<C, V>::hotspot -> Self with Default::default()
 packages/mudlark/src/testing/plan.rs:62:9: replace Plan<C, V>::then -> Self with Default::default()
 packages/mudlark/src/testing/plan.rs:92:9: replace Plan<C, V>::spread -> Self with Default::default()
@@ -584,14 +618,10 @@ packages/mudlark/src/testing/plan.rs:347:9: replace Plan<C, V>::fractal_spray ->
 packages/mudlark/src/testing/plan.rs:369:9: replace Plan<C, V>::nested_bursts -> Self with Default::default()
 packages/mudlark/src/testing/plan.rs:391:9: replace Plan<C, V>::depth_ladder -> Self with Default::default()
 packages/mudlark/src/testing/plan.rs:409:9: replace Plan<C, V>::staircase -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:431:9: replace Plan<C, V>::cascade_shift -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:458:9: replace Plan<C, V>::diamond -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:491:9: replace Plan<C, V>::bit_flip_walk -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:508:9: replace Plan<C, V>::sibling_flood -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:527:9: replace Plan<C, V>::mirrored_growth -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:543:9: replace Plan<C, V>::checkerboard -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:565:9: replace Plan<C, V>::pincer -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:591:9: replace Plan<C, V>::repulsion_walk -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:611:9: replace Plan<C, V>::sawtooth -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:630:9: replace Plan<C, V>::centroid_drift -> Self with Default::default()
-packages/mudlark/src/testing/plan.rs:645:9: replace Plan<C, V>::pulse_decay -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:430:9: replace Plan<C, V>::cascade_shift -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:457:9: replace Plan<C, V>::diamond -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:490:9: replace Plan<C, V>::bit_flip_walk -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:507:9: replace Plan<C, V>::sibling_flood -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:526:9: replace Plan<C, V>::mirrored_growth -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:542:9: replace Plan<C, V>::checkerboard -> Self with Default::default()
+packages/mudlark/src/testing/plan.rs:564:9: replace Plan<C, V>::pincer -> Self with Default::default()

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Pewei<C, V>::layer_count -> usize with 1
+@@ -188,17 +188,17 @@
+     /// # let mut g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// # g.observe(42, 10u64);
+     /// let pewei = g.extract();
+     /// assert!(pewei.layer_count() >= 1);
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn layer_count(&self) -> usize {
+-        self.layers.len()
++        1 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Total number of nodes (transitions + terminals) across all layers.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph};

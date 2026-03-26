@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_collapse_violations with ()
+@@ -857,17 +857,17 @@
+ ///
+ /// This is violation source 7 (§IDEA M-11.11.3). The ancestor walk in
+ /// `push_leaf_removal_violations` doesn't catch this because it walks
+ /// *from* the grandparent upward, checking siblings' children — but
+ /// `sole` is now a child of the grandparent, not a sibling.
+ ///
+ /// See §IDEA M-11.11.3.
+ pub fn push_collapse_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, sole: VNodeId, violations: &mut Vec<VNodeId>) {
+-    push_collapse_violations_with_config(vnodes, sole, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push collapse violations with configurable source (source 7).
+ ///
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_collapse_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

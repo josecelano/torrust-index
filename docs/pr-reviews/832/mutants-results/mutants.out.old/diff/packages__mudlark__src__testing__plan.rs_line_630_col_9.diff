@@ -1,0 +1,26 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::centroid_drift -> Self with Default::default()
+@@ -622,22 +622,17 @@
+     /// `start` to `end`, spending `burst_len` observations at each
+     /// coordinate.
+     ///
+     /// Creates a moving front of violations that exercises different
+     /// V-Tree neighborhoods in sequence, with lingering effects from
+     /// previous positions.
+     #[must_use]
+     pub fn centroid_drift(mut self, start: u64, end: u64, delta: V, burst_len: usize) -> Self {
+-        let (lo, hi) = if start <= end { (start, end) } else { (end, start) };
+-        for coord in lo..=hi {
+-            self.observations
+-                .extend(std::iter::repeat((C::from_u64(coord), delta)).take(burst_len));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Pulse decay: concentrated initial burst that decays in both
+     /// intensity and spatial extent over successive rounds.
+     ///
+     /// Round k: intensity = `base / (k + 1)`, coordinates cycle
+     /// through `[center − k, center + k] ∩ [0, domain)`.
+     #[must_use]

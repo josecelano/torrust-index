@@ -1,0 +1,24 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace node_has_evictable -> bool with true
+@@ -1054,20 +1054,17 @@
+         }
+     }
+ }
+ 
+ // ── Internal helpers ─────────────────────────────────────────────────
+ 
+ /// Whether a V-node carries the evictable flag (entry or structural).
+ fn node_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> bool {
+-    match &vnodes.get(id.index()).kind {
+-        VKind::Entry { is_evictable, .. } => *is_evictable,
+-        VKind::Structural { has_evictable, .. } => *has_evictable,
+-    }
++    true /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Get the child count of a structural node.  Returns 0 for entries.
+ fn structural_child_count<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> usize {
+     match &vnodes.get(id.index()).kind {
+         VKind::Structural { children, .. } => children.len(),
+         VKind::Entry { .. } => 0,
+     }

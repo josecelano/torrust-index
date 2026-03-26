@@ -1,0 +1,34 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace audit_violations -> Vec<VNodeId> with vec![Default::default()]
+@@ -38,30 +38,17 @@
+ ///
+ /// Callers should guard invocation with
+ /// `tracing::enabled!(tracing::Level::DEBUG)`.
+ pub fn audit_violations<V: Accumulator + Inspectable>(
+     vnodes: &Arena<VNode<V>>,
+     violations: &[VNodeId],
+     checkpoint: &str,
+ ) -> Vec<VNodeId> {
+-    let all_violated = rebalance::find_violated_nodes(vnodes);
+-    let queued: std::collections::HashSet<usize> = violations.iter().map(|v| v.index()).collect();
+-    let mut missed = Vec::new();
+-    for &v in &all_violated {
+-        if !queued.contains(&v.index()) {
+-            tracing::error!(
+-                checkpoint,
+-                node = %Ctx(vnodes, v),
+-                "violation NOT in queue",
+-            );
+-            missed.push(v);
+-        }
+-    }
+-    missed
++    vec![Default::default()] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Plateau consistency audit ───────────────────────────────────────
+ 
+ /// Context for the optional P-I4 spot-check in [`audit_plateau_consistency`].
+ ///
+ /// When provided, the audit performs an additional check that a
+ /// semi-internal parent's surviving child belongs to a different

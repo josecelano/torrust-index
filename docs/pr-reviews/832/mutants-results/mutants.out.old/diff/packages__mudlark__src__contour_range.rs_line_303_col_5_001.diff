@@ -1,0 +1,32 @@
+--- packages/mudlark/src/contour_range.rs
++++ replace validate_endpoints -> Option<()> with Some(())
+@@ -295,28 +295,17 @@
+ /// - `start < end`.
+ pub fn validate_endpoints<C: Coordinate, V: Accumulator>(
+     plateaus: &BTreeMap<BasisEdge<C>, Plateau<C, V>>,
+     start: BasisEdge<C>,
+     end: BasisEdge<C>,
+     domain_end: C,
+ ) -> Option<()> {
+     // CR-I1: start must be a plateau basis edge.
+-    if !plateaus.contains_key(&start) {
+-        return None;
+-    }
+-    // CR-I1: end must be a basis edge or the domain sentinel.
+-    if end != BasisEdge(domain_end) && !plateaus.contains_key(&end) {
+-        return None;
+-    }
+-    // CR-I1: start < end.
+-    if start >= end {
+-        return None;
+-    }
+-    Some(())
++    Some(()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Sum of individual plateau energies within `[start, end)`.
+ ///
+ /// Collects plateaus whose basis edge `a_j ∈ [start, end)` and
+ /// returns `(Σ P.sum, count)`.
+ ///
+ /// **plateaus(𝓡)** = `{ P_j : a_j ∈ 𝓔 ∩ [start, end) }`

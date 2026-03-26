@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ delete ! in GvGraph<C, V, N>::debug_assert_plateau_mirror_consistency
+@@ -88,17 +88,17 @@
+     ///
+     /// Only compiled in debug builds with `dynamic-contour-tracking`.
+     /// The `label` argument is included in any panic message to help
+     /// identify which mutation path caused divergence.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn debug_assert_plateau_mirror_consistency(&self, label: &str) {
+         // Always run in debug builds (cargo test); optionally in
+         // release when a tracing subscriber is active at DEBUG.
+-        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
++        if !cfg!(debug_assertions) &&  /* ~ changed by cargo-mutants ~ */tracing::enabled!(tracing::Level::DEBUG) {
+             return;
+         }
+ 
+         let rebuilt = self.build_plateaus();
+         if self.plateaus != rebuilt {
+             // Find differing keys
+             let dyn_keys: std::collections::BTreeSet<_> = self.plateaus.keys().collect();
+             let stat_keys: std::collections::BTreeSet<_> = rebuilt.keys().collect();

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace >= with < in check_depth_gate_invariants
+@@ -791,17 +791,17 @@
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     let d_create = graph.depth_create();
+     let d_evict = graph.depth_evict();
+     let buffer = graph.depth_buffer();
+ 
+     // D-I3: D_create < D_evict (strict ordering).
+-    if d_create >= d_evict {
++    if d_create < /* ~ changed by cargo-mutants ~ */ d_evict {
+         errors.push(format!(
+             "D-I3: live_depth_create ({d_create}) must be < live_depth_evict ({d_evict})"
+         ));
+     }
+ 
+     // Floor: D_evict >= buffer + 1.
+     if d_evict < buffer + 1 {
+         errors.push(format!(

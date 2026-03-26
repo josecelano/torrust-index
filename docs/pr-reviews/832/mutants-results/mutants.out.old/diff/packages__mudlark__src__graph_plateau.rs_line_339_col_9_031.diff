@@ -1,0 +1,39 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::debug_plateau_basis -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> with vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])]
+@@ -331,35 +331,17 @@
+     /// for its basis elements.
+     ///
+     /// This exposes `pub(crate)` basis bookkeeping for integration
+     /// tests that need to diagnose plateau invariant violations.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[must_use]
+     #[allow(clippy::type_complexity)]
+     pub fn debug_plateau_basis(&self) -> Vec<(BasisEdge<C>, Vec<(usize, C, C, &'static str, u32)>)> {
+-        let mut result = Vec::new();
+-        for &key in self.plateaus.keys() {
+-            let elements = self.plateau_basis.basis_elements(&key);
+-            let infos: Vec<_> = elements
+-                .iter()
+-                .map(|&gid| {
+-                    let g = self.gnodes.get(gid.index());
+-                    let state_str = match g.state() {
+-                        crate::gnode::GState::Terminal => "Terminal",
+-                        crate::gnode::GState::Internal => "Internal",
+-                        crate::gnode::GState::SemiInternal => "SemiInternal",
+-                    };
+-                    let g_depth = crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N);
+-                    (gid.index(), g.lo, g.hi, state_str, g_depth)
+-                })
+-                .collect();
+-            result.push((key, infos));
+-        }
+-        result
++        vec![(BasisEdge::from(Default::default()), vec![(0, Default::default(), Default::default(), "xyzzy", 0)])] /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Recompute + placement ───────────────────────────────────
+ 
+     /// Recompute `start`, `end`, `sum`, `depth` for a plateau from
+     /// its current basis elements.
+     ///
+     /// Called after basis-membership changes. Does NOT re-key the

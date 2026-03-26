@@ -1,0 +1,124 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::debug_assert_plateau_mirror_consistency with ()
+@@ -88,120 +88,17 @@
+     ///
+     /// Only compiled in debug builds with `dynamic-contour-tracking`.
+     /// The `label` argument is included in any panic message to help
+     /// identify which mutation path caused divergence.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn debug_assert_plateau_mirror_consistency(&self, label: &str) {
+         // Always run in debug builds (cargo test); optionally in
+         // release when a tracing subscriber is active at DEBUG.
+-        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
+-            return;
+-        }
+-
+-        let rebuilt = self.build_plateaus();
+-        if self.plateaus != rebuilt {
+-            // Find differing keys
+-            let dyn_keys: std::collections::BTreeSet<_> = self.plateaus.keys().collect();
+-            let stat_keys: std::collections::BTreeSet<_> = rebuilt.keys().collect();
+-            let only_dynamic: Vec<_> = dyn_keys.difference(&stat_keys).collect();
+-            let only_static: Vec<_> = stat_keys.difference(&dyn_keys).collect();
+-            let both: Vec<_> = dyn_keys.intersection(&stat_keys).collect();
+-            let differing: Vec<_> = both.iter().filter(|&&k| self.plateaus.get(k) != rebuilt.get(k)).collect();
+-
+-            tracing::error!(
+-                label,
+-                only_dynamic = ?only_dynamic,
+-                only_static = ?only_static,
+-                differing = ?differing,
+-                "PLATEAU DIVERGENCE DETECTED",
+-            );
+-
+-            for &&key in &only_dynamic {
+-                let p = &self.plateaus[key];
+-                let basis = self.plateau_basis.basis_elements(key);
+-                tracing::error!(
+-                    key = ?key,
+-                    depth = p.depth,
+-                    start = ?p.start,
+-                    end = ?p.end,
+-                    sum = ?p.sum,
+-                    basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
+-                    "DYNAMIC-ONLY plateau",
+-                );
+-                for &gid in basis {
+-                    if self.gnodes.is_occupied(gid.index()) {
+-                        let g = self.gnodes.get(gid.index());
+-                        tracing::error!(
+-                            gid = gid.index(),
+-                            state = ?g.state(),
+-                            lo = ?g.lo,
+-                            hi = ?g.hi,
+-                            sum = ?g.sum,
+-                            "  basis element",
+-                        );
+-                    }
+-                }
+-            }
+-
+-            for &&key in &only_static {
+-                let p = &rebuilt[key];
+-                tracing::error!(
+-                    key = ?key,
+-                    depth = p.depth,
+-                    start = ?p.start,
+-                    end = ?p.end,
+-                    sum = ?p.sum,
+-                    "STATIC-ONLY plateau",
+-                );
+-            }
+-
+-            for &&&key in &differing {
+-                let dyn_p = &self.plateaus[key];
+-                let stat_p = &rebuilt[key];
+-                let basis = self.plateau_basis.basis_elements(key);
+-                tracing::error!(
+-                    key = ?key,
+-                    dyn_depth = dyn_p.depth,
+-                    dyn_start = ?dyn_p.start,
+-                    dyn_end = ?dyn_p.end,
+-                    dyn_sum = ?dyn_p.sum,
+-                    stat_depth = stat_p.depth,
+-                    stat_start = ?stat_p.start,
+-                    stat_end = ?stat_p.end,
+-                    stat_sum = ?stat_p.sum,
+-                    basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
+-                    "DIFFERS",
+-                );
+-                for &gid in basis {
+-                    if self.gnodes.is_occupied(gid.index()) {
+-                        let g = self.gnodes.get(gid.index());
+-                        let ud = uniform_contour_depth_of(&self.gnodes, gid, N);
+-                        tracing::error!(
+-                            gid = gid.index(),
+-                            state = ?g.state(),
+-                            lo = ?g.lo,
+-                            hi = ?g.hi,
+-                            sum = ?g.sum,
+-                            uniform_depth = ?ud,
+-                            "  basis element",
+-                        );
+-                    }
+-                }
+-            }
+-
+-            tracing::error!(dump = %crate::invariants::dump_gtree::<C, V, N>(self), "G-TREE DUMP");
+-
+-            panic!(
+-                "{label}: dynamic-contour-tracking mirror diverged from static rebuild\n\
+-                 left (dynamic): {:#?}\n\
+-                 right (static): {:#?}",
+-                self.plateaus, rebuilt
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Build plateaus (unconditional) ──────────────────────────
+ 
+     /// Build the plateau contour from the current G-tree state.
+     ///
+     /// Produces an identical `BTreeMap` to the actively-maintained
+     /// mirror by finding the **deterministic basis** for each plateau

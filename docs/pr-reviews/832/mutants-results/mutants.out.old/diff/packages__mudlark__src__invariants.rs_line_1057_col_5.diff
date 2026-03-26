@@ -1,0 +1,71 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i1_i_keys_are_contour_steps with ()
+@@ -1049,67 +1049,17 @@
+ /// The `BTreeMap` keys must be exactly the set of contour step
+ /// coordinates — where the contour depth function changes value
+ /// (plus the domain origin 0).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i1_i_keys_are_contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let plateaus = &graph.plateaus;
+-    if plateaus.is_empty() {
+-        errors.push("P-I1(i): plateaus BTreeMap is empty (must have at least 1 plateau)".into());
+-        return;
+-    }
+-
+-    let steps = contour_steps(graph);
+-    let btree_keys: Vec<C> = plateaus.keys().map(|k| k.0).collect();
+-    let step_coords: Vec<C> = steps.iter().map(|&(c, _)| c).collect();
+-
+-    if btree_keys.len() != step_coords.len() {
+-        errors.push(format!(
+-            "P-I1(i): plateau count ({}) != contour step count ({})",
+-            btree_keys.len(),
+-            step_coords.len()
+-        ));
+-    }
+-
+-    // Check each key matches and depth matches.
+-    for (i, (&(coord, depth), btree_coord)) in steps.iter().zip(btree_keys.iter()).enumerate() {
+-        if coord.total_cmp(btree_coord) != std::cmp::Ordering::Equal {
+-            errors.push(format!(
+-                "P-I1(i): step {i}: contour step at {coord:?}, BTreeMap key at {btree_coord:?}"
+-            ));
+-        }
+-        // Also verify depth matches.
+-        if let Some(plateau) = plateaus.get(&BasisEdge(coord)) {
+-            if plateau.depth != depth {
+-                errors.push(format!(
+-                    "P-I1(i): step {i} at {coord:?}: contour depth={depth}, plateau.depth={}",
+-                    plateau.depth
+-                ));
+-            }
+-        }
+-    }
+-
+-    // Consecutive plateaus must have different depths (maximality).
+-    let depths: Vec<u32> = plateaus.values().map(|p| p.depth).collect();
+-    for w in depths.windows(2) {
+-        if w[0] == w[1] {
+-            // Find the key for the second one.
+-            let keys: Vec<_> = plateaus.keys().collect();
+-            let idx = depths.windows(2).position(|d| d[0] == d[1]).unwrap();
+-            errors.push(format!(
+-                "P-I1(i) maximality: consecutive plateaus {:?} and {:?} both have depth {}",
+-                keys[idx],
+-                keys[idx + 1],
+-                w[0]
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// **P-I1(ii): Tile contiguity.**
+ ///
+ /// The union of `tile(R)` over a plateau's basis elements must equal
+ /// `[key, next_key)` — the contour run assigned to this plateau.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i1_ii_tile_contiguity<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(

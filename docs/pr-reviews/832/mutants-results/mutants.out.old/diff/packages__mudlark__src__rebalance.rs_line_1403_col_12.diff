@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in rebalance
+@@ -1395,17 +1395,17 @@
+         }
+ 
+         // Guard: node may have been destroyed by a prior resolution.
+         if !vnodes.is_occupied(c.index()) {
+             tracing::trace!(node = c.index(), "skip destroyed");
+             continue;
+         }
+         // Guard: violation may have been resolved as a side effect.
+-        if !is_violated(vnodes, c) {
++        if  /* ~ changed by cargo-mutants ~ */is_violated(vnodes, c) {
+             tracing::trace!(node = c.index(), "skip already resolved");
+             continue;
+         }
+ 
+         resolved += 1;
+         tracing::debug!(
+             iter = iterations,
+             resolved,

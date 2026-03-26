@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace / with % in Arena<T>::set_occupied
+@@ -122,17 +122,17 @@
+         (0..self.slots.len())
+             .filter(move |&i| self.is_occupied(i))
+             .map(move |i| (i, &self.slots[i]))
+     }
+ 
+     // ── internal helpers ──────────────────────────────────────────
+ 
+     fn set_occupied(&mut self, index: usize, value: bool) {
+-        let word = index / 64;
++        let word = index % /* ~ changed by cargo-mutants ~ */ 64;
+         let bit = index % 64;
+         if value {
+             self.occupied[word] |= 1u64 << bit;
+         } else {
+             self.occupied[word] &= !(1u64 << bit);
+         }
+     }
+ }

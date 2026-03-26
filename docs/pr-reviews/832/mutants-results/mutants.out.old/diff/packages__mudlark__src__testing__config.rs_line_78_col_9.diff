@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field budget from struct Config expression in small_buffer_config
+@@ -70,17 +70,17 @@
+     }
+ }
+ 
+ /// Small buffer config: buffer=1 (`D_evict`=4), headroom=9.
+ #[must_use]
+ pub const fn small_buffer_config(budget: usize) -> Config<u64> {
+     Config {
+         depth_evict: 4,
+-        budget: Some(budget),
++         /* ~ changed by cargo-mutants ~ */
+         bounded_eviction: false,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Low threshold for frequent splits: θ=2, deeper depths.
+ #[must_use]
+ pub const fn low_threshold_config() -> Config<u64> {

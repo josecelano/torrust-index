@@ -1,0 +1,30 @@
+--- packages/mudlark/src/view.rs
++++ replace Node<C, V>::to_cell -> Option<Cell<C, V>> with Some(Default::default())
+@@ -349,26 +349,17 @@
+     ///     assert_eq!(cell.intensity, node.own);
+     /// } else {
+     ///     assert!(node.to_cell().is_none());
+     /// }
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn to_cell(self) -> Option<Cell<C, V>> {
+-        if self.state == GState::Terminal {
+-            Some(Cell {
+-                start: self.start,
+-                end: self.end,
+-                intensity: self.own,
+-                depth: self.depth,
+-            })
+-        } else {
+-            None
+-        }
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Whether this node is a terminal (leaf) in the G-Tree.
+     ///
+     /// # Examples
+     ///
+     /// ```
+     /// # use torrust_mudlark::{Config, GvGraph, GState};

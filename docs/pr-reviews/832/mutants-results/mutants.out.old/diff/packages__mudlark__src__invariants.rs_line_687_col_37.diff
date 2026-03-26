@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_parent_link_consistency
+@@ -679,17 +679,17 @@
+     // V-Tree parent links.
+     for (idx, v) in graph.vnodes().iter_occupied() {
+         let v_id = VNodeId::from_index(idx);
+         if let VKind::Structural { children, .. } = &v.kind {
+             for i in 0..children.len() {
+                 let (child_id, _) = children.get(i);
+                 if graph.vnodes().is_occupied(child_id.index()) {
+                     let child_parent = graph.vnodes().get(child_id.index()).parent;
+-                    if child_parent != Some(v_id) {
++                    if child_parent == /* ~ changed by cargo-mutants ~ */ Some(v_id) {
+                         errors.push(format!(
+                             "V-parent link: V-node {idx}'s child {}'s parent is {:?}, expected {v_id:?}",
+                             child_id.index(),
+                             child_parent
+                         ));
+                     }
+                 }
+             }

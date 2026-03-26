@@ -1,0 +1,32 @@
+--- packages/mudlark/src/gnode.rs
++++ replace GNode<C, V>::uncovered_range -> Option<(C, C)> with None
+@@ -163,28 +163,17 @@
+     /// - Semi-internal (left present): right half `(mid, hi)`.
+     /// - Semi-internal (right present): left half `(lo, mid)`.
+     /// - Internal: `None`.
+     #[must_use]
+     pub fn uncovered_range(&self) -> Option<(C, C)>
+     where
+         C: crate::traits::Coordinate,
+     {
+-        match (self.left, self.right) {
+-            (None, None) => Some((self.lo, self.hi)),
+-            (Some(_), None) => {
+-                let mid = C::midpoint(self.lo, self.hi);
+-                Some((mid, self.hi))
+-            }
+-            (None, Some(_)) => {
+-                let mid = C::midpoint(self.lo, self.hi);
+-                Some((self.lo, mid))
+-            }
+-            (Some(_), Some(_)) => None,
+-        }
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<C: Default, V: Default> Default for GNode<C, V> {
+     fn default() -> Self {
+         Self {
+             lo: C::default(),
+             hi: C::default(),

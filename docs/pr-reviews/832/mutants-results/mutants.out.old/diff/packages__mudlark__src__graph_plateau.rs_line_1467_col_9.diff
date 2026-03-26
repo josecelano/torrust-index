@@ -1,0 +1,113 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_after_catalytic_split with ()
+@@ -1459,109 +1459,17 @@
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_bootstrap_split(&mut self, _g_id: GNodeId, _left_id: GNodeId) {}
+ 
+     /// Post-catalytic-split: `g_id` was terminal → now balanced internal.
+     /// Decompose covering ancestor (if any), place displaced siblings,
+     /// then place `g_id` at the new child depth.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn plateau_after_catalytic_split(&mut self, g_id: GNodeId, left_id: GNodeId) {
+-        let _span = tracing::debug_span!("plateau_after_catalytic_split", g_id = g_id.index(), left = left_id.index(),).entered();
+-
+-        // ADR-M-031: mark dirty for trailing normalize in observe().
+-        self.plateaus_dirty = true;
+-
+-        let right_id = self
+-            .gnodes
+-            .get(g_id.index())
+-            .right
+-            .expect("catalytic_split: g_id must have a right child");
+-
+-        let left_depth =
+-            crate::gtree::gnode_depth_from_interval(self.gnodes.get(left_id.index()).lo, self.gnodes.get(left_id.index()).hi, N);
+-        let right_depth = crate::gtree::gnode_depth_from_interval(
+-            self.gnodes.get(right_id.index()).lo,
+-            self.gnodes.get(right_id.index()).hi,
+-            N,
+-        );
+-
+-        // Step 1 — Find and remove the covering basis element.
+-        // For displaced siblings, we just collect IDs (not pre-computed depths)
+-        // because Internal nodes may need decomposition.
+-        //
+-        // After removing the covering element we also evacuate all
+-        // **remaining** co-basis elements of the same plateau.  Those
+-        // elements were contiguous while the removed node bridged
+-        // regions, but they may become non-contiguous after the
+-        // removal, producing a bogus bounding-box `end` that tricks
+-        // the left-neighbour merge in `place_basis_element`.
+-        // Re-placing every co-member via `place_sorted` guarantees
+-        // the rebuilt plateaus are correctly partitioned.
+-        let (old_key, displaced) = if let Some(key) = self.plateau_basis.remove(g_id) {
+-            // g_id was itself a basis element.  Evacuate all remaining
+-            // basis elements of the same plateau so they are re-placed.
+-            let co_members: Vec<GNodeId> = self.plateau_basis.basis_elements(&key).iter().copied().collect();
+-            for &m in &co_members {
+-                self.plateau_basis.remove(m);
+-            }
+-            (key, co_members)
+-        } else {
+-            let mut path: Vec<GNodeId> = vec![g_id];
+-            let mut parent_opt = self.gnodes.get(g_id.index()).parent;
+-            let mut result = None;
+-
+-            while let Some(p_id) = parent_opt {
+-                if let Some(key) = self.plateau_basis.remove(p_id) {
+-                    let mut displaced: Vec<GNodeId> = Vec::new();
+-                    for &path_node in &path {
+-                        let par = self
+-                            .gnodes
+-                            .get(path_node.index())
+-                            .parent
+-                            .expect("path node must have a parent");
+-                        let pg = self.gnodes.get(par.index());
+-                        let sibling = if pg.left == Some(path_node) { pg.right } else { pg.left };
+-                        if let Some(sib_id) = sibling {
+-                            displaced.push(sib_id);
+-                        }
+-                    }
+-                    // Also evacuate remaining co-basis elements of the
+-                    // same plateau (they may become non-contiguous after
+-                    // the ancestor's removal).
+-                    let co_members: Vec<GNodeId> = self.plateau_basis.basis_elements(&key).iter().copied().collect();
+-                    for &m in &co_members {
+-                        self.plateau_basis.remove(m);
+-                    }
+-                    displaced.extend(co_members);
+-                    result = Some((key, displaced));
+-                    break;
+-                }
+-                path.push(p_id);
+-                parent_opt = self.gnodes.get(p_id.index()).parent;
+-            }
+-
+-            result.expect("catalytic_split: no basis element covers g_id")
+-        };
+-
+-        // Step 2 — Clean up the old plateau.
+-        self.fixup_plateau(old_key);
+-
+-        // Step 3+4 combined — collect all displaced + target into one
+-        // vec, sort by BasisEdge, place left-to-right (ADR-M-031 §2a).
+-        let mut to_place = Vec::new();
+-        for &sib_id in &displaced {
+-            self.collect_subtree_basis_elements(sib_id, &mut to_place);
+-        }
+-        if left_depth == right_depth {
+-            to_place.push((g_id, left_depth));
+-        } else {
+-            to_place.push((left_id, left_depth));
+-            to_place.push((right_id, right_depth));
+-        }
+-        self.place_sorted(&mut to_place);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// No-op stub when plateau tracking is compiled out.
+     #[cfg(not(feature = "dynamic-contour-tracking"))]
+     #[inline(always)]
+     #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
+     pub(crate) fn plateau_after_catalytic_split(&mut self, _g_id: GNodeId, _left_id: GNodeId) {}
+ 

@@ -1,0 +1,46 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::sample -> Option<crate::view::Cell<C, V>> with Some(Default::default())
+@@ -61,42 +61,17 @@
+     /// assert!(g.sample(&mut rng).is_none());
+     ///
+     /// g.observe(100, 20u64);
+     /// let cell = g.sample(&mut rng).unwrap();
+     /// assert!(cell.start <= 100 && 100 < cell.end);
+     /// ```
+     #[must_use]
+     pub fn sample(&self, rng: &mut impl crate::traits::Rng) -> Option<crate::view::Cell<C, V>> {
+-        use crate::vnode::VKind;
+-
+-        let v_root = self.v_root?;
+-        let root_node = self.vnodes.get(v_root.index());
+-        if root_node.intensity == V::zero() {
+-            return None;
+-        }
+-
+-        let mut current = v_root;
+-        loop {
+-            let vnode = self.vnodes.get(current.index());
+-            match &vnode.kind {
+-                VKind::Entry { gnode, .. } => {
+-                    let g = self.gnodes.get(gnode.index());
+-                    return Some(crate::view::Cell {
+-                        start: g.lo,
+-                        end: g.hi,
+-                        intensity: g.own,
+-                        depth: crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N),
+-                    });
+-                }
+-                VKind::Structural { children, .. } => {
+-                    current = Self::sample_child(children, rng);
+-                }
+-            }
+-        }
++        Some(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Weighted child selection via cumulative-sum scan over
+     /// `PackedChildren::intensities`.
+     ///
+     /// Picks a child with probability `child.intensity / total`.
+     /// The hot loop touches only the contiguous `intensities` array
+     /// (24 bytes for 3×`u64`) — SoA-optimised for this path.

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_p_i1_iii_run_contains_tile
+@@ -1201,17 +1201,17 @@
+         if elements.is_empty() {
+             continue; // Already caught by P-I1(ii).
+         }
+ 
+         // Compute run from basis spans.
+         let mut min_lo = f64::INFINITY;
+         let mut max_hi = f64::NEG_INFINITY;
+         for &gid in elements {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let lo = g.lo.to_f64();
+             let hi = g.hi.to_f64();
+             if lo < min_lo {
+                 min_lo = lo;
+             }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace + with - in GvGraph<C, V, N>::split_for_p_i4
+@@ -1281,17 +1281,17 @@
+         // basis_edge > parent_pk.
+         let boundary_id = self.find_boundary_node(child_id, parent_pk);
+         let Some(boundary_id) = boundary_id else { return };
+ 
+         let bg = self.gnodes.get(boundary_id.index());
+         let boundary_key = basis_edge_of(bg);
+         let boundary_depth = match bg.state() {
+             GState::Terminal | GState::SemiInternal => crate::gtree::gnode_depth_from_interval(bg.lo, bg.hi, N),
+-            GState::Internal => crate::gtree::gnode_depth_from_interval(bg.lo, bg.hi, N) + 1,
++            GState::Internal => crate::gtree::gnode_depth_from_interval(bg.lo, bg.hi, N) - /* ~ changed by cargo-mutants ~ */ 1,
+         };
+         let b_lo = bg.lo;
+         let b_hi = bg.hi;
+         let b_sum = bg.sum;
+ 
+         // If the boundary node is already a basis element, extract it
+         // from its current plateau.
+         if let Some(old_pk) = self.plateau_basis.remove(boundary_id) {

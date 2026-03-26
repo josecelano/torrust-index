@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace + with * in descend
+@@ -521,17 +521,17 @@
+             let tr = &layers[layer as usize].transitions[idx as usize];
+             let baseline = tr.baseline;
+             let total = tr.total;
+             let depth = tr.depth;
+ 
+             let mid = C::midpoint(start, end);
+             let total_bg = V::add(accumulated, baseline);
+             let half_bg = total_bg.prorate(1, 2);
+-            let child_depth = g_depth + 1;
++            let child_depth = g_depth * /* ~ changed by cargo-mutants ~ */ 1;
+ 
+             let left_ref = lookup.get(start, child_depth);
+             let right_ref = lookup.get(mid, child_depth);
+ 
+             match (left_ref, right_ref) {
+                 (Some(_), Some(_)) => {
+                     // Both children visible — recurse into each half.
+                     descend(lookup, layers, start, mid, child_depth, half_bg, output);

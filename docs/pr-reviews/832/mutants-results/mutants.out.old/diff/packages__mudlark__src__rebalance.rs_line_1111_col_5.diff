@@ -1,0 +1,85 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace escalate_after_promote with ()
+@@ -1103,81 +1103,17 @@
+ /// - **Direct:** `h` itself is violated at the `g` level.
+ /// - **Indirect:** a child of `h` is violated at the `p` level.
+ ///   Resolving it would contract `p`, producing a merged node whose
+ ///   standard-promote recreates the 3-node — an infinite cycle.
+ ///
+ /// **Action:** contract `p` (isolating `h`), optionally contract `g`,
+ /// then skip-promote `h` up to `g`.
+ fn escalate_after_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId, violations: &mut Vec<VNodeId>) {
+-    let heaviest = match &vnodes.get(p.index()).kind {
+-        VKind::Structural { children, .. } if children.len() == 3 => children.get(children.heaviest_child_index()).0,
+-        _ => return,
+-    };
+-
+-    let h_direct = is_violated(vnodes, heaviest);
+-    let h_indirect = !h_direct && any_child_violated(vnodes, heaviest);
+-    if !h_direct && !h_indirect {
+-        return;
+-    }
+-
+-    let Some(g) = vnodes.get(p.index()).parent else {
+-        return;
+-    };
+-    let _span = tracing::debug_span!(
+-        "escalate",
+-        h = %Nd(vnodes, heaviest),
+-        reason = if h_direct { "direct" } else { "indirect" },
+-    )
+-    .entered();
+-
+-    // Contract p: isolate h, merge the other two.
+-    let merged = contract(vnodes, p);
+-    push_side_effect_violations(vnodes, p, violations);
+-    push_side_effect_violations(vnodes, merged, violations);
+-    push_contraction_child_violations(vnodes, p, heaviest, violations);
+-
+-    // Check if contraction resolved the issue.
+-    let needs_skip = if h_direct {
+-        is_violated(vnodes, heaviest)
+-    } else {
+-        is_violated(vnodes, merged)
+-    };
+-    if !needs_skip {
+-        tracing::debug!("resolved by contraction");
+-        return;
+-    }
+-
+-    // Ensure g is a 2-node before skip-promoting.
+-    let g_merged = if structural_child_count(vnodes, g) == 3 {
+-        let g_merged = contract(vnodes, g);
+-        push_side_effect_violations(vnodes, g, violations);
+-        push_side_effect_violations(vnodes, g_merged, violations);
+-        push_promoted_violations(vnodes, g, violations);
+-        let resolved = !is_violated(vnodes, heaviest) && (h_direct || !is_violated(vnodes, merged));
+-        if resolved {
+-            tracing::debug!("resolved by g-contraction");
+-            return;
+-        }
+-        Some(g_merged)
+-    } else {
+-        None
+-    };
+-
+-    // Skip-promote h past p up to g.
+-    if let Some(g_id) = vnodes.get(p.index()).parent {
+-        skip_promote(vnodes, heaviest);
+-        push_side_effect_violations(vnodes, g_id, violations);
+-        push_promoted_violations(vnodes, g_id, violations);
+-
+-        // Source 10 (§IDEA M-11.12): post-promotion push at merged node.
+-        if let Some(gm) = g_merged {
+-            push_source_10_violations(vnodes, gm, violations);
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Resolve (§IDEA M-11.9) ─────────────────────────────────────────
+ 
+ /// Resolve a single violation at node `c`.
+ ///
+ /// Implements §IDEA M-11.9:
+ /// 1. If parent is 3-node → contract.  Re-check; return if resolved.

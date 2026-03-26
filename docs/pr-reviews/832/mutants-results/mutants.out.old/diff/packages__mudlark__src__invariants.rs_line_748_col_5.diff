@@ -1,0 +1,25 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_node_count_consistency with ()
+@@ -740,21 +740,17 @@
+ }
+ 
+ // ── Node count consistency ──────────────────────────────────────────
+ 
+ fn check_node_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let actual = graph.gnodes().count();
+-    let expected = graph.node_count();
+-    if actual != expected {
+-        errors.push(format!("Node count: graph.node_count()={expected}, arena count={actual}"));
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Terminal count consistency ──────────────────────────────────────
+ 
+ fn check_terminal_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace == with != in plateau_after_evict
+@@ -347,17 +347,17 @@
+     let mut displaced_extra: Vec<(crate::handle::GNodeId, u32)> = Vec::new();
+ 
+     let ancestor_key = if let Some(key) = graph.plateau_basis.remove(parent_id) {
+         // Case (a): parent was the basis element.
+ 
+         // If parent was Internal → SemiInternal, the surviving
+         // child was covered by the parent and needs its own
+         // basis element.
+-        if parent_state_after == GState::SemiInternal {
++        if parent_state_after != /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+             let g = graph.gnodes.get(parent_id.index());
+             if let Some(sib) = g.left.or(g.right) {
+                 // Remove from current plateau if already a basis element.
+                 if let Some(ok) = graph.plateau_basis.remove(sib) {
+                     graph.fixup_plateau(ok);
+                 }
+                 displaced.push(sib);
+             }

@@ -1,0 +1,506 @@
+
+*** packages/mudlark/src/evict.rs:37:5: replace evict_tip with ()
+
+*** mutation diff:
+--- packages/mudlark/src/evict.rs
++++ replace evict_tip with ()
+@@ -29,274 +29,17 @@
+ /// 7. Deallocate G-node; decrement `node_count`.
+ ///
+ /// # Panics
+ ///
+ /// - If the V-entry is not backed by a terminal G-node.
+ /// - If the G-node has no parent (G-root eviction is forbidden).
+ #[allow(clippy::too_many_lines)] // Plateau maintenance adds ~40 lines.
+ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, v_id: VNodeId) {
+-    let span = tracing::debug_span!(
+-        "evict_tip",
+-        v_id = v_id.index(),
+-        gnode = tracing::field::Empty,
+-        parent = tracing::field::Empty,
+-    )
+-    .entered();
+-
+-    // Read the backing G-node from the V-entry.
+-    let gnode_id = match &graph.vnodes.get(v_id.index()).kind {
+-        VKind::Entry { gnode, is_evictable, .. } => {
+-            debug_assert!(*is_evictable, "evict_tip: V-entry {} is not evictable", v_id.index());
+-            *gnode
+-        }
+-        VKind::Structural { .. } => panic!("evict_tip: V-node {} is structural, not an entry", v_id.index()),
+-    };
+-    span.record("gnode", gnode_id.index());
+-
+-    // Safety: G-root must never be evicted.
+-    assert_ne!(gnode_id, graph.g_root, "evict_tip: cannot evict the G-root");
+-
+-    let parent_id = graph
+-        .gnodes
+-        .get(gnode_id.index())
+-        .parent
+-        .expect("evict_tip: terminal G-node must have a parent");
+-    span.record("parent", parent_id.index());
+-
+-    // ── 1. Absorption: parent.own += child.sum (ADR-M-014) ────────
+-    let child_sum = graph.gnodes.get(gnode_id.index()).sum;
+-    let parent_sum_before = graph.gnodes.get(parent_id.index()).sum;
+-
+-    graph.gnodes.get_mut(parent_id.index()).own = V::add(graph.gnodes.get(parent_id.index()).own, child_sum);
+-
+-    // ── 2. Unlink child from parent ─────────────────────────────
+-    {
+-        let p = graph.gnodes.get_mut(parent_id.index());
+-        if p.left == Some(gnode_id) {
+-            p.left = None;
+-        } else if p.right == Some(gnode_id) {
+-            p.right = None;
+-        } else {
+-            panic!(
+-                "evict_tip: G-node {} is not a child of parent {}",
+-                gnode_id.index(),
+-                parent_id.index()
+-            );
+-        }
+-    }
+-
+-    // Verify G-sum invariant: parent.sum should be unchanged (ADR-M-014 proof).
+-    // Recompute to assert: sum = own_new + remaining_child.sum
+-    {
+-        let p = graph.gnodes.get(parent_id.index());
+-        let left_sum = p.left.map_or_else(V::zero, |l| graph.gnodes.get(l.index()).sum);
+-        let right_sum = p.right.map_or_else(V::zero, |r| graph.gnodes.get(r.index()).sum);
+-        let recomputed = V::add(p.own, V::add(left_sum, right_sum));
+-        debug_assert!(
+-            (recomputed.to_f64_approx() - parent_sum_before.to_f64_approx()).abs() < 1e-9,
+-            "evict_tip: G-sum invariant violation after absorption: \
+-             recomputed={}, expected={}",
+-            recomputed.to_f64_approx(),
+-            parent_sum_before.to_f64_approx()
+-        );
+-        // Write it back to ensure exact bit-level correctness.
+-        graph.gnodes.get_mut(parent_id.index()).sum = recomputed;
+-    }
+-
+-    // ── 3. Update parent's V-entry intensity ────────────────────
+-    let p_entry_id = graph
+-        .gnodes
+-        .get(parent_id.index())
+-        .entry
+-        .expect("evict_tip: parent must have V-entry (has dependents)");
+-    {
+-        let p_own = graph.gnodes.get(parent_id.index()).own;
+-        graph.vnodes.get_mut(p_entry_id.index()).intensity = p_own;
+-        vtree::update_parent_cached_intensity(&mut graph.vnodes, p_entry_id, p_own);
+-        vtree::propagate_v_sums(&mut graph.vnodes, p_entry_id);
+-
+-        // ── 4. Ancestor-walk violation check (ADR-M-003 pattern) ──
+-        let mut check_id = Some(p_entry_id);
+-        while let Some(id) = check_id {
+-            if rebalance::is_violated(&graph.vnodes, id) {
+-                graph.violations.push(id);
+-            }
+-            check_id = graph.vnodes.get(id.index()).parent;
+-        }
+-    }
+-
+-    // ── 5. Update exposed/evictable flags ───────────────────────
+-    // Parent may transition Internal → SemiInternal or Terminal.
+-    {
+-        let p = graph.gnodes.get(parent_id.index());
+-        let parent_is_exposed = p.uncovered_range().is_some();
+-        let parent_is_evictable = p.is_terminal();
+-        let p_entry_id = p.entry.expect("evict_tip: parent must have V-entry (has dependents)");
+-        if let VKind::Entry {
+-            is_exposed,
+-            is_evictable,
+-            ..
+-        } = &mut graph.vnodes.get_mut(p_entry_id.index()).kind
+-        {
+-            *is_exposed = parent_is_exposed;
+-            *is_evictable = parent_is_evictable;
+-        }
+-        vtree::propagate_evictable_flags(&mut graph.vnodes, p_entry_id);
+-    }
+-
+-    // ── 6. Remove V-entry via vtree_remove_leaf() ───────────────
+-    // Save the structural change point before removal: the parent
+-    // survives in the 3→2 case; in the 2-node collapse case the
+-    // parent is destroyed and the grandparent becomes the change point.
+-    //
+-    // Also capture the surviving sibling in the 2-node collapse case
+-    // for source-7 violation checking (§IDEA M-11.11.3).
+-    let v_parent = graph.vnodes.get(v_id.index()).parent;
+-    let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
+-        let count = match &graph.vnodes.get(p.index()).kind {
+-            VKind::Structural { children, .. } => children.len(),
+-            VKind::Entry { .. } => 0,
+-        };
+-        match count {
+-            3 => (3, Some(p), None), // 3→2: parent survives
+-            2 => {
+-                // 2-node collapse: find the surviving sibling.
+-                let sibling = match &graph.vnodes.get(p.index()).kind {
+-                    VKind::Structural { children, .. } => {
+-                        // Find the child that is NOT v_id.
+-                        let (c0, _) = children.get(0);
+-                        let (c1, _) = children.get(1);
+-                        if c0 == v_id {
+-                            Some(c1)
+-                        } else {
+-                            Some(c0)
+-                        }
+-                    }
+-                    VKind::Entry { .. } => None,
+-                };
+-                (2, graph.vnodes.get(p.index()).parent, sibling) // collapse: grandparent
+-            }
+-            _ => (count, None, None),
+-        }
+-    });
+-
+-    graph.v_root = vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gnodes, v_id, graph.v_root);
+-
+-    // ── 6b. Leaf-removal violation walk (§IDEA M-11.11.3, source 6) ─────
+-    // The intensity decrease propagates to all ancestors; at each
+-    // level the decreased ancestor may be a weaker uncle.  Walk
+-    // from the change point to the root, checking siblings' children.
+-    if let Some(start) = change_point {
+-        rebalance::push_leaf_removal_violations(&graph.vnodes, start, &mut graph.violations);
+-    }
+-
+-    // ── 6c. Sibling-removal violation checks (sources 7 & 8) ────
+-    // When a sibling is removed, the remaining siblings' children lose
+-    // that sibling as a potential uncle. Two cases:
+-    //
+-    // - 2-node collapse (source 7, §IDEA M-11.11.3): The surviving sibling is
+-    //   re-parented to the grandparent. Its children now have entirely
+-    //   different uncles.
+-    //
+-    // - 2-node collapse cousins (source 9, §IDEA M-11.11.3): The OTHER children
+-    //   of the grandparent have their children potentially violated
+-    //   because those children's uncle changed from v_parent to sole.
+-    //
+-    // - 3→2 transition (source 8, §IDEA M-11.11.3): The remaining siblings'
+-    //   children lose the removed entry as a potential uncle. Their
+-    //   max_uncle may decrease.
+-    match child_count {
+-        2 => {
+-            // Collapse: check the surviving sibling's children (source 7).
+-            if let Some(sole) = collapse_sibling {
+-                tracing::debug!(sole = sole.index(), "evict_tip: calling push_collapse_violations");
+-                rebalance::push_collapse_violations(&graph.vnodes, sole, &mut graph.violations);
+-
+-                // Also check the cousins' children (source 9).
+-                // change_point is the grandparent in the collapse case.
+-                if let Some(grandparent) = change_point {
+-                    tracing::debug!(
+-                        sole = sole.index(),
+-                        grandparent = grandparent.index(),
+-                        "evict_tip: calling push_cousin_violations (source 9)",
+-                    );
+-                    rebalance::push_cousin_violations(&graph.vnodes, sole, grandparent, &mut graph.violations);
+-                }
+-            }
+-        }
+-        3 => {
+-            // 3→2: check all remaining children of the parent.
+-            // v_id is already removed from the parent's children list,
+-            // so we check all current children.
+-            if let Some(p) = v_parent {
+-                tracing::debug!(parent = p.index(), "evict_tip: calling push_remaining_sibling_violations");
+-                rebalance::push_remaining_sibling_violations(
+-                    &graph.vnodes,
+-                    p,
+-                    v_id, // already removed, so filter is a no-op
+-                    &mut graph.violations,
+-                );
+-            }
+-        }
+-        _ => {}
+-    }
+-
+-    // ── 6d. Violation source diagnosis ──────────────────────────
+-    // For any missed violations, analyze exactly why they became
+-    // violated to identify the missing source.
+-    if tracing::enabled!(tracing::Level::ERROR) {
+-        let ctx = crate::diagnostic::EvictionContext {
+-            evicted_parent: v_parent,
+-            evicted_parent_child_count: child_count,
+-            collapse_sibling,
+-        };
+-        let all_violated = rebalance::find_violated_nodes(&graph.vnodes);
+-        let queued: std::collections::HashSet<usize> = graph.violations.iter().map(|v| v.index()).collect();
+-        for v in all_violated {
+-            if !queued.contains(&v.index()) {
+-                crate::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
+-            }
+-        }
+-    }
+-
+-    // ── 7. Deallocate G-node and decrement count ────────────────
+-    // Snapshot parent state before deallocation for plateau maintenance.
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    let parent_snapshot = {
+-        let pg = graph.gnodes.get(parent_id.index());
+-        (pg.state(), pg.lo, pg.hi)
+-    };
+-
+-    graph.gnodes.dealloc(gnode_id.index());
+-    graph.node_count -= 1;
+-    // The evicted node was a terminal: −1.
+-    // If the parent is now terminal (both children gone): +1 → net 0.
+-    graph.terminal_count -= 1;
+-    if graph.gnodes.get(parent_id.index()).is_terminal() {
+-        graph.terminal_count += 1;
+-    }
+-
+-    // 8. Plateau maintenance (no-op without `plateau` feature).
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    {
+-        let (parent_state_after, parent_lo, parent_hi) = parent_snapshot;
+-        plateau_after_evict(graph, gnode_id, parent_id, parent_state_after, parent_lo, parent_hi);
+-
+-        if tracing::enabled!(tracing::Level::DEBUG) {
+-            crate::diagnostic::audit_plateau_consistency(
+-                graph,
+-                "POST-EVICT",
+-                Some(&crate::diagnostic::PlateauAuditContext {
+-                    parent_id,
+-                    parent_state: parent_state_after,
+-                }),
+-            );
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Plateau maintenance after evicting a terminal G-node.
+ ///
+ /// The evicted terminal may or may not have been a basis element.
+ /// If it was covered by an ancestor balanced internal, that
+ /// ancestor is the basis element and must be decomposed (same
+ /// pattern as `catalytic_split`'s ancestor walk).
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh cfg-if v1.0.4
+       Fresh regex-syntax v0.8.9
+       Fresh autocfg v1.5.0
+       Fresh shlex v1.3.0
+       Fresh find-msvc-tools v0.1.9
+       Fresh once_cell v1.21.3
+       Fresh either v1.15.0
+       Fresh plotters-backend v0.3.7
+       Fresh clap_lex v1.0.0
+       Fresh ciborium-io v0.2.2
+       Fresh itoa v1.0.17
+       Fresh anstyle v1.0.13
+       Fresh memchr v2.8.0
+       Fresh pin-project-lite v0.2.16
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh cast v0.3.0
+       Fresh log v0.4.29
+       Fresh nu-ansi-term v0.50.3
+       Fresh anes v0.1.6
+       Fresh quote v1.0.44
+       Fresh tracing-core v0.1.36
+       Fresh cc v1.2.56
+       Fresh regex-automata v0.4.14
+       Fresh clap_builder v4.5.59
+       Fresh itertools v0.13.0
+       Fresh plotters-svg v0.3.7
+       Fresh thread_local v1.1.9
+       Fresh walkdir v2.5.0
+       Fresh sharded-slab v0.1.7
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh rand_core v0.10.0
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh crossbeam-utils v0.8.21
+       Fresh zmij v1.0.21
+       Fresh libc v0.2.182
+       Fresh regex v1.12.3
+       Fresh matchers v0.2.0
+       Fresh clap v4.5.59
+       Fresh criterion-plot v0.8.2
+       Fresh tracing-log v0.2.0
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh crossbeam-epoch v0.9.18
+       Fresh tracing-attributes v0.1.31
+       Fresh num-traits v0.2.19
+       Fresh serde_json v1.0.149
+       Fresh page_size v0.6.0
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-deque v0.8.6
+       Fresh tracing v0.1.44
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh half v2.7.1
+       Fresh rayon-core v1.13.0
+       Fresh tinytemplate v1.2.1
+       Fresh tracing-subscriber v0.3.22
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): couldn't read metadata for file `target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib`
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+       Fresh ciborium-ll v0.2.2
+       Fresh rayon v1.11.0
+       Fresh ciborium v0.2.2
+       Fresh criterion v0.8.2
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+error: unused imports: `rebalance` and `vtree`
+  --> packages/mudlark/src/evict.rs:18:13
+   |
+18 | use crate::{rebalance, vtree};
+   |             ^^^^^^^^^  ^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_imports)]`
+
+error: unused variable: `graph`
+  --> packages/mudlark/src/evict.rs:36:77
+   |
+36 | pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, v_id: VNodeId) {
+   |                                                                             ^^^^^ help: if this is intentional, prefix it with an underscore: `_graph`
+   |
+   = note: `-D unused-variables` implied by `-D unused`
+   = help: to override `-D unused` add `#[allow(unused_variables)]`
+
+error: unused variable: `v_id`
+  --> packages/mudlark/src/evict.rs:36:107
+   |
+36 | pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, v_id: VNodeId) {
+   |                                                                                                           ^^^^ help: if this is intentional, prefix it with an underscore: `_v_id`
+
+error: function `plateau_after_evict` is never used
+  --> packages/mudlark/src/evict.rs:64:4
+   |
+64 | fn plateau_after_evict<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+   |    ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D dead-code` implied by `-D unused`
+   = help: to override `-D unused` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: fields `source_6_leaf_removal_ancestors`, `source_7_collapse_children`, `source_8_three_to_two_siblings`, and `source_9_collapse_cousins` are never read
+  --> packages/mudlark/src/rebalance.rs:76:9
+   |
+70 | pub struct ViolationSources {
+   |            ---------------- fields in this struct
+...
+76 |     pub source_6_leaf_removal_ancestors: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+77 |     /// Source 7: Collapse — promoted node's children (§IDEA M-11.11.3).
+78 |     pub source_7_collapse_children: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+79 |     /// Source 8: 3→2 transition — remaining siblings' children (§IDEA M-11.11.3).
+80 |     pub source_8_three_to_two_siblings: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+81 |     /// Source 9: Collapse — cousins' children (§IDEA M-11.11.3).
+82 |     pub source_9_collapse_cousins: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ViolationSources` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+error: function `push_leaf_removal_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:805:8
+    |
+805 | pub fn push_leaf_removal_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, start: VNodeId, violations: &mut Vec<VNodeId>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_leaf_removal_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:813:8
+    |
+813 | pub fn push_leaf_removal_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_collapse_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:864:8
+    |
+864 | pub fn push_collapse_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, sole: VNodeId, violations: &mut Vec<VNodeId>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_collapse_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:872:8
+    |
+872 | pub fn push_collapse_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_remaining_sibling_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:899:8
+    |
+899 | pub fn push_remaining_sibling_violations<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_remaining_sibling_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:912:8
+    |
+912 | pub fn push_remaining_sibling_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_cousin_violations` is never used
+   --> packages/mudlark/src/rebalance.rs:966:8
+    |
+966 | pub fn push_cousin_violations<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_cousin_violations_with_config` is never used
+   --> packages/mudlark/src/rebalance.rs:979:8
+    |
+979 | pub fn push_cousin_violations_with_config<V: Accumulator>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `push_children_violations` is never used
+    --> packages/mudlark/src/rebalance.rs:1012:4
+     |
+1012 | fn push_children_violations<V: Accumulator>(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: method `remove_child` is never used
+   --> packages/mudlark/src/vnode.rs:215:12
+    |
+110 | impl<V: Copy + Default + PartialOrd> PackedChildren<V> {
+    | ------------------------------------------------------ method in this implementation
+...
+215 |     pub fn remove_child(&mut self, id: VNodeId) -> (VNodeId, V) {
+    |            ^^^^^^^^^^^^
+
+error: function `vtree_remove_leaf` is never used
+  --> packages/mudlark/src/vtree.rs:26:8
+   |
+26 | pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
+   |        ^^^^^^^^^^^^^^^^^
+
+error: function `remove_child_from_structural` is never used
+   --> packages/mudlark/src/vtree.rs:284:4
+    |
+284 | fn remove_child_from_structural<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, parent: VNodeId, child: VNodeId) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `sole_sibling` is never used
+   --> packages/mudlark/src/vtree.rs:292:4
+    |
+292 | fn sole_sibling<V: Accumulator>(vnodes: &Arena<VNode<V>>, parent: VNodeId, child: VNodeId) -> VNodeId {
+    |    ^^^^^^^^^^^^
+
+error: function `propagate_v_sums_from` is never used
+   --> packages/mudlark/src/vtree.rs:320:4
+    |
+320 | fn propagate_v_sums_from<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `torrust-mudlark` (lib) due to 19 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta` (exit status: 1)
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `torrust-mudlark` (lib test) due to 8 previous errors
+
+Caused by:
+  process didn't exit successfully: `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out` (exit status: 1)
+
+*** result: Failure(101)

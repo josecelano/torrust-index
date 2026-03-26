@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_plateau_basis_consistency
+@@ -890,17 +890,17 @@
+                 "Plateau basis back→forward: back[{gid:?}] = {key:?} but {gid:?} not in forward[{key:?}]"
+             ));
+         }
+     }
+ 
+     // plateaus.keys() == plateau_basis.forward.keys()
+     let btree_keys: Vec<_> = graph.plateaus.keys().copied().collect();
+     let basis_keys: Vec<_> = pb.iter().map(|(&k, _)| k).collect();
+-    if btree_keys != basis_keys {
++    if btree_keys == /* ~ changed by cargo-mutants ~ */ basis_keys {
+         errors.push(format!(
+             "Plateau basis: plateaus.keys() ({} entries) != plateau_basis.forward.keys() ({} entries)",
+             btree_keys.len(),
+             basis_keys.len()
+         ));
+     }
+ }
+ 

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f64>::next_value -> Self with Default::default()
+@@ -326,17 +326,17 @@
+     #[inline]
+     #[allow(clippy::cast_precision_loss)]
+     fn from_u64(v: u64) -> Self {
+         v as Self
+     }
+ 
+     #[inline]
+     fn next_value(self) -> Self {
+-        panic!("next_value is not supported for f64 coordinates; use Excluded/Included bounds directly")
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[inline]
+     fn to_f64(self) -> f64 {
+         self
+     }
+ 
+     #[inline]

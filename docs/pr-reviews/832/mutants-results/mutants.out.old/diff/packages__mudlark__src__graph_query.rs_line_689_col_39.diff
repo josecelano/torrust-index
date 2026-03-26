@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace > with == in GvGraph<C, V, N>::decompose_basis
+@@ -681,17 +681,17 @@
+             }
+         }
+ 
+         // ── Right child ─────────────────────────────────────────
+         if let Some(right_id) = g.right {
+             self.decompose_basis(right_id, query_lo, query_hi, basis);
+         } else {
+             // No right child — semi-internal.  Uncovered half is [mid, g.hi).
+-            let tile_lo = if query_lo > mid { query_lo } else { mid };
++            let tile_lo = if query_lo == /* ~ changed by cargo-mutants ~ */ mid { query_lo } else { mid };
+             let tile_hi = if query_hi < g.hi { query_hi } else { g.hi };
+             if tile_lo < tile_hi {
+                 // Defensive: the return in the left-else branch prevents
+                 // reaching here for nodes where both children are null AND
+                 // was already pushed as boundary thatch.
+                 debug_assert!(
+                     !basis.last().is_some_and(|b| b.gnode_id == gid),
+                     "double push for gnode {gid:?}",

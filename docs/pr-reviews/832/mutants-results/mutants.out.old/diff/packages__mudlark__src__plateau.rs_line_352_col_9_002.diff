@@ -1,0 +1,28 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::remove -> Option<BasisEdge<C>> with Some(BasisEdge::from_iter([Default::default()]))
+@@ -344,24 +344,17 @@
+     /// Remove `gnode` from whatever plateau's basis it belongs to.
+     ///
+     /// Returns the basis edge key it was removed from, or `None`
+     /// if the gnode was not a basis element.
+     ///
+     /// If this was the last basis element for that plateau,
+     /// removes the forward entry entirely.
+     pub(crate) fn remove(&mut self, gnode: GNodeId) -> Option<BasisEdge<C>> {
+-        let key = self.back.remove(&gnode)?;
+-        if let Some(set) = self.forward.get_mut(&key) {
+-            set.remove(&gnode);
+-            if set.is_empty() {
+-                self.forward.remove(&key);
+-            }
+-        }
+-        Some(key)
++        Some(BasisEdge::from_iter([Default::default()])) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Look up which basis edge key a basis element belongs to.
+     ///
+     /// Returns `None` if `gnode` is not a basis element of any
+     /// plateau.
+     #[inline]
+     pub(crate) fn plateau_key(&self, gnode: GNodeId) -> Option<BasisEdge<C>> {

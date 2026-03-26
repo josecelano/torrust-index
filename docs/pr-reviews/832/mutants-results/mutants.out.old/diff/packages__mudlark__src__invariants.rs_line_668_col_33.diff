@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_parent_link_consistency
+@@ -660,17 +660,17 @@
+                         child_parent
+                     ));
+                 }
+             }
+         }
+         if let Some(right) = g.right {
+             if graph.gnodes().is_occupied(right.index()) {
+                 let child_parent = graph.gnodes().get(right.index()).parent;
+-                if child_parent != Some(g_id) {
++                if child_parent == /* ~ changed by cargo-mutants ~ */ Some(g_id) {
+                     errors.push(format!(
+                         "G-parent link: G-node {idx}'s right child {}'s parent is {:?}, expected {g_id:?}",
+                         right.index(),
+                         child_parent
+                     ));
+                 }
+             }
+         }

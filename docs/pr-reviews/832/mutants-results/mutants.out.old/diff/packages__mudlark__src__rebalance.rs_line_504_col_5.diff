@@ -1,0 +1,33 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace sibling_of -> (VNodeId, V) with (Default::default(), Default::default())
+@@ -496,29 +496,17 @@
+ 
+ /// Return the sibling of `child` under 2-node `parent`, plus its
+ /// cached intensity.
+ ///
+ /// # Panics
+ ///
+ /// Panics if `parent` is not structural, or if `child` is not found.
+ fn sibling_of<V: Accumulator>(vnodes: &Arena<VNode<V>>, parent: VNodeId, child: VNodeId) -> (VNodeId, V) {
+-    let p_node = vnodes.get(parent.index());
+-    match &p_node.kind {
+-        VKind::Structural { children, .. } => {
+-            for i in 0..children.len() {
+-                let (id, int) = children.get(i);
+-                if id != child {
+-                    return (id, int);
+-                }
+-            }
+-            panic!("sibling_of: child not found in parent");
+-        }
+-        VKind::Entry { .. } => panic!("sibling_of: parent must be structural"),
+-    }
++    (Default::default(), Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Legacy Promote (§IDEA M-11.6) ──────────────────────────────────
+ 
+ /// Legacy promotion: elevate entry `c` to grandparent level and
+ /// bequeath `c`'s vacated seat to a new zero-intensity entry
+ /// for the missing G-child.
+ ///

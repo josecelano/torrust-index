@@ -1,0 +1,25 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::get -> (VNodeId, V) with (Default::default(), Default::default())
+@@ -146,21 +146,17 @@
+     /// Get the `(id, intensity)` pair at `index`.
+     ///
+     /// # Panics
+     ///
+     /// Panics if `index >= self.len()`.
+     #[must_use]
+     #[inline]
+     pub fn get(&self, index: usize) -> (VNodeId, V) {
+-        assert!(index < self.len(), "PackedChildren::get out of bounds");
+-        (
+-            self.ids[index].expect("child ID should be Some within len"),
+-            self.intensities[index],
+-        )
++        (Default::default(), Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Iterate over `(id, intensity)` pairs.
+     pub fn iter(&self) -> impl Iterator<Item = (VNodeId, V)> + '_ {
+         (0..self.len()).map(|i| self.get(i))
+     }
+ 
+     /// Index of the child with the highest intensity.

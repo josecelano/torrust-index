@@ -1,0 +1,78 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i1_iii_run_contains_tile with ()
+@@ -1183,74 +1183,17 @@
+ ///
+ /// `plateau.start` = min(R.lo), `plateau.end` = max(R.hi) over basis
+ /// elements. The run `[start, end)` must contain `[key, next_key)`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i1_iii_run_contains_tile<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    let plateaus = &graph.plateaus;
+-    let pb = graph.plateau_basis();
+-    let keys: Vec<BasisEdge<C>> = plateaus.keys().copied().collect();
+-    let domain_max = C::domain_max(N);
+-
+-    for (i, &key) in keys.iter().enumerate() {
+-        let plateau = &plateaus[&key];
+-        let next_start = if i + 1 < keys.len() { keys[i + 1].0 } else { domain_max };
+-
+-        let elements = pb.basis_elements(&key);
+-        if elements.is_empty() {
+-            continue; // Already caught by P-I1(ii).
+-        }
+-
+-        // Compute run from basis spans.
+-        let mut min_lo = f64::INFINITY;
+-        let mut max_hi = f64::NEG_INFINITY;
+-        for &gid in elements {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            let lo = g.lo.to_f64();
+-            let hi = g.hi.to_f64();
+-            if lo < min_lo {
+-                min_lo = lo;
+-            }
+-            if hi > max_hi {
+-                max_hi = hi;
+-            }
+-        }
+-
+-        // Verify plateau.start / plateau.end match basis span.
+-        let p_start = plateau.start.to_f64();
+-        let p_end = plateau.end.to_f64();
+-        if (p_start - min_lo).abs() > 1e-12 {
+-            errors.push(format!(
+-                "P-I1(iii): plateau {key:?}: start={p_start}, expected min(basis.lo)={min_lo}"
+-            ));
+-        }
+-        if (p_end - max_hi).abs() > 1e-12 {
+-            errors.push(format!(
+-                "P-I1(iii): plateau {key:?}: end={p_end}, expected max(basis.hi)={max_hi}"
+-            ));
+-        }
+-
+-        // Verify run ⊇ tile range: [key, next_start).
+-        let tile_lo = key.0.to_f64();
+-        let tile_hi = next_start.to_f64();
+-        if p_start - tile_lo > 1e-12 {
+-            errors.push(format!(
+-                "P-I1(iii): plateau {key:?}: run start {p_start} > tile start {tile_lo}"
+-            ));
+-        }
+-        if tile_hi - p_end > 1e-12 {
+-            errors.push(format!("P-I1(iii): plateau {key:?}: run end {p_end} < tile end {tile_hi}"));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── P-I2: Minimal deterministic basis ──────────────────────────────
+ 
+ /// Each basis element must be maximally consolidated: if an element's
+ /// parent also has uniform contour depth equal to the plateau's depth,
+ /// the parent should be the basis element instead.
+ ///

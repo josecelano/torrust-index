@@ -1,0 +1,21 @@
+--- packages/mudlark/src/gnode.rs
++++ replace GNode<C, V>::is_semi_internal -> bool with true
+@@ -149,17 +149,17 @@
+     pub const fn has_dependents(&self) -> bool {
+         self.left.is_some() || self.right.is_some()
+     }
+ 
+     /// True iff exactly one G-child is present.
+     #[inline]
+     #[must_use]
+     pub const fn is_semi_internal(&self) -> bool {
+-        matches!(self.state(), GState::SemiInternal)
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Returns the uncovered half-interval, or `None` for internal nodes.
+     ///
+     /// - Terminal: entire range `(lo, hi)`.
+     /// - Semi-internal (left present): right half `(mid, hi)`.
+     /// - Semi-internal (right present): left half `(lo, mid)`.
+     /// - Internal: `None`.

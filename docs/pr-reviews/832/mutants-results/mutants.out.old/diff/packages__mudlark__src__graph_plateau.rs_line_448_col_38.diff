@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::place_basis_element
+@@ -440,17 +440,17 @@
+         // left plateau's key and ours — an intervening plateau at a
+         // different depth (e.g. a SemiInternal's child) means the
+         // merge would skip over it, producing a plateau that
+         // `build_plateaus`'s strict sorted sweep would never create.
+         let left_key = self
+             .plateaus
+             .range(..key)
+             .next_back()
+-            .filter(|(_, p)| p.depth == depth && p.end.total_cmp(&lo) != std::cmp::Ordering::Less)
++            .filter(|(_, p)| p.depth != /* ~ changed by cargo-mutants ~ */ depth && p.end.total_cmp(&lo) != std::cmp::Ordering::Less)
+             .map(|(&k, _)| k)
+             .filter(|lk| {
+                 // Check for intervening plateaus between lk and key.
+                 self.plateaus
+                     .range((std::ops::Bound::Excluded(*lk), std::ops::Bound::Excluded(key)))
+                     .next()
+                     .is_none()
+             });

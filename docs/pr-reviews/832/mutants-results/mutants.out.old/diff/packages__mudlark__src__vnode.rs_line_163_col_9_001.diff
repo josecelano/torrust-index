@@ -1,0 +1,21 @@
+--- packages/mudlark/src/vnode.rs
++++ replace PackedChildren<V>::iter -> impl Iterator<Item =(VNodeId, V)>+'_ with ::std::iter::once((Default::default(), Default::default()))
+@@ -155,17 +155,17 @@
+         (
+             self.ids[index].expect("child ID should be Some within len"),
+             self.intensities[index],
+         )
+     }
+ 
+     /// Iterate over `(id, intensity)` pairs.
+     pub fn iter(&self) -> impl Iterator<Item = (VNodeId, V)> + '_ {
+-        (0..self.len()).map(|i| self.get(i))
++        ::std::iter::once((Default::default(), Default::default())) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Index of the child with the highest intensity.
+     /// Ties broken by leftmost (index 0) wins.
+     #[must_use]
+     pub fn heaviest_child_index(&self) -> usize {
+         let mut max_idx = 0;
+         for i in 1..self.len() {

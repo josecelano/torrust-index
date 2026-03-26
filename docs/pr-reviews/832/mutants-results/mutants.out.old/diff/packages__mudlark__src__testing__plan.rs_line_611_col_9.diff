@@ -1,0 +1,28 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::sawtooth -> Self with Default::default()
+@@ -603,24 +603,17 @@
+ 
+     /// Sawtooth: repeated linear sweeps through `[0, width)` with
+     /// intensity escalating each cycle.
+     ///
+     /// Creates periodic pressure waves that force the V-Tree to
+     /// adapt to ever-increasing load.
+     #[must_use]
+     pub fn sawtooth(mut self, width: u64, base: V, cycles: usize) -> Self {
+-        for k in 0..cycles {
+-            #[allow(clippy::cast_precision_loss)]
+-            let delta = V::from_f64(base.to_f64_approx() * ((k + 1) as f64));
+-            for x in 0..width {
+-                self.observations.push((C::from_u64(x), delta));
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Centroid drift: a hotspot that slides across the domain from
+     /// `start` to `end`, spending `burst_len` observations at each
+     /// coordinate.
+     ///
+     /// Creates a moving front of violations that exercises different
+     /// V-Tree neighborhoods in sequence, with lingering effects from

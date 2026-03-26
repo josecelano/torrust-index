@@ -1,0 +1,21 @@
+--- packages/mudlark/src/evict.rs
++++ replace != with == in scan_dfs
+@@ -565,17 +565,17 @@
+     graph: &GvGraph<C, V, N>,
+     v_id: VNodeId,
+     depth: u32,
+     candidates: &mut Vec<VNodeId>,
+ ) {
+     let node = graph.vnodes.get(v_id.index());
+     match &node.kind {
+         VKind::Entry { gnode, is_evictable, .. } => {
+-            if depth > graph.live_depth_evict && *is_evictable && *gnode != graph.g_root {
++            if depth > graph.live_depth_evict && *is_evictable && *gnode == /* ~ changed by cargo-mutants ~ */ graph.g_root {
+                 candidates.push(v_id);
+             }
+         }
+         VKind::Structural { children, has_evictable } => {
+             // Prune: no evictable entries in this subtree.
+             if !has_evictable {
+                 return;
+             }

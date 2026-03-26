@@ -1,0 +1,104 @@
+--- packages/mudlark/src/split.rs
++++ replace catalytic_split with ()
+@@ -178,100 +178,17 @@
+ /// - 2 V-entries + 1 structural wrapping them
+ /// - Adds structural as 3rd child of V-parent (2→3-node)
+ ///
+ /// Flips entry's `is_exposed` to false. Propagates evictable flags.
+ ///
+ /// See §IDEA M-10.2.
+ #[allow(clippy::too_many_lines)] // Plateau maintenance adds ~50 lines.
+ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+-    let (lo, hi, entry_id) = {
+-        let g = graph.gnodes.get(g_id.index());
+-        (g.lo, g.hi, g.entry.expect("catalytic_split: g must have an entry"))
+-    };
+-    let mid = C::midpoint(lo, hi);
+-    let _span = tracing::debug_span!("catalytic_split", g_id = g_id.index(), ?lo, ?hi, ?mid,).entered();
+-    let p_id = graph
+-        .vnodes
+-        .get(entry_id.index())
+-        .parent
+-        .expect("catalytic_split: entry must have a parent");
+-
+-    // G-Tree: create children.
+-    let left_id = alloc_g_child(&mut graph.gnodes, lo, mid, g_id);
+-    let right_id = alloc_g_child(&mut graph.gnodes, mid, hi, g_id);
+-    graph.gnodes.get_mut(g_id.index()).left = Some(left_id);
+-    graph.gnodes.get_mut(g_id.index()).right = Some(right_id);
+-
+-    // V-Tree: create entries for children.
+-    let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, left_id);
+-    let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gnodes, right_id);
+-
+-    // Get parent's depth to compute s_depth
+-    let p_depth = graph.vnodes.get(p_id.index()).cached_depth.load(Ordering::Relaxed);
+-    let s_depth = if p_depth == DEPTH_STALE { DEPTH_STALE } else { p_depth + 1 };
+-    let child_depth = if s_depth == DEPTH_STALE { DEPTH_STALE } else { s_depth + 1 };
+-
+-    // V-Tree: structural wrapping the entries.
+-    let s = VNode {
+-        intensity: V::zero(),
+-        parent: Some(p_id),
+-        cached_depth: AtomicU32::new(s_depth),
+-        kind: VKind::Structural {
+-            children: PackedChildren::new_2((le_id, V::zero()), (re_id, V::zero())),
+-            has_evictable: true,
+-        },
+-    };
+-    let s_id = VNodeId::from_index(graph.vnodes.alloc(s));
+-    graph.vnodes.get_mut(le_id.index()).parent = Some(s_id);
+-    graph.vnodes.get_mut(re_id.index()).parent = Some(s_id);
+-    // Set child depths
+-    graph
+-        .vnodes
+-        .get(le_id.index())
+-        .cached_depth
+-        .store(child_depth, Ordering::Relaxed);
+-    graph
+-        .vnodes
+-        .get(re_id.index())
+-        .cached_depth
+-        .store(child_depth, Ordering::Relaxed);
+-
+-    // Add s as third child of p (2-node → 3-node).
+-    let p = graph.vnodes.get_mut(p_id.index());
+-    if let VKind::Structural { children, .. } = &mut p.kind {
+-        children.add_child(s_id, V::zero());
+-    }
+-
+-    // Flip entry's flags: now internal (both children present).
+-    if let VKind::Entry {
+-        is_exposed,
+-        is_evictable,
+-        ..
+-    } = &mut graph.vnodes.get_mut(entry_id.index()).kind
+-    {
+-        *is_exposed = false;
+-        *is_evictable = false;
+-    }
+-
+-    // Propagate evictable flags upward from p.
+-    propagate_evictable_flags(&mut graph.vnodes, p_id);
+-
+-    // Update node count.
+-    graph.node_count += 2;
+-    // +2 new terminals, −1 parent no longer terminal = net +1.
+-    graph.terminal_count += 1;
+-
+-    // Plateau maintenance (no-op without `plateau` feature).
+-    graph.plateau_after_catalytic_split(g_id, left_id);
+-
+-    #[cfg(feature = "dynamic-contour-tracking")]
+-    if tracing::enabled!(tracing::Level::DEBUG) {
+-        crate::diagnostic::audit_plateau_consistency(graph, "POST-CATALYTIC-SPLIT", None);
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Allocation helpers ──────────────────────────────────────────────
+ 
+ /// Allocate a terminal G-child covering `[lo, hi)` under `parent`.
+ fn alloc_g_child<C: Coordinate, V: Accumulator>(gnodes: &mut Arena<GNode<C, V>>, lo: C, hi: C, parent: GNodeId) -> GNodeId {
+     let g = GNode {
+         lo,

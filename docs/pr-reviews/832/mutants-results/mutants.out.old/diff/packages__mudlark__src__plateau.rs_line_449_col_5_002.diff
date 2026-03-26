@@ -1,0 +1,28 @@
+--- packages/mudlark/src/plateau.rs
++++ replace basis_edge_of -> BasisEdge<C> with BasisEdge::new(Default::default())
+@@ -441,24 +441,13 @@
+ ///
+ /// This helper is used by every mutation path (split, evict) when
+ /// creating or updating basis elements.
+ pub fn basis_edge_of<C, V>(g: &GNode<C, V>) -> BasisEdge<C>
+ where
+     C: Coordinate,
+     V: Accumulator,
+ {
+-    match g.state() {
+-        GState::Terminal | GState::Internal => BasisEdge(g.lo),
+-        GState::SemiInternal => {
+-            if g.left.is_some() {
+-                // Child on left [l, m) → uncovered half is [m, r)
+-                BasisEdge(C::midpoint(g.lo, g.hi))
+-            } else {
+-                // Child on right [m, r) → uncovered half is [l, m)
+-                BasisEdge(g.lo)
+-            }
+-        }
+-    }
++    BasisEdge::new(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

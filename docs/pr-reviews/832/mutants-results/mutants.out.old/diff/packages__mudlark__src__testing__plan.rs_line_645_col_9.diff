@@ -1,0 +1,32 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::pulse_decay -> Self with Default::default()
+@@ -637,28 +637,17 @@
+ 
+     /// Pulse decay: concentrated initial burst that decays in both
+     /// intensity and spatial extent over successive rounds.
+     ///
+     /// Round k: intensity = `base / (k + 1)`, coordinates cycle
+     /// through `[center − k, center + k] ∩ [0, domain)`.
+     #[must_use]
+     pub fn pulse_decay(mut self, center: u64, domain: u64, base: V, rounds: usize, obs_per_round: usize) -> Self {
+-        for k in 0..rounds {
+-            #[allow(clippy::cast_precision_loss)]
+-            let delta = V::from_f64(base.to_f64_approx() / (k as f64 + 1.0));
+-            let lo = center.saturating_sub(k as u64);
+-            let hi = (center + k as u64).min(domain - 1);
+-            let width = hi - lo + 1;
+-            for j in 0..obs_per_round {
+-                let coord = C::from_u64(lo + (j as u64 % width));
+-                self.observations.push((coord, delta));
+-            }
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Golden spiral: Fibonacci-hashed coordinates that provide
+     /// maximally dispersed, quasi-uniform coverage of the domain.
+     ///
+     /// Uses the golden ratio to generate a low-discrepancy sequence
+     /// — each new observation lands as far as possible from all
+     /// previous ones.  Deterministic.

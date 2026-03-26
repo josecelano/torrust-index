@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ delete ! in GvGraph<C, V, N>::evict_candidates
+@@ -171,17 +171,17 @@
+ 
+             // Re-verify eligibility: the slot may have been
+             // invalidated by a prior eviction in this batch.
+             if !self.vnodes.is_occupied(v_id.index()) {
+                 continue;
+             }
+             match &self.vnodes.get(v_id.index()).kind {
+                 crate::vnode::VKind::Entry { gnode, is_evictable, .. } => {
+-                    if !is_evictable {
++                    if  /* ~ changed by cargo-mutants ~ */is_evictable {
+                         continue;
+                     }
+                     if *gnode == self.g_root {
+                         continue;
+                     }
+                     // Depth may have changed due to V-tree mutations.
+                     let depth = vtree::v_depth(&self.vnodes, v_id);
+                     if depth <= self.live_depth_evict {

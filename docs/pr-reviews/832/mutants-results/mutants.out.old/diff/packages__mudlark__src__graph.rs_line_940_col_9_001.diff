@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::depth_create -> u32 with 1
+@@ -932,17 +932,17 @@
+     /// # };
+     /// # let g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// assert_eq!(g.depth_create(), 3);
+     /// assert!(g.depth_create() < g.depth_evict());
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn depth_create(&self) -> u32 {
+-        self.live_depth_create
++        1 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Buffer zone width (`D_evict − D_create`), fixed at construction
+     ///
+     /// The buffer zone separates the creation and eviction gates so
+     /// that newly-split entries have room to prove their significance
+     /// before becoming eviction-eligible.
+     ///

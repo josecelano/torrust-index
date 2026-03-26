@@ -1,0 +1,36 @@
+--- packages/mudlark/src/gtree.rs
++++ replace route_to_receiver -> GNodeId with Default::default()
+@@ -19,32 +19,17 @@
+ /// uniformly:
+ /// - Terminal (0 children): returns immediately.
+ /// - Semi-internal (1 child): routes to the child or falls through.
+ /// - Internal (2 children): always routes to a child.
+ ///
+ /// See §IDEA M-5.2 `route_to_receiver`.
+ #[must_use]
+ pub fn route_to_receiver<C: Coordinate, V: Accumulator>(gnodes: &Arena<GNode<C, V>>, root: GNodeId, x: C) -> GNodeId {
+-    let mut current = root;
+-    loop {
+-        let g = gnodes.get(current.index());
+-        let mid = C::midpoint(g.lo, g.hi);
+-        if x < mid {
+-            if let Some(left) = g.left {
+-                current = left;
+-            } else {
+-                return current;
+-            }
+-        } else if let Some(right) = g.right {
+-            current = right;
+-        } else {
+-            return current;
+-        }
+-    }
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Compute the G-Tree depth of a dyadic interval `[lo, hi)`.
+ ///
+ /// Depth = `n − log₂(width)`. For integer coordinates this uses
+ /// `trailing_zeros` on the integer width; for float coordinates it
+ /// uses `f64::log2`.
+ ///

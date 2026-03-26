@@ -1,0 +1,70 @@
+--- packages/mudlark/src/pewei.rs
++++ replace RegionLookup<C>::build -> Self with Default::default()
+@@ -394,66 +394,17 @@
+ }
+ 
+ impl<C: Coordinate> RegionLookup<C> {
+     /// Build the lookup from visible layers.
+     ///
+     /// Cost: $O(n \log n)$ — one pass to collect, then sort each
+     /// depth bucket.
+     fn build<V: Accumulator>(layers: &[Layer<C, V>]) -> Self {
+-        let max_depth = layers
+-            .iter()
+-            .flat_map(|l| {
+-                l.transitions
+-                    .iter()
+-                    .map(|t| t.depth)
+-                    .chain(l.terminals.iter().map(|t| t.depth))
+-            })
+-            .max()
+-            .unwrap_or(0) as usize;
+-
+-        // Collect (start, NodeRef) pairs per depth, then split into
+-        // parallel arrays after sorting.
+-        let mut pairs: Vec<Vec<(C, NodeRef)>> = (0..=max_depth).map(|_| Vec::new()).collect();
+-
+-        #[allow(clippy::cast_possible_truncation)] // layer/item indices ≤ u32::MAX for any realistic PEWEI
+-        for (li, layer) in layers.iter().enumerate() {
+-            for (ti, t) in layer.transitions.iter().enumerate() {
+-                pairs[t.depth as usize].push((
+-                    t.start,
+-                    NodeRef::Transition {
+-                        layer: li as u32,
+-                        idx: ti as u32,
+-                    },
+-                ));
+-            }
+-            for (ti, t) in layer.terminals.iter().enumerate() {
+-                pairs[t.depth as usize].push((
+-                    t.start,
+-                    NodeRef::Terminal {
+-                        layer: li as u32,
+-                        idx: ti as u32,
+-                    },
+-                ));
+-            }
+-        }
+-
+-        // Sort each bucket by `start`, then split into SoA.
+-        // Safety: coordinates from `extract()` are dyadic arithmetic
+-        // on valid inputs — NaN is structurally unreachable.
+-        let by_depth = pairs
+-            .into_iter()
+-            .map(|mut bucket| {
+-                bucket.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+-                let (starts, nodes) = bucket.into_iter().unzip();
+-                DepthBucket { starts, nodes }
+-            })
+-            .collect();
+-
+-        Self { by_depth }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Look up the node reference at `(g_depth, start)`.
+     ///
+     /// Binary search touches only the `starts` array. The `nodes`
+     /// entry is read once at the final index.
+     ///
+     /// Returns `None` if no PEWEI node exists at that position

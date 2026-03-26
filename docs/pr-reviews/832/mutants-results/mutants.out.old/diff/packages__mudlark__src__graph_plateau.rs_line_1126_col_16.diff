@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ delete ! in GvGraph<C, V, N>::fixup_plateau
+@@ -1118,17 +1118,17 @@
+                 })
+                 .collect();
+             intervals.sort_by(|a, b| a.1.total_cmp(&b.1));
+ 
+             let contiguous = intervals
+                 .windows(2)
+                 .all(|w| w[0].2.total_cmp(&w[1].1) == std::cmp::Ordering::Equal);
+ 
+-            if !contiguous {
++            if  /* ~ changed by cargo-mutants ~ */contiguous {
+                 tracing::debug!(
+                     ?old_key,
+                     n_elements = element_ids.len(),
+                     "fixup_plateau: non-contiguous remainder, evacuating"
+                 );
+                 let mut displaced: Vec<(GNodeId, u32)> = Vec::with_capacity(element_ids.len());
+                 for &gid in &element_ids {
+                     self.plateau_basis.remove(gid);

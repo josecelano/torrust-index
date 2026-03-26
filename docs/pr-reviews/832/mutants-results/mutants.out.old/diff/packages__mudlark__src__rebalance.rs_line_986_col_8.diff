@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in push_cousin_violations_with_config
+@@ -978,17 +978,17 @@
+ #[inline]
+ pub fn push_cousin_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,
+     sole: VNodeId,
+     grandparent: VNodeId,
+     violations: &mut Vec<VNodeId>,
+     config: ViolationSources,
+ ) {
+-    if !config.source_9_collapse_cousins {
++    if  /* ~ changed by cargo-mutants ~ */config.source_9_collapse_cousins {
+         return;
+     }
+     // Get the OTHER children of grandparent (excluding sole, which was just promoted)
+     let cousins: Vec<VNodeId> = match &vnodes.get(grandparent.index()).kind {
+         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).filter(|&id| id != sole).collect(),
+         VKind::Entry { .. } => return,
+     };
+ 

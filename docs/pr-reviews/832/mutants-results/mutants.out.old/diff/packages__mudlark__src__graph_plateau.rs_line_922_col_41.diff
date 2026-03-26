@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::normalize_plateaus
+@@ -914,17 +914,17 @@
+             let merge_key = new_plateaus
+                 .range(..*be)
+                 .next_back()
+                 .filter(|(_, p)| p.depth == *depth)
+                 .map(|(&k, _)| k);
+ 
+             let key = if let Some(mk) = merge_key {
+                 let p = new_plateaus.get_mut(&mk).unwrap();
+-                if hi.total_cmp(&p.end) == std::cmp::Ordering::Greater {
++                if hi.total_cmp(&p.end) != /* ~ changed by cargo-mutants ~ */ std::cmp::Ordering::Greater {
+                     p.end = *hi;
+                 }
+                 if lo.total_cmp(&p.start) == std::cmp::Ordering::Less {
+                     p.start = *lo;
+                 }
+                 p.sum = V::add(p.sum, *sum);
+                 mk
+             } else {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_v_i7_structural_flag
+@@ -606,17 +606,17 @@
+                     return false;
+                 }
+                 let child = graph.vnodes().get(child_id.index());
+                 match &child.kind {
+                     VKind::Entry { is_evictable, .. } => *is_evictable,
+                     VKind::Structural { has_evictable, .. } => *has_evictable,
+                 }
+             });
+-            if *has_evictable != expected {
++            if *has_evictable == /* ~ changed by cargo-mutants ~ */ expected {
+                 errors.push(format!(
+                     "V-I7 violated at V-node {idx}: has_evictable={has_evictable}, \
+                      expected={expected}"
+                 ));
+             }
+         }
+     }
+ }

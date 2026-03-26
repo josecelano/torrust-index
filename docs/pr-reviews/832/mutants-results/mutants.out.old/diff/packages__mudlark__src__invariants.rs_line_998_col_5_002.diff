@@ -1,0 +1,67 @@
+--- packages/mudlark/src/invariants.rs
++++ replace contour_steps -> Vec<(C, u32)> with vec![(Default::default(), 1)]
+@@ -990,63 +990,17 @@
+     }
+ }
+ 
+ /// Walk the G-tree contour and return the sorted step coordinates
+ /// where the contour depth changes.  The first step is always 0
+ /// (domain start).
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &GvGraph<C, V, N>) -> Vec<(C, u32)> {
+-    use crate::gtree::gnode_depth_from_interval;
+-
+-    // Collect (lo, depth) for every contour cell (terminal or
+-    // null-child semi-internal half).
+-    let mut cells: Vec<(C, u32)> = Vec::new();
+-    let mut stack = vec![graph.g_root()];
+-    while let Some(gid) = stack.pop() {
+-        let g = graph.gnodes().get(gid.index());
+-        match g.state() {
+-            GState::Terminal => {
+-                let d = gnode_depth_from_interval(g.lo, g.hi, N);
+-                cells.push((g.lo, d));
+-            }
+-            GState::SemiInternal => {
+-                // The uncovered half is a contour cell.
+-                let (ulo, _uhi) = g.uncovered_range().unwrap();
+-                let d = gnode_depth_from_interval(g.lo, g.hi, N);
+-                cells.push((ulo, d));
+-                // Recurse into the surviving child.
+-                if let Some(l) = g.left {
+-                    stack.push(l);
+-                }
+-                if let Some(r) = g.right {
+-                    stack.push(r);
+-                }
+-            }
+-            GState::Internal => {
+-                if let Some(l) = g.left {
+-                    stack.push(l);
+-                }
+-                if let Some(r) = g.right {
+-                    stack.push(r);
+-                }
+-            }
+-        }
+-    }
+-    cells.sort_by(|a, b| a.0.total_cmp(&b.0));
+-
+-    // Extract step coordinates: position 0 is always a step; after
+-    // that, every depth change is a step.
+-    let mut steps: Vec<(C, u32)> = Vec::new();
+-    for &(lo, depth) in &cells {
+-        if steps.is_empty() || steps.last().unwrap().1 != depth {
+-            steps.push((lo, depth));
+-        }
+-    }
+-    steps
++    vec![(Default::default(), 1)] /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// **P-I1(i): Keys = contour steps.**
+ ///
+ /// The `BTreeMap` keys must be exactly the set of contour step
+ /// coordinates — where the contour depth function changes value
+ /// (plus the domain origin 0).
+ #[cfg(feature = "dynamic-contour-tracking")]

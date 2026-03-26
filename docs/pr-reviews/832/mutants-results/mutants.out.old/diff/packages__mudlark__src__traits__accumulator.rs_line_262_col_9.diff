@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/accumulator.rs
++++ replace <impl Accumulator for f32>::sub -> Self with Default::default()
+@@ -254,17 +254,17 @@
+ 
+     #[inline]
+     fn add(self, other: Self) -> Self {
+         self + other
+     }
+ 
+     #[inline]
+     fn sub(self, other: Self) -> Self {
+-        self - other
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Accumulator for f64 {
+     #[inline]
+     fn zero() -> Self {
+         0.0
+     }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace <= with > in resolve
+@@ -1262,17 +1262,17 @@
+         if let Some(g_id) = vnodes.get(p.index()).parent {
+             // §IDEA M-11.7: Check for semi-internal dispatch + depth gate.
+             let is_semi = matches!(
+                 &vnodes.get(c.index()).kind,
+                 VKind::Entry { gnode, .. }
+                     if gnodes.get(gnode.index()).is_semi_internal()
+             );
+ 
+-            if is_semi && v_depth(vnodes, c) <= depth_evict {
++            if is_semi && v_depth(vnodes, c) > /* ~ changed by cargo-mutants ~ */ depth_evict {
+                 tracing::debug!("phase 2: legacy promote (semi-internal entry)");
+                 let new_g = legacy_promote(vnodes, gnodes, c);
+                 result = Some(new_g);
+                 // Legacy promote replaces c (high intensity) with ne
+                 // (zero intensity) inside p. This collapses the uncle
+                 // shield for s's children: they used to have uncle = c,
+                 // now uncle = ne = 0. Scan p's grandchildren to catch
+                 // these newly created violations that

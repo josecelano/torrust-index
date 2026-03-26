@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field split_threshold from struct Config expression in deep_config
+@@ -102,17 +102,17 @@
+         ..BASE_U64
+     }
+ }
+ 
+ /// Deep config for escalation testing: θ=2, `D_create`=5, `D_evict`=10.
+ #[must_use]
+ pub const fn deep_config() -> Config<u64> {
+     Config {
+-        split_threshold: 2,
++         /* ~ changed by cargo-mutants ~ */
+         depth_create: 5,
+         depth_evict: 10,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Aggressive config: θ=1 forces immediate splitting, creating many
+ /// internal nodes and frequent violations.  Ideal for testing source

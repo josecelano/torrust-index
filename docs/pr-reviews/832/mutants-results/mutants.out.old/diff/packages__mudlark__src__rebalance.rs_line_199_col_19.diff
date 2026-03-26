@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace != with == in max_uncle_intensity
+@@ -191,17 +191,17 @@
+     let parent = vnodes.get(c.index()).parent?;
+     let grandparent = vnodes.get(parent.index()).parent?;
+ 
+     let g = vnodes.get(grandparent.index());
+     if let VKind::Structural { children, .. } = &g.kind {
+         let mut max_int = None;
+         for i in 0..children.len() {
+             let (id, intensity) = children.get(i);
+-            if id != parent {
++            if id == /* ~ changed by cargo-mutants ~ */ parent {
+                 max_int = Some(max_int.map_or(intensity, |cur| if intensity > cur { intensity } else { cur }));
+             }
+         }
+         max_int
+     } else {
+         None
+     }
+ }

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_g_i4_entry_consistency
+@@ -376,17 +376,17 @@
+ // ── G-I4: Entry consistency ─────────────────────────────────────────
+ 
+ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (idx, g) in graph.gnodes().iter_occupied() {
+         if let Some(v_id) = g.entry {
+-            if !graph.vnodes().is_occupied(v_id.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.vnodes().is_occupied(v_id.index()) {
+                 errors.push(format!(
+                     "G-I4 violated at G-node {idx}: entry V-node {} is not occupied",
+                     v_id.index()
+                 ));
+                 continue;
+             }
+             let v = graph.vnodes().get(v_id.index());
+ 

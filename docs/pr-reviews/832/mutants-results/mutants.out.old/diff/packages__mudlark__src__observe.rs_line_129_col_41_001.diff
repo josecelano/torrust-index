@@ -1,0 +1,21 @@
+--- packages/mudlark/src/observe.rs
++++ replace > with < in GvGraph<C, V, N>::observe
+@@ -121,17 +121,17 @@
+             self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
+         }
+ 
+         // 7. Dynamic depth control (§IDEA M-7.1, ADR-M-017).
+         self.adjust_depth_gates();
+ 
+         // 8. Budget-guarded eviction (ADR-M-015, ADR-M-018).
+         if let Some(soft_limit) = self.soft_limit {
+-            if self.node_count as usize > soft_limit {
++            if self.node_count as usize < /* ~ changed by cargo-mutants ~ */ soft_limit {
+                 if self.config.bounded_eviction {
+                     self.check_evictions_bounded(self.node_count as usize - soft_limit);
+                 } else {
+                     self.check_evictions();
+                 }
+             }
+         }
+ 

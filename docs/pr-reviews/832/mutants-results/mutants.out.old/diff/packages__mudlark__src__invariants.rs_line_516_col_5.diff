@@ -1,0 +1,33 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i5_entry_leaf with ()
+@@ -508,29 +508,17 @@
+     // appears as a child in a PackedChildren must have its parent
+     // pointing back correctly. We check parent-link consistency
+     // separately, so here just verify entries have no children
+     // (structurally guaranteed) and structurals are not entries.
+     //
+     // Additionally: verify no entry is referenced as a structural child
+     // that itself is structural. (This is structurally guaranteed by
+     // the type system, but document the intent.)
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        if let VKind::Structural { children, .. } = &v.kind {
+-            for i in 0..children.len() {
+-                let (child_id, _) = children.get(i);
+-                if !graph.vnodes().is_occupied(child_id.index()) {
+-                    errors.push(format!(
+-                        "V-I5 violated at V-node {idx}: child {} is not occupied",
+-                        child_id.index()
+-                    ));
+-                }
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I6: Terminal flag on entries ──────────────────────────────────
+ 
+ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

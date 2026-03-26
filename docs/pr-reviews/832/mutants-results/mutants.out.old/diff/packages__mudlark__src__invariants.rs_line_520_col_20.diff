@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_v_i5_entry_leaf
+@@ -512,17 +512,17 @@
+     //
+     // Additionally: verify no entry is referenced as a structural child
+     // that itself is structural. (This is structurally guaranteed by
+     // the type system, but document the intent.)
+     for (idx, v) in graph.vnodes().iter_occupied() {
+         if let VKind::Structural { children, .. } = &v.kind {
+             for i in 0..children.len() {
+                 let (child_id, _) = children.get(i);
+-                if !graph.vnodes().is_occupied(child_id.index()) {
++                if  /* ~ changed by cargo-mutants ~ */graph.vnodes().is_occupied(child_id.index()) {
+                     errors.push(format!(
+                         "V-I5 violated at V-node {idx}: child {} is not occupied",
+                         child_id.index()
+                     ));
+                 }
+             }
+         }
+     }

@@ -1,0 +1,57 @@
+--- packages/mudlark/src/invariants.rs
++++ replace semi_internal_lineage -> String with "xyzzy".into()
+@@ -97,53 +97,17 @@
+ 
+ /// Describe this node's semi-internal lineage (is it a child of a
+ /// semi-internal, or does it have a grandparent that is a semi-internal
+ /// child, etc.).
+ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     gnode: GNodeId,
+ ) -> String {
+-    let mut parts = Vec::new();
+-
+-    // Check if this node is a child of a semi-internal.
+-    let g = graph.gnodes().get(gnode.index());
+-    if let Some(parent_id) = g.parent {
+-        let parent = graph.gnodes().get(parent_id.index());
+-        if parent.state() == GState::SemiInternal {
+-            parts.push(format!("SI-child (par=G({}))", parent_id.index()));
+-        }
+-    }
+-
+-    // Walk ancestors: for each, if THEY are a child of a semi-internal,
+-    // that means this node has an ancestor who is an SI-child.
+-    let mut cur = g.parent;
+-    let mut depth = 1; // 1=parent, 2=grandparent, etc.
+-    while let Some(anc_id) = cur {
+-        let anc = graph.gnodes().get(anc_id.index());
+-        if let Some(anc_parent_id) = anc.parent {
+-            let anc_parent = graph.gnodes().get(anc_parent_id.index());
+-            if anc_parent.state() == GState::SemiInternal {
+-                parts.push(format!(
+-                    "{} is SI-child (G({}) under G({}))",
+-                    ancestor_name(depth),
+-                    anc_id.index(),
+-                    anc_parent_id.index()
+-                ));
+-            }
+-        }
+-        cur = anc.parent;
+-        depth += 1;
+-    }
+-
+-    if parts.is_empty() {
+-        String::new()
+-    } else {
+-        format!("  [{}]", parts.join("; "))
+-    }
++    "xyzzy".into() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Dump the full G-tree structure to a `String` for debugging.
+ ///
+ /// Shows each G-node with its interval, state, parent, children,
+ /// sum, own, V-entry, and basis membership. The tree is printed
+ /// in arena-allocation order (by gnode index).
+ #[allow(dead_code)]

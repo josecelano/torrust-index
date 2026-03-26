@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace >= with < in GvGraph<C, V, N>::select_plateaus
+@@ -558,17 +558,17 @@
+     ///     let cr = g.contour_range(start, end).unwrap();
+     ///     assert!(cr.basis.len() >= 1);
+     /// }
+     /// ```
+     #[must_use]
+     pub fn select_plateaus(&self, lo: C, hi: C) -> Option<(BasisEdge<C>, BasisEdge<C>)> {
+         use std::ops::Bound;
+ 
+-        if lo >= hi {
++        if lo < /* ~ changed by cargo-mutants ~ */ hi {
+             return None;
+         }
+ 
+         let plateaus = self.plateaus();
+         if plateaus.is_empty() {
+             return None;
+         }
+ 

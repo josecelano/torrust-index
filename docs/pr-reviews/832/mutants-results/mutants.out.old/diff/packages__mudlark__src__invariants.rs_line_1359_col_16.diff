@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_p_i4_thatch_one_hop
+@@ -1351,17 +1351,17 @@
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i4_thatch_one_hop<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     let pb = graph.plateau_basis();
+     for (&key, gnodes) in pb.iter() {
+         for &gid in gnodes {
+-            if !graph.gnodes().is_occupied(gid.index()) {
++            if  /* ~ changed by cargo-mutants ~ */graph.gnodes().is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             if g.state() != GState::SemiInternal {
+                 continue;
+             }
+ 
+             // Find the surviving child.

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ delete field budget from struct Config expression in budget_config_unbounded
+@@ -48,17 +48,17 @@
+         ..BASE_U64
+     }
+ }
+ 
+ /// Budgeted config with unbounded eviction mode.
+ #[must_use]
+ pub const fn budget_config_unbounded(budget: usize) -> Config<u64> {
+     Config {
+-        budget: Some(budget),
++         /* ~ changed by cargo-mutants ~ */
+         bounded_eviction: false,
+         ..BASE_U64
+     }
+ }
+ 
+ /// Tight budget: minimum allowed budget for buffer=3 (headroom=81,
+ /// budget=82, `soft_limit`=1).
+ #[must_use]

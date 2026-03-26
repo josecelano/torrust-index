@@ -1,0 +1,21 @@
+--- packages/mudlark/src/contour_range.rs
++++ replace >= with < in validate_endpoints
+@@ -303,17 +303,17 @@
+     if !plateaus.contains_key(&start) {
+         return None;
+     }
+     // CR-I1: end must be a basis edge or the domain sentinel.
+     if end != BasisEdge(domain_end) && !plateaus.contains_key(&end) {
+         return None;
+     }
+     // CR-I1: start < end.
+-    if start >= end {
++    if start < /* ~ changed by cargo-mutants ~ */ end {
+         return None;
+     }
+     Some(())
+ }
+ 
+ /// Sum of individual plateau energies within `[start, end)`.
+ ///
+ /// Collects plateaus whose basis edge `a_j ∈ [start, end)` and

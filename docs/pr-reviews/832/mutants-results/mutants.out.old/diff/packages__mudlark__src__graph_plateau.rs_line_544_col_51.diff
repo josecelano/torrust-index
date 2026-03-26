@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::place_basis_element
+@@ -536,17 +536,17 @@
+         // Consolidate: if gnode's tree-structural sibling is also a
+         // basis element of the same plateau, merge both into the
+         // parent — maintaining the minimal basis (§IDEA M-5.6.1 rule 2).
+         self.consolidate_basis_up(gnode);
+ 
+         // If the placed node is semi-internal, it may violate P-I4
+         // (thatch one-hop).  Queue it for the drain in repair_p_i4.
+         // (consolidation never removes semi-internals, so this is safe.)
+-        if self.gnodes.get(gnode.index()).state() == crate::gnode::GState::SemiInternal {
++        if self.gnodes.get(gnode.index()).state() != /* ~ changed by cargo-mutants ~ */ crate::gnode::GState::SemiInternal {
+             let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
+             self.pending_p_i4.push((gnode, final_key));
+         }
+     }
+ 
+     /// Collect `(GNodeId, u32)` pairs for a subtree's basis elements
+     /// without placing them.  Read-only counterpart to
+     /// `place_subtree_basis_elements`.

@@ -1,0 +1,28 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_v_i3_max_uncle with ()
+@@ -480,24 +480,17 @@
+ }
+ 
+ // ── V-I3: Max-uncle constraint ──────────────────────────────────────
+ 
+ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, v) in graph.vnodes().iter_occupied() {
+-        let v_id = VNodeId::from_index(idx);
+-        if is_violated(graph.vnodes(), v_id) {
+-            let int = v.intensity.to_f64_approx();
+-            let uncle = crate::rebalance::max_uncle_intensity(graph.vnodes(), v_id).map_or(f64::NAN, Inspectable::to_f64_approx);
+-            errors.push(format!("V-I3 violated at V-node {idx}: intensity={int}, max_uncle={uncle}"));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I5: Entry-leaf ────────────────────────────────────────────────
+ 
+ fn check_v_i5_entry_leaf<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace + with - in dump_plateaus
+@@ -240,17 +240,17 @@
+                 writeln!(out, "    !! DANGLING GNodeId({}) — slot deallocated !!", gid.index()).unwrap();
+                 continue;
+             }
+             let g = graph.gnodes().get(gid.index());
+             let state = state_label(g.state());
+             let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+             let contour_depth = match g.state() {
+                 GState::Terminal | GState::SemiInternal => g_depth,
+-                GState::Internal => g_depth + 1,
++                GState::Internal => g_depth - /* ~ changed by cargo-mutants ~ */ 1,
+             };
+             let parent_str = g.parent.map_or_else(|| "None".to_string(), |p| format!("G({})", p.index()));
+             let left_str = g.left.map_or_else(|| "_".to_string(), |l| format!("G({})", l.index()));
+             let right_str = g.right.map_or_else(|| "_".to_string(), |r| format!("G({})", r.index()));
+             let lineage = semi_internal_lineage(graph, gid);
+ 
+             writeln!(out,
+                 "    G({:>3}) {state} [{:>6.1}, {:>6.1})  d={g_depth} contour_d={contour_depth}  par={parent_str} L={left_str} R={right_str}  sum={:.1}{lineage}",

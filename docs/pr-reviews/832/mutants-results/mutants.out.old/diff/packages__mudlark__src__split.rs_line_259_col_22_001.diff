@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace += with *= in catalytic_split
+@@ -251,17 +251,17 @@
+         *is_exposed = false;
+         *is_evictable = false;
+     }
+ 
+     // Propagate evictable flags upward from p.
+     propagate_evictable_flags(&mut graph.vnodes, p_id);
+ 
+     // Update node count.
+-    graph.node_count += 2;
++    graph.node_count *= /* ~ changed by cargo-mutants ~ */ 2;
+     // +2 new terminals, −1 parent no longer terminal = net +1.
+     graph.terminal_count += 1;
+ 
+     // Plateau maintenance (no-op without `plateau` feature).
+     graph.plateau_after_catalytic_split(g_id, left_id);
+ 
+     #[cfg(feature = "dynamic-contour-tracking")]
+     if tracing::enabled!(tracing::Level::DEBUG) {

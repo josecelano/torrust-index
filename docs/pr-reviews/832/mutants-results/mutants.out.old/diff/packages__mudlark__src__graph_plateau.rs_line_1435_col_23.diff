@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::plateau_after_bootstrap_split
+@@ -1427,17 +1427,17 @@
+         let left_depth =
+             crate::gtree::gnode_depth_from_interval(self.gnodes.get(left_id.index()).lo, self.gnodes.get(left_id.index()).hi, N);
+         let right_depth = crate::gtree::gnode_depth_from_interval(
+             self.gnodes.get(right_id.index()).lo,
+             self.gnodes.get(right_id.index()).hi,
+             N,
+         );
+ 
+-        if left_depth == right_depth {
++        if left_depth != /* ~ changed by cargo-mutants ~ */ right_depth {
+             // Power-of-2 domain: parent subtree is uniform, place
+             // parent as a single basis element.
+             self.place_basis_element(g_id, left_depth);
+         } else {
+             // Non-power-of-2 domain (e.g. u8/N=8, domain_max=255):
+             // children have different depths, so the parent subtree
+             // is not uniform. Place each child individually.
+             tracing::debug!(

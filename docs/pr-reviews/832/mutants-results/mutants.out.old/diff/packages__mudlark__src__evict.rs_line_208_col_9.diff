@@ -1,0 +1,38 @@
+--- packages/mudlark/src/evict.rs
++++ delete match arm 2 in evict_tip
+@@ -200,34 +200,17 @@
+     // - 2-node collapse cousins (source 9, §IDEA M-11.11.3): The OTHER children
+     //   of the grandparent have their children potentially violated
+     //   because those children's uncle changed from v_parent to sole.
+     //
+     // - 3→2 transition (source 8, §IDEA M-11.11.3): The remaining siblings'
+     //   children lose the removed entry as a potential uncle. Their
+     //   max_uncle may decrease.
+     match child_count {
+-        2 => {
+-            // Collapse: check the surviving sibling's children (source 7).
+-            if let Some(sole) = collapse_sibling {
+-                tracing::debug!(sole = sole.index(), "evict_tip: calling push_collapse_violations");
+-                rebalance::push_collapse_violations(&graph.vnodes, sole, &mut graph.violations);
+-
+-                // Also check the cousins' children (source 9).
+-                // change_point is the grandparent in the collapse case.
+-                if let Some(grandparent) = change_point {
+-                    tracing::debug!(
+-                        sole = sole.index(),
+-                        grandparent = grandparent.index(),
+-                        "evict_tip: calling push_cousin_violations (source 9)",
+-                    );
+-                    rebalance::push_cousin_violations(&graph.vnodes, sole, grandparent, &mut graph.violations);
+-                }
+-            }
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         3 => {
+             // 3→2: check all remaining children of the parent.
+             // v_id is already removed from the parent's children list,
+             // so we check all current children.
+             if let Some(p) = v_parent {
+                 tracing::debug!(parent = p.index(), "evict_tip: calling push_remaining_sibling_violations");
+                 rebalance::push_remaining_sibling_violations(
+                     &graph.vnodes,

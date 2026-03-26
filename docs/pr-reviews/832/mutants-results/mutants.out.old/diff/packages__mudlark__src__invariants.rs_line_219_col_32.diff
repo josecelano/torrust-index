@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in dump_plateaus
+@@ -211,17 +211,17 @@
+     .unwrap();
+ 
+     for (key, plateau) in plateaus {
+         // Tiling range: from this key to the next key.
+         let next_key = plateaus
+             .range(std::ops::RangeFrom {
+                 start: crate::plateau::BasisEdge(plateau.end),
+             })
+-            .find(|&(k, _)| *k != *key)
++            .find(|&(k, _)| *k == /* ~ changed by cargo-mutants ~ */ *key)
+             .map(|(k, _)| k.0.to_f64());
+         let tile_end = next_key.map_or_else(|| "∞".to_string(), |v| format!("{v:.1}"));
+ 
+         writeln!(
+             out,
+             "  Plateau {key:?}  depth={}  tile=[{:.1}, {tile_end})  span=[{:.1},{:.1})  sum={:.1}",
+             plateau.depth,
+             key.0.to_f64(),

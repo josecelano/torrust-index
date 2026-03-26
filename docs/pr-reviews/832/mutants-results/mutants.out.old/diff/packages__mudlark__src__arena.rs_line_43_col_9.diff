@@ -1,0 +1,21 @@
+--- packages/mudlark/src/arena.rs
++++ replace Arena<T>::count -> u32 with 0
+@@ -35,17 +35,17 @@
+             count: 0,
+         }
+     }
+ 
+     /// Number of live (occupied) entries.
+     #[must_use]
+     #[inline]
+     pub const fn count(&self) -> u32 {
+-        self.count
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Allocate a slot, returning its 0-based index.
+     ///
+     /// Reuses a previously freed slot if available, otherwise grows
+     /// the backing `Vec`.
+     pub fn alloc(&mut self, value: T) -> usize {
+         let index = if let Some(idx) = self.free.pop() {

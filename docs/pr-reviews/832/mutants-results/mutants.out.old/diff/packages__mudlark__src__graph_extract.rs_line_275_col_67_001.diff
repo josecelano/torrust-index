@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_extract.rs
++++ replace + with * in <impl Iterator for Layers<'_, C, V, N>>::next
+@@ -267,17 +267,17 @@
+         loop {
+             let (vid, bfs_depth) = self.queue.pop_front()?;
+             let vnode = self.graph.vnodes.get(vid.index());
+ 
+             match &vnode.kind {
+                 VKind::Structural { children, .. } => {
+                     for i in 0..children.len() {
+                         let (child_id, _) = children.get(i);
+-                        self.queue.push_back((child_id, bfs_depth + 1));
++                        self.queue.push_back((child_id, bfs_depth * /* ~ changed by cargo-mutants ~ */ 1));
+                     }
+                     // Skip structural nodes — continue loop.
+                 }
+                 VKind::Entry { gnode, .. } => {
+                     let g = self.graph.gnodes.get(gnode.index());
+                     let g_depth = self.graph.gnode_depth(*gnode);
+                     let node = crate::view::Node {
+                         start: g.lo,

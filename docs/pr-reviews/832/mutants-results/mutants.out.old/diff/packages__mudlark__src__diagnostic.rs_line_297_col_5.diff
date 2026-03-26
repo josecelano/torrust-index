@@ -1,0 +1,27 @@
+--- packages/mudlark/src/diagnostic.rs
++++ replace is_ancestor -> bool with true
+@@ -289,23 +289,17 @@
+             }
+             None => break,
+         }
+     }
+ }
+ 
+ /// Check if `ancestor` is an ancestor of `descendant` in the V-tree.
+ fn is_ancestor<V: Accumulator>(vnodes: &Arena<VNode<V>>, ancestor: VNodeId, mut descendant: VNodeId) -> bool {
+-    while let Some(p) = vnodes.get(descendant.index()).parent {
+-        if p == ancestor {
+-            return true;
+-        }
+-        descendant = p;
+-    }
+-    false
++    true /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Display helpers ─────────────────────────────────────────────────
+ 
+ /// G-node display: `G5(T,[0,128),sum=42)`.
+ ///
+ /// Shows the arena index, state (T/S/I for Terminal/SemiInternal/Internal),
+ /// interval, and accumulated sum.

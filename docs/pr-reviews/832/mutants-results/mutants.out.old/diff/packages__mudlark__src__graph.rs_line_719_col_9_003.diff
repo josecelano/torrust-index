@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::config -> &Config<V> with Box::leak(Box::new(Config::from(Default::default())))
+@@ -711,17 +711,17 @@
+     /// # let g = GvGraph::<u64, u64, 8>::new(config);
+     /// assert_eq!(g.config().split_threshold, 5u64);
+     /// assert_eq!(g.config().depth_create, 3);
+     /// assert_eq!(g.config().depth_evict, 6);
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn config(&self) -> &Config<V> {
+-        &self.config
++        Box::leak(Box::new(Config::from(Default::default()))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The configured hard node-count ceiling, or `None` if unbounded.
+     ///
+     /// Shorthand for `self.config().budget`. Useful in generic code
+     /// that only needs to inspect the budget without borrowing the
+     /// full `Config`.
+     ///

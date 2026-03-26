@@ -1,0 +1,58 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_g_i4_entry_consistency with ()
+@@ -374,54 +374,17 @@
+ }
+ 
+ // ── G-I4: Entry consistency ─────────────────────────────────────────
+ 
+ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (idx, g) in graph.gnodes().iter_occupied() {
+-        if let Some(v_id) = g.entry {
+-            if !graph.vnodes().is_occupied(v_id.index()) {
+-                errors.push(format!(
+-                    "G-I4 violated at G-node {idx}: entry V-node {} is not occupied",
+-                    v_id.index()
+-                ));
+-                continue;
+-            }
+-            let v = graph.vnodes().get(v_id.index());
+-
+-            // Intensity must match own.
+-            let g_own = g.own.to_f64_approx();
+-            let v_int = v.intensity.to_f64_approx();
+-            if (g_own - v_int).abs() > 1e-9 {
+-                errors.push(format!(
+-                    "G-I4 violated at G-node {idx}: g.own={g_own}, entry.intensity={v_int}"
+-                ));
+-            }
+-
+-            // Back-link: entry must be a VKind::Entry pointing back.
+-            match &v.kind {
+-                VKind::Entry { gnode, .. } => {
+-                    let g_id = GNodeId::from_index(idx);
+-                    if *gnode != g_id {
+-                        errors.push(format!(
+-                            "G-I4 violated at G-node {idx}: entry's gnode={gnode:?}, expected {g_id:?}"
+-                        ));
+-                    }
+-                }
+-                VKind::Structural { .. } => {
+-                    errors.push(format!(
+-                        "G-I4 violated at G-node {idx}: entry is a structural V-node, not an entry"
+-                    ));
+-                }
+-            }
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── V-I1: Structural sum consistency ────────────────────────────────
+ 
+ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {

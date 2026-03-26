@@ -1,0 +1,51 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Pewei<C, V>::reconstruct -> Vec<Span<C, V>> with vec![]
+@@ -314,47 +314,17 @@
+     ///
+     /// // Energy conservation: span intensities sum to total energy.
+     /// let sum: u64 = spans.iter().map(|s| s.intensity).sum();
+     /// // Integer prorate truncation may lose at most N units.
+     /// assert!(pewei.total_energy().abs_diff(sum) <= 8);
+     /// ```
+     #[must_use]
+     pub fn reconstruct(&self, max_layer: usize) -> Vec<Span<C, V>> {
+-        if self.layers.is_empty() {
+-            return vec![Span {
+-                start: self.domain_start,
+-                end: self.domain_end,
+-                intensity: V::zero(),
+-                depth: 0,
+-            }];
+-        }
+-
+-        let max_layer = max_layer.min(self.layers.len() - 1);
+-        let visible = &self.layers[..=max_layer];
+-        let lookup = RegionLookup::build(visible);
+-
+-        // Pre-allocate: every terminal produces one span, every
+-        // transition produces at most one span (the invisible
+-        // sibling) plus passes through. The terminal count is a
+-        // tight lower bound; +1 accounts for the root if it appears
+-        // as a single truncated span.
+-        let estimated = visible.iter().map(|l| l.terminals.len() + l.transitions.len()).sum::<usize>() + 1;
+-        let mut output = Vec::with_capacity(estimated);
+-
+-        descend(
+-            &lookup,
+-            visible,
+-            self.domain_start,
+-            self.domain_end,
+-            0,
+-            V::zero(),
+-            &mut output,
+-        );
+-        output
++        vec![] /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── RegionLookup (private) ───────────────────────────────────────────
+ 
+ /// A reference into the `layers` slice — either a transition or a
+ /// terminal, identified by `(layer_index, item_index)`.
+ ///

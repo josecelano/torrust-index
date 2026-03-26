@@ -1,0 +1,48 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace GvGraph<C, V, N>::get -> crate::view::Cell<C, V> with Default::default()
+@@ -157,44 +157,17 @@
+     /// assert!(cell.start <= 42 && 42 < cell.end);
+     /// assert_eq!(cell.intensity, 10);
+     /// ```
+     ///
+     /// [`Cell`]: crate::view::Cell
+     #[must_use]
+     pub fn get(&self, coord: C) -> crate::view::Cell<C, V> {
+         // ── NaN guard (float types) ─────────────────────────────
+-        assert!(!coord.is_nan(), "get(): coordinate is NaN");
+-
+-        // ── Domain clamping (DC-026-4) ──────────────────────────
+-        let clamped = Self::clamp_to_domain(coord);
+-
+-        // ── Route to receiver ───────────────────────────────────
+-        let g_id = crate::gtree::route_to_receiver(&self.gnodes, self.g_root, clamped);
+-        let g = self.gnodes.get(g_id.index());
+-
+-        // ── Trim half-interval for semi-internals ───────────────
+-        let (start, end) = Self::trimmed_interval(g, clamped);
+-
+-        #[cfg(debug_assertions)]
+-        {
+-            // The returned cell's interval contains the (clamped) coord.
+-            debug_assert!(
+-                start <= clamped && clamped < end || (clamped == C::domain_max(N) && start < end),
+-                "get(): returned cell [{start:?}, {end:?}) does not \
+-                 contain clamped coord {clamped:?}",
+-            );
+-        }
+-
+-        crate::view::Cell {
+-            start,
+-            end,
+-            intensity: g.own,
+-            depth: crate::gtree::gnode_depth_from_interval(start, end, N),
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Clamp a coordinate to the domain `[0, 2^N)`.
+     ///
+     /// Out-of-range coordinates are projected inward:
+     /// - `coord < 0` (signed/float) → `C::zero()`
+     /// - `coord >= domain_max(N)` → `domain_max(N)` (routing handles
+     ///   this by always going right, landing in the rightmost terminal)

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace push_promoted_violations with ()
+@@ -730,17 +730,17 @@
+ }
+ 
+ /// Push direct children of `node` that are violated.
+ ///
+ /// After promotion or contraction, children move to a new uncle
+ /// context.  The spec's `find_deepest_violated_node()` (§IDEA M-11.8) would
+ /// discover these; our queue-based approach pushes them explicitly.
+ pub fn push_promoted_violations<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId, violations: &mut Vec<VNodeId>) {
+-    push_promoted_violations_with_config(vnodes, node, violations, ViolationSources::all_enabled());
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Push promoted violations with configurable source (source 4).
+ ///
+ /// Used for testing to prove this source catches violations others miss.
+ #[inline]
+ pub fn push_promoted_violations_with_config<V: Accumulator>(
+     vnodes: &Arena<VNode<V>>,

@@ -1,0 +1,28 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_plateau_btreemap_key_consistency with ()
+@@ -825,24 +825,17 @@
+ // ── Plateau BTreeMap key consistency ────────────────────────────────
+ 
+ /// For each `(key, plateau)` in the `BTreeMap`: `plateau.basis_edge == key`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_btreemap_key_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+-    for (&key, plateau) in &graph.plateaus {
+-        if plateau.basis_edge != key {
+-            errors.push(format!(
+-                "Plateau key consistency: BTreeMap key {key:?} != plateau.basis_edge {:?}",
+-                plateau.basis_edge
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── Plateau basis consistency ───────────────────────────────────────
+ 
+ /// Bidirectional forward/back map consistency and liveness.
+ ///
+ /// - Every forward entry `(key, gnodes)`: each gnode has `back[gnode] == key`.
+ /// - Every back entry `(gnode, key)`: `forward[key]` contains `gnode`.

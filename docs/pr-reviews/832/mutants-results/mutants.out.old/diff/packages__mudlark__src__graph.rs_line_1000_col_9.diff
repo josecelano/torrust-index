@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::headroom -> usize with 0
+@@ -992,17 +992,17 @@
+     /// # let g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// // buffer = 3, so headroom = 3^(3+1) = 81.
+     /// assert_eq!(g.headroom(), 81);
+     /// assert_eq!(g.headroom(), 3usize.pow(g.depth_buffer() + 1));
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn headroom(&self) -> usize {
+-        self.headroom
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Internal soft limit, or `None` if no budget
+     ///
+     #[allow(clippy::doc_markdown)]
+     /// $S = \text{budget} - \max(\text{headroom},\; 2(D_c - 1))$
+     ///
+     /// When `node_count` exceeds the soft limit, depth-gate

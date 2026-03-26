@@ -1,0 +1,15 @@
+--- packages/mudlark/src/traits/coordinate.rs
++++ replace <impl Coordinate for f64>::total_cmp -> std::cmp::Ordering with Default::default()
+@@ -341,11 +341,11 @@
+ 
+     #[inline]
+     fn is_nan(self) -> bool {
+         self.is_nan()
+     }
+ 
+     #[inline]
+     fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+-        Self::total_cmp(self, other)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }

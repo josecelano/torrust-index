@@ -1,0 +1,24 @@
+--- packages/mudlark/src/testing/builder.rs
++++ replace GraphCreator<C, V>::adversarial_cousins -> Self with Default::default()
+@@ -144,20 +144,17 @@
+         a: C,
+         b: C,
+         setup_delta: V,
+         n_setup: usize,
+         spike_delta_a: V,
+         spike_delta_b: V,
+         n_spikes: usize,
+     ) -> Self {
+-        self.plan = self
+-            .plan
+-            .adversarial_cousins(a, b, setup_delta, n_setup, spike_delta_a, spike_delta_b, n_spikes);
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     delegate! {
+         /// Phase-shifted oscillation between two close hotspots.
+         fn phase_shifted_oscillation(
+             a: C,
+             b: C,
+             high: V,

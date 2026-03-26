@@ -1,0 +1,43 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::debug_check_plateau_sums with ()
+@@ -1042,39 +1042,17 @@
+ 
+     /// Debug-only: assert that every plateau's tracked sum matches
+     /// recomputed `Σ basis_elements.sum`. Panics with a labelled
+     /// message identifying the offending plateau.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn debug_check_plateau_sums(&self, label: &str) {
+         // Always run in debug builds (cargo test); optionally in
+         // release when a tracing subscriber is active at DEBUG.
+-        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
+-            return;
+-        }
+-
+-        for (&key, plateau) in &self.plateaus {
+-            let elems: Vec<_> = self
+-                .plateau_basis
+-                .basis_elements(&key)
+-                .iter()
+-                .map(|&gid| {
+-                    let g = self.gnodes.get(gid.index());
+-                    (gid.index(), g.sum.to_f64_approx(), format!("{:?}", g.state()))
+-                })
+-                .collect();
+-            let expected: f64 = elems.iter().map(|e| e.1).sum();
+-            let actual = plateau.sum.to_f64_approx();
+-            assert!(
+-                (expected - actual).abs() < 1e-9,
+-                "{label}: plateau sum mismatch at key {key:?}\n\
+-                 tracked={actual}, recomputed={expected}\n\
+-                 basis_elements={elems:?}",
+-            );
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // ── Fixup + repair ──────────────────────────────────────────
+ 
+     /// Repair a plateau after one of its basis elements was removed.
+     ///
+     /// - Empty → remove the `BTreeMap` entry.
+     /// - Non-contiguous remainder → evacuate all elements and

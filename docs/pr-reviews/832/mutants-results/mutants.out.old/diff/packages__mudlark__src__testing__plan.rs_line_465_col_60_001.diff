@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace - with / in Plan<C, V>::diamond
+@@ -457,17 +457,17 @@
+     pub fn diamond(mut self, domain: u64, delta: V, n: usize) -> Self {
+         let half = n / 2;
+         // Converge: outside → center
+         for i in 0..half {
+             let offset = i as u64 % (domain / 2);
+             if i % 2 == 0 {
+                 self.observations.push((C::from_u64(offset), delta));
+             } else {
+-                self.observations.push((C::from_u64(domain - 1 - offset), delta));
++                self.observations.push((C::from_u64(domain / /* ~ changed by cargo-mutants ~ */ 1 - offset), delta));
+             }
+         }
+         // Diverge: center → outside
+         let center = domain / 2;
+         for i in 0..(n - half) {
+             let offset = i as u64 % (domain / 2);
+             if i % 2 == 0 {
+                 let coord = (center + offset).min(domain - 1);

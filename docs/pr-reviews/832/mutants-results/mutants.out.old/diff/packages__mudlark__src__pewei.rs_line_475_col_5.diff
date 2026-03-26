@@ -1,0 +1,24 @@
+--- packages/mudlark/src/pewei.rs
++++ replace node_total -> V with Default::default()
+@@ -467,20 +467,17 @@
+ }
+ 
+ // ── descend (private) ────────────────────────────────────────────────
+ 
+ /// Resolve a `NodeRef` to the total energy of that node.
+ ///
+ /// Terminals: `intensity`. Transitions: `total`.
+ fn node_total<C: Coordinate, V: Accumulator>(layers: &[Layer<C, V>], nr: NodeRef) -> V {
+-    match nr {
+-        NodeRef::Terminal { layer, idx } => layers[layer as usize].terminals[idx as usize].intensity,
+-        NodeRef::Transition { layer, idx } => layers[layer as usize].transitions[idx as usize].total,
+-    }
++    Default::default() /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Top-down recursive descent for PEWEI reconstruction (ADR-M-023
+ /// DC-023-2).
+ ///
+ /// `accumulated` carries the ancestral background pro-rated to the
+ /// current region. At every node the energy accounting identity
+ /// holds: the total intensity emitted for a region equals

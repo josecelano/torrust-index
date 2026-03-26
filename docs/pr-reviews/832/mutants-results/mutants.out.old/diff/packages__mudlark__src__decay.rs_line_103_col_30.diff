@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ replace == with != in GvGraph<C, V, N>::decay
+@@ -95,17 +95,17 @@
+         );
+ 
+         // No-op: factor of exactly 1.0 changes nothing.
+         #[allow(clippy::float_cmp)] // Intentional exact comparison for the no-op case.
+         if attenuation == 1.0 {
+             return;
+         }
+ 
+-        let is_global = root == self.g_root;
++        let is_global = root != /* ~ changed by cargo-mutants ~ */ self.g_root;
+ 
+         let _span = tracing::debug_span!("decay", root = root.index(), attenuation, q,).entered();
+ 
+         if q == 0.0 {
+             self.decay_uniform(root, attenuation, is_global);
+         } else {
+             self.decay_selective(root, attenuation, q, is_global);
+         }

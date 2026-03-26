@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace * with + in Plan<C, V>::checkerboard
+@@ -543,17 +543,17 @@
+         let half = n / 2;
+         // Even coords
+         for i in 0..half {
+             let coord = (i as u64 * 2) % domain;
+             self.observations.push((C::from_u64(coord), delta_even));
+         }
+         // Odd coords
+         for i in 0..(n - half) {
+-            let coord = (i as u64 * 2 + 1) % domain;
++            let coord = (i as u64 + /* ~ changed by cargo-mutants ~ */ 2 + 1) % domain;
+             self.observations.push((C::from_u64(coord), delta_odd));
+         }
+         self
+     }
+ 
+     /// Pincer: two fronts approaching each other from opposite ends
+     /// of `[lo, hi]`.
+     ///

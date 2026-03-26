@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace match guard ck == key with false in check_p_i4_thatch_one_hop
+@@ -1376,17 +1376,17 @@
+             let child_g = graph.gnodes().get(child_id.index());
+             let child_lo = child_g.lo;
+ 
+             // Route through the BTreeMap to find which plateau covers
+             // child.lo.
+             let child_plateau_key = graph.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);
+ 
+             match child_plateau_key {
+-                Some(ck) if ck == key => {
++                Some(ck) if false /* ~ changed by cargo-mutants ~ */ => {
+                     errors.push(format!(
+                         "P-I4 thatch one-hop: semi-internal {gid:?} in plateau {key:?} \
+                          thatches child {child_id:?}, but child's plateau key {ck:?} == parent's"
+                     ));
+                 }
+                 None => {
+                     errors.push(format!(
+                         "P-I4 thatch one-hop: semi-internal {gid:?} in plateau {key:?}: \

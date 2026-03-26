@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::plateau_basis -> &PlateauBasis<C> with Box::leak(Box::new(PlateauBasis::from(Default::default())))
+@@ -318,17 +318,17 @@
+ 
+     // ── Basis accessors ─────────────────────────────────────────
+ 
+     /// Crate-internal access to the plateau basis bookkeeping.
+     #[cfg(feature = "dynamic-contour-tracking")]
+     #[must_use]
+     #[inline]
+     pub(crate) const fn plateau_basis(&self) -> &PlateauBasis<C> {
+-        &self.plateau_basis
++        Box::leak(Box::new(PlateauBasis::from(Default::default()))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Diagnostic: for each plateau, return the `BasisEdge` key and
+     /// the list of `(GNodeId_index, lo, hi, state, g_depth)` tuples
+     /// for its basis elements.
+     ///
+     /// This exposes `pub(crate)` basis bookkeeping for integration
+     /// tests that need to diagnose plateau invariant violations.

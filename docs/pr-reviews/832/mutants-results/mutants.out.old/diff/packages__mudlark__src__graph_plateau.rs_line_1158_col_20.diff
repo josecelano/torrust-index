@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace == with != in GvGraph<C, V, N>::fixup_plateau
+@@ -1150,17 +1150,17 @@
+ 
+         // ── Contiguous remainder — normal recompute / re-key ────
+         let min_key: BasisEdge<C> = element_ids
+             .iter()
+             .map(|&gid| basis_edge_of(self.gnodes.get(gid.index())))
+             .min()
+             .unwrap();
+ 
+-        if min_key == old_key {
++        if min_key != /* ~ changed by cargo-mutants ~ */ old_key {
+             self.recompute_plateau(&old_key);
+         } else {
+             // Re-key: move all elements to the new key.
+             for &eid in &element_ids {
+                 self.plateau_basis.remove(eid);
+             }
+             self.plateaus.remove(&old_key);
+             for &eid in &element_ids {

@@ -1,0 +1,62 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace GvGraph<C, V, N>::recompute_plateau with ()
+@@ -364,58 +364,17 @@
+     ///
+     /// Called after basis-membership changes. Does NOT re-key the
+     /// `BTreeMap` entry — the caller must handle key changes.
+     ///
+     /// No-op if the plateau has no basis elements (caller should
+     /// remove the `BTreeMap` entry instead).
+     #[cfg(feature = "dynamic-contour-tracking")]
+     pub(crate) fn recompute_plateau(&mut self, key: &BasisEdge<C>) {
+-        let elements = self.plateau_basis.basis_elements(key);
+-        if elements.is_empty() {
+-            return;
+-        }
+-
+-        let first = *elements.iter().next().unwrap();
+-        let mut min_lo = self.gnodes.get(first.index()).lo;
+-        let mut max_hi = self.gnodes.get(first.index()).hi;
+-        let mut sum = V::zero();
+-        let mut depth = 0u32;
+-
+-        for &gid in elements {
+-            let g = self.gnodes.get(gid.index());
+-            if g.lo.total_cmp(&min_lo) == std::cmp::Ordering::Less {
+-                min_lo = g.lo;
+-            }
+-            if g.hi.total_cmp(&max_hi) == std::cmp::Ordering::Greater {
+-                max_hi = g.hi;
+-            }
+-            sum = V::add(sum, g.sum);
+-
+-            // Depth: contour depth contributed by this basis element.
+-            // Terminal / Semi-internal: own depth.
+-            // Internal (balanced): actual uniform contour depth of
+-            //   the subtree — may be deeper than own_depth + 1 after
+-            //   consolidation merges multi-level balanced subtrees.
+-            let d = match g.state() {
+-                crate::gnode::GState::Terminal | crate::gnode::GState::SemiInternal => {
+-                    crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
+-                }
+-                crate::gnode::GState::Internal => uniform_contour_depth_of(&self.gnodes, gid, N)
+-                    .unwrap_or_else(|| crate::gtree::gnode_depth_from_interval(g.lo, g.hi, N) + 1),
+-            };
+-            depth = depth.max(d);
+-        }
+-
+-        if let Some(p) = self.plateaus.get_mut(key) {
+-            p.start = min_lo;
+-            p.end = max_hi;
+-            p.sum = sum;
+-            p.depth = depth;
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Place a G-node as a new basis element into the correct
+     /// plateau, merging with same-depth neighbours when possible.
+     ///
+     /// | Left match | Right match | Action                          |
+     /// |:---:|:---:|:---|
+     /// | ✓ | ✓ | Merge element + right into left   |

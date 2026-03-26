@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/weighable.rs
++++ replace <impl Weighable for f32>::weight -> f64 with -1.0
+@@ -113,17 +113,17 @@
+ 
+ impl_weighable_uint!(u8, u16, u32, u64, u128);
+ 
+ // ── Floating-point implementations ──────────────────────────────────
+ 
+ impl Weighable for f32 {
+     #[inline]
+     fn weight(self) -> f64 {
+-        f64::from(self)
++        -1.0 /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Weighable for f64 {
+     #[inline]
+     fn weight(self) -> f64 {
+         self
+     }

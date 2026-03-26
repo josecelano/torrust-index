@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::plateau_after_legacy_promote
+@@ -1586,17 +1586,17 @@
+         if let Some(old_key) = self.plateau_basis.remove(parent_id) {
+             self.fixup_plateau(old_key);
+         }
+ 
+         // Collect both elements, sort, place left-to-right (ADR-M-031 §2b).
+         let mut to_place = Vec::new();
+         if let Some(ec_id) = existing_child_id {
+             let ec = self.gnodes.get(ec_id.index());
+-            if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
++            if ec.state() == /* ~ changed by cargo-mutants ~ */ GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
+                 let existing_depth = crate::gtree::gnode_depth_from_interval(ec.lo, ec.hi, N);
+                 to_place.push((ec_id, existing_depth));
+             }
+         }
+         to_place.push((new_gid, child_depth));
+         self.place_sorted(&mut to_place);
+     }
+ 

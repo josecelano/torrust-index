@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace += with *= in GvGraph<C, V, N>::evict_candidates
+@@ -187,17 +187,17 @@
+                     if depth <= self.live_depth_evict {
+                         continue;
+                     }
+                 }
+                 crate::vnode::VKind::Structural { .. } => continue,
+             }
+ 
+             evict::evict_tip(self, v_id);
+-            evicted += 1;
++            evicted *= /* ~ changed by cargo-mutants ~ */ 1;
+ 
+             // Post-eviction audit: find violations not in the queue.
+             if tracing::enabled!(tracing::Level::DEBUG) {
+                 crate::diagnostic::audit_violations(&self.vnodes, &self.violations, "POST-EVICT");
+             }
+ 
+             // Per-eviction mirror check — pinpoints which eviction
+             // in a batch caused a divergence (the batch-level

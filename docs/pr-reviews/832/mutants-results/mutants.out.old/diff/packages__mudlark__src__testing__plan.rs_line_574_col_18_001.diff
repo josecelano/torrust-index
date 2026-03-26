@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace += with *= in Plan<C, V>::pincer
+@@ -566,17 +566,17 @@
+         let mut right = hi;
+         while left <= right {
+             for _ in 0..burst_per_step {
+                 self.observations.push((C::from_u64(left), delta));
+                 if left != right {
+                     self.observations.push((C::from_u64(right), delta));
+                 }
+             }
+-            left += 1;
++            left *= /* ~ changed by cargo-mutants ~ */ 1;
+             if right == 0 {
+                 break;
+             }
+             right -= 1;
+         }
+         self
+     }
+ 

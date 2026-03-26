@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace != with == in GvGraph<C, V, N>::repair_p_i4
+@@ -1237,17 +1237,17 @@
+             // different plateau or changed its state.
+             if self.plateau_basis.plateau_key(gid) != Some(pk) {
+                 continue;
+             }
+             if !self.gnodes.is_occupied(gid.index()) {
+                 continue;
+             }
+             let g = self.gnodes.get(gid.index());
+-            if g.state() != GState::SemiInternal {
++            if g.state() == /* ~ changed by cargo-mutants ~ */ GState::SemiInternal {
+                 continue;
+             }
+ 
+             let Some(child_id) = g.left.or(g.right) else {
+                 continue;
+             };
+             let child_lo = self.gnodes.get(child_id.index()).lo;
+             let child_pk = self.plateaus.range(..=BasisEdge(child_lo)).next_back().map(|(&k, _)| k);

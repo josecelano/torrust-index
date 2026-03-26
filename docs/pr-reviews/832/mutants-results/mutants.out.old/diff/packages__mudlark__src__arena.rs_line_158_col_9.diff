@@ -1,0 +1,23 @@
+--- packages/mudlark/src/arena.rs
++++ replace <impl Clone for Arena<T>>::clone -> Self with Default::default()
+@@ -150,19 +150,14 @@
+             .field("capacity", &self.slots.len())
+             .field("free_list_len", &self.free.len())
+             .finish_non_exhaustive()
+     }
+ }
+ 
+ impl<T: Default + Clone> Clone for Arena<T> {
+     fn clone(&self) -> Self {
+-        Self {
+-            slots: self.slots.clone(),
+-            occupied: self.occupied.clone(),
+-            free: self.free.clone(),
+-            count: self.count,
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {}

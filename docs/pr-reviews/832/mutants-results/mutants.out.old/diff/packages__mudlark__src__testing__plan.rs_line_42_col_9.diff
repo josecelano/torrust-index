@@ -1,0 +1,22 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::observe -> Self with Default::default()
+@@ -34,18 +34,17 @@
+         Self {
+             observations: Vec::new(),
+         }
+     }
+ 
+     /// Single observation.
+     #[must_use]
+     pub fn observe(mut self, coord: C, delta: V) -> Self {
+-        self.observations.push((coord, delta));
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Repeat the same observation `n` times.
+     #[must_use]
+     pub fn observe_n(mut self, coord: C, delta: V, n: usize) -> Self {
+         self.observations.extend(std::iter::repeat((coord, delta)).take(n));
+         self
+     }

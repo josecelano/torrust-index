@@ -1,0 +1,21 @@
+--- packages/mudlark/src/rebalance.rs
++++ replace && with || in push_contraction_child_violations
+@@ -774,17 +774,17 @@
+     skip: VNodeId,
+     violations: &mut Vec<VNodeId>,
+ ) {
+     let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
+         VKind::Entry { .. } => return,
+     };
+     for child_id in child_ids {
+-        if child_id != skip && is_violated(vnodes, child_id) {
++        if child_id != skip || /* ~ changed by cargo-mutants ~ */ is_violated(vnodes, child_id) {
+             tracing::trace!(
+                 child = %Nd(vnodes, child_id),
+                 skip = skip.index(),
+                 "contraction-child violation",
+             );
+             violations.push(child_id);
+         }
+     }

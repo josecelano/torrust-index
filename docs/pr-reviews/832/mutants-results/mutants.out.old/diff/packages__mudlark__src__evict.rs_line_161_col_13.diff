@@ -1,0 +1,37 @@
+--- packages/mudlark/src/evict.rs
++++ delete match arm 2 in evict_tip
+@@ -153,33 +153,17 @@
+     let v_parent = graph.vnodes.get(v_id.index()).parent;
+     let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
+         let count = match &graph.vnodes.get(p.index()).kind {
+             VKind::Structural { children, .. } => children.len(),
+             VKind::Entry { .. } => 0,
+         };
+         match count {
+             3 => (3, Some(p), None), // 3→2: parent survives
+-            2 => {
+-                // 2-node collapse: find the surviving sibling.
+-                let sibling = match &graph.vnodes.get(p.index()).kind {
+-                    VKind::Structural { children, .. } => {
+-                        // Find the child that is NOT v_id.
+-                        let (c0, _) = children.get(0);
+-                        let (c1, _) = children.get(1);
+-                        if c0 == v_id {
+-                            Some(c1)
+-                        } else {
+-                            Some(c0)
+-                        }
+-                    }
+-                    VKind::Entry { .. } => None,
+-                };
+-                (2, graph.vnodes.get(p.index()).parent, sibling) // collapse: grandparent
+-            }
++             /* ~ changed by cargo-mutants ~ */
+             _ => (count, None, None),
+         }
+     });
+ 
+     graph.v_root = vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gnodes, v_id, graph.v_root);
+ 
+     // ── 6b. Leaf-removal violation walk (§IDEA M-11.11.3, source 6) ─────
+     // The intensity decrease propagates to all ancestors; at each

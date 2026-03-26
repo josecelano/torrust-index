@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace != with == in attempt_split
+@@ -39,17 +39,17 @@
+ 
+     // Guard: must be terminal (no G-children).
+     if g.left.is_some() || g.right.is_some() {
+         return;
+     }
+ 
+     // Guard: interval must be divisible.
+     let mid = C::midpoint(g.lo, g.hi);
+-    if mid.partial_cmp(&g.lo) != Some(std::cmp::Ordering::Greater) {
++    if mid.partial_cmp(&g.lo) == /* ~ changed by cargo-mutants ~ */ Some(std::cmp::Ordering::Greater) {
+         return;
+     }
+ 
+     // Guard: sum must exceed split threshold θ.
+     if g.sum.partial_cmp(&graph.config.split_threshold) != Some(std::cmp::Ordering::Greater) {
+         return;
+     }
+ 

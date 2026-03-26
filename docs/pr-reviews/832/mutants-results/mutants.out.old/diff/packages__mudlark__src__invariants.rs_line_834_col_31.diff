@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_plateau_btreemap_key_consistency
+@@ -826,17 +826,17 @@
+ 
+ /// For each `(key, plateau)` in the `BTreeMap`: `plateau.basis_edge == key`.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_plateau_btreemap_key_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     for (&key, plateau) in &graph.plateaus {
+-        if plateau.basis_edge != key {
++        if plateau.basis_edge == /* ~ changed by cargo-mutants ~ */ key {
+             errors.push(format!(
+                 "Plateau key consistency: BTreeMap key {key:?} != plateau.basis_edge {:?}",
+                 plateau.basis_edge
+             ));
+         }
+     }
+ }
+ 

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/config.rs
++++ replace f64_default_config -> Config<f64> with Config::new(0.0)
+@@ -171,17 +171,17 @@
+     }
+ }
+ 
+ // ── f64 presets ─────────────────────────────────────────────────
+ 
+ /// Standard f64 config: θ=5.0, `D_create`=3, `D_evict`=8.
+ #[must_use]
+ pub const fn f64_default_config() -> Config<f64> {
+-    BASE_F64
++    Config::new(0.0) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Deep f64 config for depth-saturation testing: θ=5.0,
+ /// `D_create`=8, `D_evict`=16.
+ #[must_use]
+ pub const fn f64_deep_config() -> Config<f64> {
+     Config {
+         depth_create: 8,

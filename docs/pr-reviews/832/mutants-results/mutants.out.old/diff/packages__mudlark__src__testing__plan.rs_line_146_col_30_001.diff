@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace / with * in Plan<C, V>::skewed
+@@ -138,17 +138,17 @@
+         self
+     }
+ 
+     /// Power-law skew: lower coordinates get disproportionate
+     /// intensity.  `coord = i % domain`, `delta = if coord < domain/4
+     /// { 10 + i%7 } else { 1 + i%3 }`.
+     #[must_use]
+     pub fn skewed(mut self, domain: u64, n: usize) -> Self {
+-        let quarter = domain / 4;
++        let quarter = domain * /* ~ changed by cargo-mutants ~ */ 4;
+         for i in 0..n {
+             let raw = i as u64 % domain;
+             let coord = C::from_u64(raw);
+             let delta = if raw < quarter {
+                 #[allow(clippy::cast_precision_loss)]
+                 V::from_f64((10 + (i as u64 % 7)) as f64)
+             } else {
+                 #[allow(clippy::cast_precision_loss)]

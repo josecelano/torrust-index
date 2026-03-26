@@ -1,0 +1,1018 @@
+
+*** packages/mudlark/src/rebalance.rs:1219:12: delete ! in resolve
+
+*** mutation diff:
+--- packages/mudlark/src/rebalance.rs
++++ delete ! in resolve
+@@ -1211,17 +1211,17 @@
+ 
+     // ── Phase 1: ensure p is a 2-node ───────────────────────────
+     if structural_child_count(vnodes, p) == 3 {
+         tracing::debug!(p = %Nd(vnodes, p), "phase 1: contracting 3-node parent");
+         let merged = contract(vnodes, p);
+         push_side_effect_violations(vnodes, p, violations);
+         push_side_effect_violations(vnodes, merged, violations);
+         push_contraction_child_violations(vnodes, p, c, violations);
+-        if !is_violated(vnodes, c) {
++        if  /* ~ changed by cargo-mutants ~ */is_violated(vnodes, c) {
+             tracing::debug!("phase 1: resolved by contraction");
+             return None;
+         }
+     }
+ 
+     let is_c_structural_2 = matches!(
+         &vnodes.get(c.index()).kind,
+         VKind::Structural { children, .. } if children.len() == 2
+
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh autocfg v1.5.0
+       Fresh regex-syntax v0.8.9
+       Fresh shlex v1.3.0
+       Fresh once_cell v1.21.3
+       Fresh find-msvc-tools v0.1.9
+       Fresh cc v1.2.56
+       Fresh tracing-core v0.1.36
+       Fresh regex-automata v0.4.14
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh memchr v2.8.0
+       Fresh clap_lex v1.0.0
+       Fresh plotters-backend v0.3.7
+       Fresh itoa v1.0.17
+       Fresh ciborium-io v0.2.2
+       Fresh pin-project-lite v0.2.16
+       Fresh anstyle v1.0.13
+       Fresh clap_builder v4.5.59
+       Fresh tracing v0.1.44
+       Fresh ciborium-ll v0.2.2
+       Fresh serde_json v1.0.149
+       Fresh plotters-svg v0.3.7
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh cast v0.3.0
+       Fresh same-file v1.0.6
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh tracing-log v0.2.0
+       Fresh sharded-slab v0.1.7
+       Fresh walkdir v2.5.0
+       Fresh criterion-plot v0.8.2
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh tinytemplate v1.2.1
+       Fresh ciborium v0.2.2
+       Fresh clap v4.5.59
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh rand_core v0.10.0
+       Fresh anes v0.1.6
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh nu-ansi-term v0.50.3
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Dirty torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark): the file `packages/mudlark/src/rebalance.rs` has changed (1773697005.216432063s, 28s after last build at 1773696977.994361610s)
+   Compiling torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5a9e0a69f43d7fca -C extra-filename=-2366ab04bb498037 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rmeta --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rmeta --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rmeta`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name torrust_mudlark --edition=2021 packages/mudlark/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=898ed3f7bb09811b -C extra-filename=-d93ef5a1599fb788 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_extract --edition=2021 packages/mudlark/tests/graph_extract.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b25b4d8d0ae86ac4 -C extra-filename=-d8ea3bb8ff779647 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_sample --edition=2021 packages/mudlark/tests/graph_sample.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=a66e6e9a2cda7dcc -C extra-filename=-c6a709e623f7f78b --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name plateau --edition=2021 packages/mudlark/tests/plateau.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=1a81ad230836981e -C extra-filename=-95c10d44796810e3 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name stress_patterns --edition=2021 packages/mudlark/tests/stress_patterns.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=14764f75c28bef0d -C extra-filename=-1950621664b2aea6 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_layers --edition=2021 packages/mudlark/tests/graph_layers.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b7179a97d74fc7cb -C extra-filename=-e9634184f1d16844 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name hex_binary_tree_mapping --edition=2021 packages/mudlark/tests/hex_binary_tree_mapping.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=d0f221a62df9e95b -C extra-filename=-9f1c0412caadf3e5 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name cascade --edition=2021 packages/mudlark/tests/cascade.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=bfb8c49d0594805d -C extra-filename=-af8281252aae4d3a --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction_debug --edition=2021 packages/mudlark/tests/eviction_debug.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=843d28e9ff2c972c -C extra-filename=-d641a01490593b9b --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name contour_range --edition=2021 packages/mudlark/tests/contour_range.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=5167658e6c2f1d22 -C extra-filename=-582eb105357d39f1 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction --edition=2021 packages/mudlark/tests/eviction.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=7eeaf5aa54ce35a2 -C extra-filename=-98ebe6e26f87dc3c --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name eviction_p_i2 --edition=2021 packages/mudlark/tests/eviction_p_i2.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=bdf9ebf07bc4d368 -C extra-filename=-f5b89f0593c4e035 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_range --edition=2021 packages/mudlark/tests/graph_range.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=b5de1fad1c5929ee -C extra-filename=-f5b59f9fc103957a --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name buffer_oscillation --edition=2021 packages/mudlark/tests/buffer_oscillation.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=f994ea8eeff6da5a -C extra-filename=-7e4325a17bf6aa7b --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name cross_type --edition=2021 packages/mudlark/tests/cross_type.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=c0316b9c5750aa24 -C extra-filename=-fb6c0ffda789ef4f --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name sentinel_api --edition=2021 packages/mudlark/tests/sentinel_api.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=0d6da5b4d16a653e -C extra-filename=-e043ed6af08a051d --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name bench_mirrors --edition=2021 packages/mudlark/tests/bench_mirrors.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=dc002b68751a8890 -C extra-filename=-5f5980eef58ce333 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name budget --edition=2021 packages/mudlark/tests/budget.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=d185f511541ecdb1 -C extra-filename=-91d630018a862f2d --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_terminal --edition=2021 packages/mudlark/tests/graph_terminal.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=873f10d433e6a265 -C extra-filename=-8a5121f63c2a986f --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+     Running `/home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustc --crate-name graph_point --edition=2021 packages/mudlark/tests/graph_point.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no -C debuginfo=2 --deny=unused --deny=warnings '--deny=clippy::suspicious' '--deny=clippy::style' --warn=rust-2024-compatibility --deny=rust-2021-compatibility --deny=rust-2018-idioms --deny=rust-2018-compatibility '--deny=clippy::perf' '--deny=clippy::pedantic' '--warn=clippy::nursery' --deny=nonstandard-style --deny=let-underscore --deny=future-incompatible --deny=deprecated-safe '--deny=clippy::correctness' '--deny=clippy::complexity' '--deny=clippy::all' --warn=unsafe-code '--allow=clippy::needless_return' -C debug-assertions=on --test --cfg 'feature="default"' --cfg 'feature="dynamic-contour-tracking"' --cfg 'feature="rand"' --cfg 'feature="serde"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("default", "dynamic-contour-tracking", "rand", "serde"))' -C metadata=21c9d3fc1140995f -C extra-filename=-63f77be8101a0f50 --out-dir /tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps --extern criterion=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libcriterion-b84a63839cb37f2c.rlib --extern rand_core=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/librand_core-b015e9dd1bce5577.rlib --extern serde=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde-1c6754470d6c8879.rlib --extern serde_json=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libserde_json-363d59a4b98be2da.rlib --extern torrust_mudlark=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtorrust_mudlark-2366ab04bb498037.rlib --extern tracing=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing-0f09a033a0ba4fd3.rlib --extern tracing_subscriber=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/libtracing_subscriber-fba044b037c0df52.rlib -L native=/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/build/alloca-85d769ec4bee2a20/out`
+    Finished `test` profile [optimized + debuginfo] target(s) in 24.04s
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/torrust_mudlark-d93ef5a1599fb788`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/bench_mirrors-5f5980eef58ce333`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/budget-91d630018a862f2d`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/buffer_oscillation-7e4325a17bf6aa7b`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/cascade-af8281252aae4d3a`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/contour_range-582eb105357d39f1`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/cross_type-fb6c0ffda789ef4f`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/eviction-98ebe6e26f87dc3c`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/eviction_debug-d641a01490593b9b`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/eviction_p_i2-f5b89f0593c4e035`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_extract-d8ea3bb8ff779647`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_layers-e9634184f1d16844`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_point-63f77be8101a0f50`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_range-f5b59f9fc103957a`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_sample-c6a709e623f7f78b`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/graph_terminal-8a5121f63c2a986f`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/hex_binary_tree_mapping-9f1c0412caadf3e5`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/plateau-95c10d44796810e3`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/sentinel_api-e043ed6af08a051d`
+  Executable `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/stress_patterns-1950621664b2aea6`
+
+*** result: Success
+
+*** /home/josecelano/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo test --verbose --package=torrust-mudlark@1.0.0
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.44
+       Fresh syn v2.0.116
+       Fresh serde_core v1.0.228
+       Fresh cfg-if v1.0.4
+       Fresh crossbeam-utils v0.8.21
+       Fresh serde_derive v1.0.228
+       Fresh zerocopy-derive v0.8.39
+       Fresh find-msvc-tools v0.1.9
+       Fresh autocfg v1.5.0
+       Fresh shlex v1.3.0
+       Fresh once_cell v1.21.3
+       Fresh regex-syntax v0.8.9
+       Fresh regex-automata v0.4.14
+       Fresh tracing-core v0.1.36
+       Fresh cc v1.2.56
+       Fresh zerocopy v0.8.39
+       Fresh serde v1.0.228
+       Fresh crossbeam-epoch v0.9.18
+       Fresh either v1.15.0
+       Fresh crossbeam-deque v0.8.6
+       Fresh half v2.7.1
+       Fresh zmij v1.0.21
+       Fresh tracing-attributes v0.1.31
+       Fresh itoa v1.0.17
+       Fresh clap_lex v1.0.0
+       Fresh anstyle v1.0.13
+       Fresh pin-project-lite v0.2.16
+       Fresh ciborium-io v0.2.2
+       Fresh plotters-backend v0.3.7
+       Fresh memchr v2.8.0
+       Fresh serde_json v1.0.149
+       Fresh plotters-svg v0.3.7
+       Fresh ciborium-ll v0.2.2
+       Fresh tracing v0.1.44
+       Fresh clap_builder v4.5.59
+       Fresh num-traits v0.2.19
+       Fresh rayon-core v1.13.0
+       Fresh libc v0.2.182
+       Fresh itertools v0.13.0
+       Fresh lazy_static v1.5.0
+       Fresh log v0.4.29
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh criterion-plot v0.8.2
+       Fresh walkdir v2.5.0
+       Fresh tracing-log v0.2.0
+       Fresh sharded-slab v0.1.7
+       Fresh page_size v0.6.0
+       Fresh rayon v1.11.0
+       Fresh plotters v0.3.7
+       Fresh alloca v0.4.0
+       Fresh clap v4.5.59
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh matchers v0.2.0
+       Fresh regex v1.12.3
+       Fresh thread_local v1.1.9
+       Fresh anes v0.1.6
+       Fresh rand_core v0.10.0
+       Fresh oorandom v11.1.5
+       Fresh smallvec v1.15.1
+       Fresh nu-ansi-term v0.50.3
+       Fresh tracing-subscriber v0.3.22
+       Fresh criterion v0.8.2
+       Fresh torrust-mudlark v1.0.0 (/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/packages/mudlark)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.21s
+     Running `/tmp/cargo-mutants-torrust-index-UHwX9Z.tmp/target/debug/deps/torrust_mudlark-d93ef5a1599fb788`
+
+running 346 tests
+test tests::arena::get_stale_handle_panics_in_debug - should panic ... ok
+test tests::arena::alloc_and_get ... ok
+test tests::arena::bitset_grows_correctly ... ok
+test tests::arena::dealloc_and_reuse ... ok
+test tests::arena::multiple_alloc_dealloc_cycles ... ok
+test tests::decay::decay_multiple_selective_preserves_invariants ... FAILED
+test tests::decay::decay_composition_k_steps ... FAILED
+test tests::decay::decay_energy_conservation_selective ... FAILED
+test tests::decay::decay_energy_conservation_uniform ... FAILED
+test tests::decay::decay_f64_tree ... ok
+test tests::decay::decay_panics_negative_q - should panic ... FAILED
+test tests::decay::decay_panics_q_above_one - should panic ... FAILED
+test tests::decay::decay_panics_zero_attenuation - should panic ... FAILED
+test tests::decay::decay_noop_at_attenuation_one ... FAILED
+test tests::decay::decay_amplification_above_one ... FAILED
+test tests::decay::decay_panics_nan_attenuation - should panic ... FAILED
+test tests::decay::decay_panics_negative_attenuation - should panic ... FAILED
+test tests::decay::decay_panics_nan_q - should panic ... FAILED
+test tests::decay::decay_multiple_uniform_preserves_invariants ... FAILED
+test tests::decay::decay_preserves_plateau_structure ... FAILED
+test tests::decay::decay_selective_preserves_invariants ... FAILED
+test tests::decay::decay_then_extract_roundtrip ... FAILED
+test tests::decay::decay_selective_coarse_persists_fine_fades ... ok
+test tests::decay::decay_uniform_subtree_preserves_invariants ... FAILED
+test tests::decay::decay_uniform_subtree_scales_only_target ... FAILED
+test tests::decay::decay_updates_plateau_sums ... FAILED
+test tests::decay::decay_selective_midpoint_matches_attenuation ... ok
+test tests::decay_f64_depth::minimal_f64_depth_saturation ... FAILED
+test tests::diagnostic::audit_plateau_consistency_passes_on_healthy_graph ... FAILED
+test tests::diagnostic::audit_violations_returns_empty_when_no_violations ... ok
+test tests::decay_f64_depth::trace_f64_depth_inconsistency_step_by_step ... ok
+test tests::diagnostic::decay_creates_span ... ok
+test tests::diagnostic::gn_display_dead_node ... ok
+test tests::diagnostic::gn_display_for_root ... ok
+test tests::decay::decay_single_node_selective ... ok
+test tests::diagnostic::normalize_plateaus_creates_span ... FAILED
+test tests::decay::decay_selective_q1_root_undecayed ... FAILED
+test tests::diagnostic::catalytic_split_creates_span ... ok
+test tests::decay::decay_uniform_global_preserves_invariants ... FAILED
+test tests::decay::decay_single_node_tree ... ok
+test tests::diagnostic::eviction_pipeline_creates_spans ... FAILED
+test tests::decay::decay_selective_subtree_leaves_other_half_unchanged ... FAILED
+test tests::diagnostic::observe_emits_debug_events ... FAILED
+test tests::diagnostic::plateau_mirror_consistency_runs_without_tracing ... FAILED
+test tests::diagnostic::plateau_sum_check_runs_without_tracing ... FAILED
+test tests::diagnostic::observe_runs_post_observe_audit_without_tracing ... FAILED
+test tests::diagnostic::gn_display_after_split ... ok
+test tests::diagnostic::rebalance_runs_residual_audit_without_tracing ... FAILED
+test tests::diagnostic::split_creates_bootstrap_split_span ... ok
+test tests::decay::decay_selective_subtree_preserves_invariants ... FAILED
+test tests::diagnostic::vtree_remove_leaf_creates_span ... FAILED
+test tests::diagnostic::audit_violations_returns_empty_after_observe ... FAILED
+test tests::decay_f64_depth::f64_depth_saturates_at_n ... ok
+test tests::decay::decay_uniform_global_all_own_scaled ... FAILED
+test tests::diagnostic::observe_emits_spans ... ok
+test tests::diagnostic::observe_creates_observe_span ... ok
+test tests::diagnostic::evict_tip_creates_span ... FAILED
+test tests::evict::evict_after_observations_conserves_energy ... ok
+test tests::evict::evict_both_children_makes_parent_terminal ... ok
+test tests::evict::evict_to_semi_internal_creates_thatch ... ok
+test tests::gnode::has_dependents_matches_state ... ok
+test tests::diagnostic::rebalance_creates_span ... FAILED
+test tests::decay::decay_uniform_global_scales_all_nodes ... FAILED
+test tests::evict::prunes_subtrees_without_evictable ... ok
+test tests::gnode::gnode_size ... ok
+test tests::gnode::is_semi_internal_matches_state ... ok
+test tests::gnode::state_semi_internal_right ... ok
+test tests::gnode::state_internal ... ok
+test tests::evict::no_candidates_when_within_d_evict ... ok
+test tests::evict::finds_candidates_past_d_evict ... ok
+test tests::evict::evict_single_terminal_child ... ok
+test tests::evict::evict_to_terminal_destroys_thatch ... ok
+test tests::gnode::state_terminal ... ok
+test tests::gnode::state_semi_internal_left ... ok
+test tests::gnode::uncovered_range_internal ... ok
+test tests::graph::check_evictions_bounded_respects_limit ... FAILED
+test tests::graph::check_evictions_return_value_matches_count_delta ... FAILED
+test tests::gnode::uncovered_range_terminal ... ok
+test tests::graph::config_validates_alpha_relax_one - should panic ... ok
+test tests::graph::config_validates_depth_create_zero - should panic ... ok
+test tests::graph::config_validates_alpha_relax_zero - should panic ... ok
+test tests::graph::gnode_depth_method_matches_free_function ... ok
+test tests::graph_init::initialize_single_root ... ok
+test tests::gtree::depth_f64_sub_unit_n4 ... ok
+test tests::graph::check_evictions_unbounded_evicts_all ... FAILED
+test tests::graph::config_rejects_budget_at_headroom - should panic ... ok
+test tests::graph::soft_limit_computed_correctly ... ok
+test tests::graph::config_validates_depth_gate - should panic ... ok
+test tests::gtree::recompute_single_node ... ok
+test tests::gtree::depth_n32_root ... ok
+test tests::gtree::route_with_children ... ok
+test tests::handle::niche_optimization ... ok
+test tests::handle::vnode_id_overflow - should panic ... ok
+test tests::observe::cascading_splits ... ok
+test tests::observe::observe_accumulates_additively ... ok
+test tests::gtree::route_single_node ... ok
+test tests::handle::handle_round_trip ... ok
+test tests::gtree::depth_half_n8 ... ok
+test tests::handle::gnode_id_overflow - should panic ... ok
+test tests::gtree::recompute_with_two_children ... ok
+test tests::observe::observe_accumulates_own ... ok
+test tests::gtree::depth_f64_root_n4 ... ok
+test tests::graph::dead_zone_no_change ... ok
+test tests::gtree::route_semi_internal ... ok
+test tests::graph::relax_when_under_alpha_budget ... ok
+test tests::graph::floor_prevents_excessive_tightening ... ok
+test tests::graph::get_semi_internal_right_child_trims_left ... FAILED
+test tests::gtree::depth_quarter_n8 ... ok
+test tests::observe::observe_updates_plateau_sum ... ok
+test tests::gtree::depth_leaf_n8 ... ok
+test tests::observe::observe_updates_v_entry_intensity ... ok
+test tests::graph::check_evictions_noop_when_none_eligible ... ok
+test tests::pewei::pewei_node_count_and_energy ... ok
+test tests::gtree::propagate_sums_upward ... ok
+test tests::graph::tighten_when_over_budget ... ok
+test tests::graph::di3_maintained_through_full_tighten_relax_cycle ... ok
+test tests::gtree::depth_f64_half_n4 ... ok
+test tests::observe::observe_no_split_below_threshold ... ok
+test tests::graph::shadow_fields_match_config_on_construction ... ok
+test tests::gtree::depth_f64_quarter_n4 ... ok
+test tests::gtree::depth_root_n8 ... ok
+test tests::observe::observe_violations_drained ... FAILED
+test tests::observe::v_entry_terminal_flag_flipped_after_split ... ok
+test tests::gtree::recompute_semi_internal ... ok
+test tests::graph::config_rejects_budget_below_headroom - should panic ... ok
+test tests::gnode::uncovered_range_semi_left ... ok
+test tests::graph::noop_when_budget_is_none ... ok
+test tests::graph::check_evictions_trailing_rebalance_clears_violations ... FAILED
+test tests::gnode::uncovered_range_semi_right ... ok
+test tests::graph::no_ceiling_relax_above_initial ... ok
+test tests::graph::get_semi_internal_left_child_trims_right ... FAILED
+test tests::pewei::empty_pewei_counts ... ok
+test tests::graph::get_semi_internal_depth_is_trimmed_depth ... FAILED
+test tests::observe::observe_violations_empty_after_eviction ... FAILED
+test tests::pewei::reconstruct_both_children_visible ... ok
+test tests::observe::observe_preserves_plateau_structure ... ok
+test tests::observe::observe_routes_after_split ... ok
+test tests::graph_init::initialize_full_domain ... ok
+test tests::observe::observe_triggers_bootstrap_split ... ok
+test tests::observe::observe_propagates_g_sums_correctly ... ok
+test tests::observe::observe_invariants_hold_after_eviction_cycle ... ok
+test tests::observe::observe_triggers_eviction_when_over_budget ... FAILED
+test tests::pewei::reconstruct_max_layer_clamped ... ok
+test tests::pewei::reconstruct_right_visible_left_invisible ... ok
+test tests::pewei::serde_round_trip_transition ... ok
+test tests::pewei::snr_float_types ... ok
+test tests::pewei::snr_nonzero_baseline ... ok
+test tests::pewei::snr_zero_baseline_returns_none ... ok
+test tests::pewei::terminal_width ... ok
+test tests::pewei::transition_width ... ok
+test tests::plan_builders::oscillating_hotspot_alternates_targets ... ok
+test tests::plan_builders::oscillating_hotspot_produces_expected_count ... ok
+test tests::plan_builders::oscillating_hotspot_zero_cycles_is_empty ... ok
+test tests::plan_builders::random_spray_chains_with_other_builders ... ok
+test tests::plan_builders::random_spray_coords_within_domain ... ok
+test tests::plan_builders::random_spray_different_seeds_differ ... ok
+test tests::plan_builders::random_spray_is_deterministic ... ok
+test tests::pewei::reconstruct_single_terminal ... ok
+test tests::pewei::reconstruct_energy_conservation_at_each_layer ... ok
+test tests::plateau::basis_edge_f64_nan_sorts_last ... ok
+test tests::pewei::reconstruct_empty_pewei ... ok
+test tests::plateau::basis_edge_of_semi_internal_child_right ... ok
+test tests::plan_builders::random_spray_produces_expected_count ... ok
+test tests::pewei::reconstruct_f64_coordinates ... ok
+test tests::plateau::basis_edge_of_balanced_internal ... ok
+test tests::pewei::reconstruct_one_visible_one_invisible_remainder ... ok
+test tests::plateau::basis_edge_as_btreemap_key ... ok
+test tests::pewei::reconstruct_integer_rounding ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_empty ... ok
+test tests::plateau::basis_edge_copy ... ok
+test tests::plateau::basis_edge_f64_as_btreemap_key ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_iter_ordered ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_forward_back_consistency ... ok
+test tests::pewei::reconstruct_output_sorted_by_start ... ok
+test tests::plateau::plateau_serde_round_trip ... ok
+test tests::plateau::plateau_size ... ok
+test tests::rebalance::escalation_direct_breaks_promote_cycle ... ok
+test tests::rebalance::escalation_indirect_child_of_heaviest_violated ... ok
+test tests::rebalance::rebalance_empty_queue_is_noop ... ok
+test tests::plateau::plateau_copy_semantics ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_remove ... ok
+test tests::plateau::plateau_cross_types ... ok
+test tests::rebalance::rebalance_skips_destroyed_node ... ok
+test tests::rebalance::rebalance_resolves_single_violation ... ok
+test tests::rebalance::source_10_full_rebalance_resolves_all ... ok
+test tests::rebalance::not_violated_when_equal_to_uncle ... ok
+test tests::rebalance::skip_promote_elevates_entry ... ok
+test tests::rebalance::escalation_with_structural_heaviest_child ... ok
+test tests::plateau::basis_edge_of_semi_internal_child_left ... ok
+test tests::rebalance::rebalance_skips_already_resolved ... ok
+test tests::rebalance::resolve_with_contraction_first ... FAILED
+test tests::plateau::plateau_to_span ... ok
+test tests::pewei::reconstruct_full_depth_matches_terminals ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_insert_lookup ... ok
+test tests::plateau::plateau_debug_clone_partialeq ... ok
+test tests::plateau::total_cmp_floats ... ok
+test tests::plateau::total_cmp_integers ... ok
+test tests::rebalance::no_violation_at_depth_1 ... ok
+test tests::rebalance::contract_3node_to_2node ... ok
+test tests::pewei::reconstruct_no_gaps_no_overlaps ... ok
+test tests::plateau::basis_edge_f64_neg_zero_vs_pos_zero ... ok
+test tests::plateau::basis_edge_of_terminal ... ok
+test tests::pewei::reconstruct_single_transition_truncated ... ok
+test tests::rebalance::source_4_catches_all_violated_children ... ok
+test tests::pewei::serde_round_trip_json ... ok
+test tests::plateau::basis_edge_serde_round_trip ... ok
+test tests::plateau::plateau_width_f64 ... ok
+test tests::plateau::basis_edge_ord_eq ... ok
+test tests::rebalance::contraction_child_violations_empty_when_target_is_only_violated ... ok
+test tests::rebalance::source_7_collapse_children_necessary ... ok
+test tests::plateau::plateau_width_u64 ... ok
+test tests::rebalance::structural_violation_resolved_by_rebalance ... ok
+test tests::rebalance::contraction_child_violations_skips_target ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_missing_key_returns_empty ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_multiple_plateaus ... ok
+test tests::plateau::basis_edge_u64_matches_native_ord ... ok
+test tests::rebalance::no_violation_at_depth_0 ... ok
+test tests::rebalance::not_violated_when_below_uncle ... ok
+test tests::plateau::plateau_basis_tests::plateau_basis_remove_nonexistent ... ok
+test tests::split::bootstrap_split_plateau_depth ... ok
+test tests::split::catalytic_split_after_bootstrap ... FAILED
+test tests::rebalance::violated_3node_grandparent_must_beat_both_uncles ... ok
+test tests::rebalance::structural_node_violated_while_leaves_safe ... ok
+test tests::split::catalytic_split_creates_boundary ... FAILED
+test tests::rebalance::violated_3node_grandparent_beats_both ... ok
+test tests::split::depth_gate_rejects_deep_split ... ok
+test tests::rebalance::source_4_promotion_children_necessary ... ok
+test tests::rebalance::source_8_three_to_two_transition_necessary ... ok
+test tests::structural::extract_semi_internal_is_transition ... ok
+test tests::split::bootstrap_split_creates_correct_structure ... ok
+test tests::split::bootstrap_split_plateau_count ... ok
+test tests::split::no_split_when_below_threshold ... ok
+test tests::rebalance::violated_when_above_uncle ... ok
+test tests::structural::extract_multi_node_classification ... ok
+test tests::split::no_split_when_width_1 ... ok
+test tests::split::catalytic_split_is_violation_free ... ok
+test tests::split::no_split_when_not_terminal ... ok
+test tests::split::preprocessing_contraction_before_catalytic_split ... ok
+test tests::rebalance::standard_promote_explodes_2node ... ok
+test tests::structural::get_all_terminals_covered ... ok
+test tests::rebalance::source_4_noop_when_children_safe ... ok
+test tests::rebalance::source_10_g_contraction_promotion_grandchildren_necessary ... ok
+test tests::rebalance::source_3_contraction_grandchildren_necessary ... ok
+test tests::traits::cross_type_f32_to_u16 ... ok
+test tests::traits::cross_type_f64_to_f32 ... ok
+test tests::traits::cross_type_f64_to_u16 ... ok
+test tests::traits::cross_type_f64_to_u64 ... ok
+test tests::traits::f32_sub ... ok
+test tests::traits::f64_accumulator ... ok
+test tests::traits::same_type_accumulate ... ok
+test tests::traits::sub_mirrors_add ... ok
+test tests::traits::observation_total_zero_edge ... ok
+test tests::traits::u64_accumulator ... ok
+test tests::traits::u128_domain_max_full ... ok
+test tests::traits::f64_midpoint ... ok
+test tests::rebalance::source_9_collapse_cousins_necessary ... ok
+test tests::traits::f64_sub ... ok
+test tests::traits::fixed_rng_returns_value ... ok
+test tests::traits::same_type_scale_panics - should panic ... ok
+test tests::structural::terminal_count_matches_arena_walk ... FAILED
+test tests::semi_internal_plateau::shape_b_si_right_child_only ... ok
+test tests::semi_internal_plateau::divergence_summary ... ok
+test tests::semi_internal_plateau::shape_e_multi_layer_overlap_end ... ok
+test tests::semi_internal_plateau::shape_a_si_left_child_only ... ok
+test tests::semi_internal_plateau::shape_l_all_terminal_control ... ok
+test tests::semi_internal_plateau::shape_g_thatch_sandwich ... ok
+test tests::semi_internal_plateau::shape_j_symmetric_outward_thatches ... ok
+test tests::semi_internal_plateau::shape_f_nested_si_chain ... ok
+test tests::semi_internal_plateau::shape_k_si_child_is_uniform_internal ... ok
+test tests::semi_internal_plateau::shape_d_multi_layer_overlap_start ... ok
+test tests::semi_internal_plateau::shape_i_multi_layer_deep_overlap ... ok
+test tests::semi_internal_plateau::shape_h_double_thatch_gap ... ok
+test tests::semi_internal_plateau::shape_c_thatch_thatch_sandwich ... ok
+test tests::structural::semi_internal_surviving_child_unaffected ... FAILED
+test tests::traits::f64_is_final ... ok
+test tests::semi_internal_plateau::shape_m_nonuniform_internal_no_si ... ok
+test tests::traits::u64_domain_max ... ok
+test tests::traits::u64_sub ... ok
+test tests::rebalance_stress::moderate_cascade_alternating_groups_spiked ... ok
+test tests::traits::u64_prorate ... ok
+test tests::traits::u8_sub ... ok
+test tests::traits::u64_is_final ... ok
+test tests::traits::u64_midpoint ... ok
+test tests::traits::u64_sub_underflow_panics - should panic ... ok
+test tests::view::cell_is_final_false ... ok
+test tests::view::cell_width ... ok
+test tests::view::node_f64_types ... ok
+test tests::rebalance_stress::large_violation_cascade_exceeds_fixed_10k_limit ... ok
+test tests::view::node_copy_semantics ... ok
+test tests::view::node_internal_to_cell_none ... ok
+test tests::view::cell_copy_semantics ... ok
+test tests::view::node_is_terminal ... ok
+test tests::view::node_semi_internal_to_cell_none ... ok
+test tests::view::node_refinement_internal ... ok
+test tests::view::cell_is_final_true ... ok
+test tests::view::cell_to_span ... ok
+test tests::view::node_terminal_to_cell ... ok
+test tests::view::cell_is_final_f64 ... ok
+test tests::view::node_refinement_f64 ... ok
+test tests::view::span_width_f64 ... ok
+test tests::view::node_to_span_uses_sum ... ok
+test tests::view::node_width ... ok
+test tests::view::span_width_u64 ... ok
+test tests::view::node_refinement_terminal_is_zero ... ok
+test tests::view::span_copy_semantics ... ok
+test tests::vnode::default_packed_children_is_empty ... ok
+test tests::vnode::find_index_returns_none_for_absent_id ... ok
+test tests::vnode::lightest_tiebreak_leftmost ... ok
+test tests::vnode::packed_children_new_3 ... ok
+test tests::vnode::packed_children_new_2 ... ok
+test tests::vnode::vnode_size ... ok
+test tests::vtree::collapse_2node_creates_violation_for_sibling_subtree ... ok
+test tests::vtree::remove_from_2node_collapse ... ok
+test tests::vtree::propagate_evictable_flags_basic ... ok
+test tests::vnode::iter_3node ... ok
+test tests::vnode::iter_2node ... ok
+test tests::vnode::packed_children_add_remove ... ok
+test tests::vnode::packed_children_replace ... ok
+test tests::vtree::insert_case1_empty_tree ... ok
+test tests::vtree::v_depth_one_under_structural_root ... ok
+test tests::vtree::insert_case2_single_entry_root ... ok
+test tests::vnode::update_intensity_reflects_in_get ... ok
+test tests::vtree::remove_from_3node_creates_violation_for_grandchild ... ok
+test tests::worked_example::step1_node_count_and_violations ... ok
+test tests::worked_example::depth_gates_unchanged_without_budget ... FAILED
+test tests::worked_example::step2_node_count_and_violations ... FAILED
+test tests::worked_example::step3_final_node_count ... FAILED
+test tests::worked_example::step2_g_tree_structure ... FAILED
+test tests::worked_example::step1_v_tree_structure ... ok
+test tests::worked_example::step3_g_tree_structure ... FAILED
+test tests::worked_example::step3_v_tree_uncle_shield ... FAILED
+test tests::worked_example::step1_g_tree_structure ... ok
+test tests::worked_example::step4_routing_into_deep_subtree ... FAILED
+test tests::worked_example::step4_split_into_atomic_interval ... FAILED
+test tests::worked_example::worked_example_full_sequence ... FAILED
+test tests::worked_example::energy_conserved_at_every_step ... FAILED
+test tests::worked_example::plan_serializes_and_deserializes ... FAILED
+test tests::worked_example::invariants_hold_at_every_step ... FAILED
+test tests::vtree::v_sum_propagation ... ok
+test tests::vtree::v_depth_root_entry_is_zero ... ok
+test tests::vtree::remove_root_entry ... ok
+test tests::vtree::v_depth_two_in_three_level_tree ... ok
+test tests::vtree::v_depth_after_bootstrap_split ... ok
+test tests::worked_example::step2_v_tree_after_skip_promote ... FAILED
+test tests::vtree::remove_from_3node_parent ... ok
+test tests::vtree::insert_case3_buddy_insert ... ok
+
+failures:
+
+---- tests::decay::decay_multiple_selective_preserves_invariants stdout ----
+
+thread 'tests::decay::decay_multiple_selective_preserves_invariants' (2607558) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_composition_k_steps stdout ----
+
+thread 'tests::decay::decay_composition_k_steps' (2607554) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_energy_conservation_selective stdout ----
+
+thread 'tests::decay::decay_energy_conservation_selective' (2607555) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_energy_conservation_uniform stdout ----
+
+thread 'tests::decay::decay_energy_conservation_uniform' (2607556) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_panics_negative_q stdout ----
+
+thread 'tests::decay::decay_panics_negative_q' (2607565) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "q must be in"
+---- tests::decay::decay_panics_q_above_one stdout ----
+
+thread 'tests::decay::decay_panics_q_above_one' (2607566) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "q must be in"
+---- tests::decay::decay_panics_zero_attenuation stdout ----
+
+thread 'tests::decay::decay_panics_zero_attenuation' (2607567) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "attenuation must be > 0"
+---- tests::decay::decay_noop_at_attenuation_one stdout ----
+
+thread 'tests::decay::decay_noop_at_attenuation_one' (2607560) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_amplification_above_one stdout ----
+
+thread 'tests::decay::decay_amplification_above_one' (2607553) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_panics_nan_attenuation stdout ----
+
+thread 'tests::decay::decay_panics_nan_attenuation' (2607561) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "attenuation must be > 0"
+---- tests::decay::decay_panics_negative_attenuation stdout ----
+
+thread 'tests::decay::decay_panics_negative_attenuation' (2607564) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "attenuation must be > 0"
+---- tests::decay::decay_panics_nan_q stdout ----
+
+thread 'tests::decay::decay_panics_nan_q' (2607563) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+note: panic did not contain expected string
+      panic message: "rebalance finished with residual violations: [VNodeId(9)]"
+ expected substring: "q must be in"
+---- tests::decay::decay_multiple_uniform_preserves_invariants stdout ----
+
+thread 'tests::decay::decay_multiple_uniform_preserves_invariants' (2607559) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_preserves_plateau_structure stdout ----
+
+thread 'tests::decay::decay_preserves_plateau_structure' (2607569) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_selective_preserves_invariants stdout ----
+
+thread 'tests::decay::decay_selective_preserves_invariants' (2607572) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_then_extract_roundtrip stdout ----
+
+thread 'tests::decay::decay_then_extract_roundtrip' (2607578) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_uniform_subtree_preserves_invariants stdout ----
+
+thread 'tests::decay::decay_uniform_subtree_preserves_invariants' (2607582) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(19)]
+
+---- tests::decay::decay_uniform_subtree_scales_only_target stdout ----
+
+thread 'tests::decay::decay_uniform_subtree_scales_only_target' (2607583) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(19)]
+
+---- tests::decay::decay_updates_plateau_sums stdout ----
+
+thread 'tests::decay::decay_updates_plateau_sums' (2607584) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay_f64_depth::minimal_f64_depth_saturation stdout ----
+[2m2026-03-16T21:37:09.622986Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv7(S3,20.0) ← v3(S2,30.0) [v7(20.0), v14(10.0)] ← v4(S2,40.0) [v0(10.0), v3(30.0)]  uncle_max=10.0
+
+thread 'tests::decay_f64_depth::minimal_f64_depth_saturation' (2607586) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::diagnostic::audit_plateau_consistency_passes_on_healthy_graph stdout ----
+
+thread 'tests::diagnostic::audit_plateau_consistency_passes_on_healthy_graph' (2607588) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::normalize_plateaus_creates_span stdout ----
+
+thread 'tests::diagnostic::normalize_plateaus_creates_span' (2607598) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_selective_q1_root_undecayed stdout ----
+[2m2026-03-16T21:37:09.623770Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,13) ← v3(S2,23) [v8(13), v12(10)] ← v4(S2,33) [v0(10), v3(23)]  uncle_max=10
+
+thread 'tests::decay::decay_selective_q1_root_undecayed' (2607573) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_uniform_global_preserves_invariants stdout ----
+[2m2026-03-16T21:37:09.623770Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,13) ← v3(S2,23) [v8(13), v12(10)] ← v4(S2,33) [v0(10), v3(23)]  uncle_max=10
+
+thread 'tests::decay::decay_uniform_global_preserves_invariants' (2607580) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::eviction_pipeline_creates_spans stdout ----
+
+thread 'tests::diagnostic::eviction_pipeline_creates_spans' (2607594) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::decay::decay_selective_subtree_leaves_other_half_unchanged stdout ----
+[2m2026-03-16T21:37:09.623870Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv18(S2,16) ← v11(S2,31) [v18(16), v22(15)] ← v15(S2,46) [v2(15), v11(31)]  uncle_max=15
+
+thread 'tests::decay::decay_selective_subtree_leaves_other_half_unchanged' (2607574) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(19)]
+
+---- tests::diagnostic::observe_emits_debug_events stdout ----
+
+thread 'tests::diagnostic::observe_emits_debug_events' (2607600) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::plateau_mirror_consistency_runs_without_tracing stdout ----
+[2m2026-03-16T21:37:09.624099Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v15(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::diagnostic::plateau_mirror_consistency_runs_without_tracing' (2607603) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::plateau_sum_check_runs_without_tracing stdout ----
+[2m2026-03-16T21:37:09.624188Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v15(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::diagnostic::plateau_sum_check_runs_without_tracing' (2607604) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::observe_runs_post_observe_audit_without_tracing stdout ----
+[2m2026-03-16T21:37:09.624152Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v15(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::diagnostic::observe_runs_post_observe_audit_without_tracing' (2607602) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::rebalance_runs_residual_audit_without_tracing stdout ----
+[2m2026-03-16T21:37:09.624370Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v15(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::diagnostic::rebalance_runs_residual_audit_without_tracing' (2607606) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_selective_subtree_preserves_invariants stdout ----
+[2m2026-03-16T21:37:09.624693Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv18(S2,16) ← v11(S2,31) [v18(16), v22(15)] ← v15(S2,46) [v2(15), v11(31)]  uncle_max=15
+
+thread 'tests::decay::decay_selective_subtree_preserves_invariants' (2607575) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(19)]
+
+---- tests::diagnostic::vtree_remove_leaf_creates_span stdout ----
+
+thread 'tests::diagnostic::vtree_remove_leaf_creates_span' (2607608) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::diagnostic::audit_violations_returns_empty_after_observe stdout ----
+[2m2026-03-16T21:37:09.624752Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v15(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::diagnostic::audit_violations_returns_empty_after_observe' (2607589) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_uniform_global_all_own_scaled stdout ----
+[2m2026-03-16T21:37:09.624778Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,13) ← v3(S2,23) [v8(13), v12(10)] ← v4(S2,33) [v0(10), v3(23)]  uncle_max=10
+
+thread 'tests::decay::decay_uniform_global_all_own_scaled' (2607579) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::diagnostic::evict_tip_creates_span stdout ----
+
+thread 'tests::diagnostic::evict_tip_creates_span' (2607593) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::diagnostic::rebalance_creates_span stdout ----
+
+thread 'tests::diagnostic::rebalance_creates_span' (2607605) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::decay::decay_uniform_global_scales_all_nodes stdout ----
+[2m2026-03-16T21:37:09.626773Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,13) ← v3(S2,23) [v8(13), v12(10)] ← v4(S2,33) [v0(10), v3(23)]  uncle_max=10
+
+thread 'tests::decay::decay_uniform_global_scales_all_nodes' (2607581) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::check_evictions_bounded_respects_limit stdout ----
+[2m2026-03-16T21:37:09.628828Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::check_evictions_bounded_respects_limit' (2607629) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::check_evictions_return_value_matches_count_delta stdout ----
+[2m2026-03-16T21:37:09.628936Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::check_evictions_return_value_matches_count_delta' (2607631) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::check_evictions_unbounded_evicts_all stdout ----
+[2m2026-03-16T21:37:09.629702Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::check_evictions_unbounded_evicts_all' (2607633) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::get_semi_internal_right_child_trims_left stdout ----
+[2m2026-03-16T21:37:09.635900Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::get_semi_internal_right_child_trims_left' (2607645) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::observe::observe_violations_drained stdout ----
+[2m2026-03-16T21:37:09.638824Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,20) ← v3(S2,20) [v1(20), v8(0)] ← v4(S2,30) [v0(10), v3(20)]  uncle_max=10
+
+thread 'tests::observe::observe_violations_drained' (2607688) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::graph::check_evictions_trailing_rebalance_clears_violations stdout ----
+[2m2026-03-16T21:37:09.639111Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::check_evictions_trailing_rebalance_clears_violations' (2607632) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::get_semi_internal_left_child_trims_right stdout ----
+[2m2026-03-16T21:37:09.639181Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::get_semi_internal_left_child_trims_right' (2607644) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::graph::get_semi_internal_depth_is_trimmed_depth stdout ----
+[2m2026-03-16T21:37:09.639264Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::graph::get_semi_internal_depth_is_trimmed_depth' (2607643) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::observe::observe_violations_empty_after_eviction stdout ----
+[2m2026-03-16T21:37:09.639296Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,12) ← v3(S2,12) [v1(12), v5(0)] ← v4(S2,18) [v0(6), v3(12)]  uncle_max=6
+
+thread 'tests::observe::observe_violations_empty_after_eviction' (2607689) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::observe::observe_triggers_eviction_when_over_budget stdout ----
+[2m2026-03-16T21:37:09.639658Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,20) ← v3(S2,20) [v1(20), v8(0)] ← v4(S2,30) [v0(10), v3(20)]  uncle_max=10
+
+thread 'tests::observe::observe_triggers_eviction_when_over_budget' (2607685) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::rebalance::resolve_with_contraction_first stdout ----
+[2m2026-03-16T21:37:09.646719Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv0(E,25) ← v4(S2,30) [v0(25), v6(5)] ← v5(S2,40) [v4(30), v3(10)]  uncle_max=10
+
+thread 'tests::rebalance::resolve_with_contraction_first' (2607766) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(1)]
+
+---- tests::split::catalytic_split_after_bootstrap stdout ----
+[2m2026-03-16T21:37:09.648490Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::split::catalytic_split_after_bootstrap' (2607817) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::split::catalytic_split_creates_boundary stdout ----
+[2m2026-03-16T21:37:09.648722Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv7(S3,20) ← v3(S2,30) [v7(20), v11(10)] ← v4(S2,40) [v0(10), v3(30)]  uncle_max=10
+
+thread 'tests::split::catalytic_split_creates_boundary' (2607818) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::structural::terminal_count_matches_arena_walk stdout ----
+[2m2026-03-16T21:37:09.653863Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv8(S2,12) ← v3(S2,18) [v8(12), v12(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::structural::terminal_count_matches_arena_walk' (2607829) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(9)]
+
+---- tests::structural::semi_internal_surviving_child_unaffected stdout ----
+[2m2026-03-16T21:37:09.656137Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv7(S3,12) ← v3(S2,18) [v7(12), v11(6)] ← v4(S2,24) [v0(6), v3(18)]  uncle_max=6
+
+thread 'tests::structural::semi_internal_surviving_child_unaffected' (2607828) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(8)]
+
+---- tests::worked_example::depth_gates_unchanged_without_budget stdout ----
+[2m2026-03-16T21:37:09.664973Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::depth_gates_unchanged_without_budget' (2607906) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step2_node_count_and_violations stdout ----
+[2m2026-03-16T21:37:09.665013Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step2_node_count_and_violations' (2607914) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step3_final_node_count stdout ----
+[2m2026-03-16T21:37:09.665068Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step3_final_node_count' (2607916) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step2_g_tree_structure stdout ----
+[2m2026-03-16T21:37:09.665125Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step2_g_tree_structure' (2607913) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step3_g_tree_structure stdout ----
+[2m2026-03-16T21:37:09.669852Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step3_g_tree_structure' (2607917) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step3_v_tree_uncle_shield stdout ----
+[2m2026-03-16T21:37:09.669852Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step3_v_tree_uncle_shield' (2607918) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step4_routing_into_deep_subtree stdout ----
+[2m2026-03-16T21:37:09.670953Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step4_routing_into_deep_subtree' (2607919) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step4_split_into_atomic_interval stdout ----
+[2m2026-03-16T21:37:09.671031Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step4_split_into_atomic_interval' (2607920) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::worked_example_full_sequence stdout ----
+[2m2026-03-16T21:37:09.671122Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::worked_example_full_sequence' (2607921) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::energy_conserved_at_every_step stdout ----
+[2m2026-03-16T21:37:09.671158Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::energy_conserved_at_every_step' (2607907) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::plan_serializes_and_deserializes stdout ----
+[2m2026-03-16T21:37:09.671169Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::plan_serializes_and_deserializes' (2607909) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::invariants_hold_at_every_step stdout ----
+[2m2026-03-16T21:37:09.671186Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::invariants_hold_at_every_step' (2607908) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+---- tests::worked_example::step2_v_tree_after_skip_promote stdout ----
+[2m2026-03-16T21:37:09.672905Z[0m [31mERROR[0m [2mtorrust_mudlark::diagnostic[0m[2m:[0m violation NOT in queue [3mcheckpoint[0m[2m=[0m"RESIDUAL" [3mnode[0m[2m=[0mv1(E,15) ← v3(S2,15) [v1(15), v8(0)] ← v4(S2,25) [v0(10), v3(15)]  uncle_max=10
+
+thread 'tests::worked_example::step2_v_tree_after_skip_promote' (2607915) panicked at packages/mudlark/src/rebalance.rs:1445:9:
+rebalance finished with residual violations: [VNodeId(2)]
+
+
+failures:
+    tests::decay::decay_amplification_above_one
+    tests::decay::decay_composition_k_steps
+    tests::decay::decay_energy_conservation_selective
+    tests::decay::decay_energy_conservation_uniform
+    tests::decay::decay_multiple_selective_preserves_invariants
+    tests::decay::decay_multiple_uniform_preserves_invariants
+    tests::decay::decay_noop_at_attenuation_one
+    tests::decay::decay_panics_nan_attenuation
+    tests::decay::decay_panics_nan_q
+    tests::decay::decay_panics_negative_attenuation
+    tests::decay::decay_panics_negative_q
+    tests::decay::decay_panics_q_above_one
+    tests::decay::decay_panics_zero_attenuation
+    tests::decay::decay_preserves_plateau_structure
+    tests::decay::decay_selective_preserves_invariants
+    tests::decay::decay_selective_q1_root_undecayed
+    tests::decay::decay_selective_subtree_leaves_other_half_unchanged
+    tests::decay::decay_selective_subtree_preserves_invariants
+    tests::decay::decay_then_extract_roundtrip
+    tests::decay::decay_uniform_global_all_own_scaled
+    tests::decay::decay_uniform_global_preserves_invariants
+    tests::decay::decay_uniform_global_scales_all_nodes
+    tests::decay::decay_uniform_subtree_preserves_invariants
+    tests::decay::decay_uniform_subtree_scales_only_target
+    tests::decay::decay_updates_plateau_sums
+    tests::decay_f64_depth::minimal_f64_depth_saturation
+    tests::diagnostic::audit_plateau_consistency_passes_on_healthy_graph
+    tests::diagnostic::audit_violations_returns_empty_after_observe
+    tests::diagnostic::evict_tip_creates_span
+    tests::diagnostic::eviction_pipeline_creates_spans
+    tests::diagnostic::normalize_plateaus_creates_span
+    tests::diagnostic::observe_emits_debug_events
+    tests::diagnostic::observe_runs_post_observe_audit_without_tracing
+    tests::diagnostic::plateau_mirror_consistency_runs_without_tracing
+    tests::diagnostic::plateau_sum_check_runs_without_tracing
+    tests::diagnostic::rebalance_creates_span
+    tests::diagnostic::rebalance_runs_residual_audit_without_tracing
+    tests::diagnostic::vtree_remove_leaf_creates_span
+    tests::graph::check_evictions_bounded_respects_limit
+    tests::graph::check_evictions_return_value_matches_count_delta
+    tests::graph::check_evictions_trailing_rebalance_clears_violations
+    tests::graph::check_evictions_unbounded_evicts_all
+    tests::graph::get_semi_internal_depth_is_trimmed_depth
+    tests::graph::get_semi_internal_left_child_trims_right
+    tests::graph::get_semi_internal_right_child_trims_left
+    tests::observe::observe_triggers_eviction_when_over_budget
+    tests::observe::observe_violations_drained
+    tests::observe::observe_violations_empty_after_eviction
+    tests::rebalance::resolve_with_contraction_first
+    tests::split::catalytic_split_after_bootstrap
+    tests::split::catalytic_split_creates_boundary
+    tests::structural::semi_internal_surviving_child_unaffected
+    tests::structural::terminal_count_matches_arena_walk
+    tests::worked_example::depth_gates_unchanged_without_budget
+    tests::worked_example::energy_conserved_at_every_step
+    tests::worked_example::invariants_hold_at_every_step
+    tests::worked_example::plan_serializes_and_deserializes
+    tests::worked_example::step2_g_tree_structure
+    tests::worked_example::step2_node_count_and_violations
+    tests::worked_example::step2_v_tree_after_skip_promote
+    tests::worked_example::step3_final_node_count
+    tests::worked_example::step3_g_tree_structure
+    tests::worked_example::step3_v_tree_uncle_shield
+    tests::worked_example::step4_routing_into_deep_subtree
+    tests::worked_example::step4_split_into_atomic_interval
+    tests::worked_example::worked_example_full_sequence
+
+test result: FAILED. 280 passed; 66 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p torrust-mudlark --lib`
+
+*** result: Failure(101)

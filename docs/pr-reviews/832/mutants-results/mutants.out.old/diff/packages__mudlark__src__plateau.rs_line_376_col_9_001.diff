@@ -1,0 +1,22 @@
+--- packages/mudlark/src/plateau.rs
++++ replace PlateauBasis<C>::basis_elements -> &HashSet<GNodeId> with Box::leak(Box::new(HashSet::from_iter([Default::default()])))
+@@ -368,18 +368,17 @@
+         self.back.get(&gnode).copied()
+     }
+ 
+     /// The basis elements for the plateau at `key`.
+     ///
+     /// Returns an empty set reference if the key has no entry
+     /// (should not happen in a well-maintained graph; defensive).
+     pub(crate) fn basis_elements(&self, key: &BasisEdge<C>) -> &HashSet<GNodeId> {
+-        static EMPTY: OnceLock<HashSet<GNodeId>> = OnceLock::new();
+-        self.forward.get(key).unwrap_or_else(|| EMPTY.get_or_init(HashSet::new))
++        Box::leak(Box::new(HashSet::from_iter([Default::default()]))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Whether `gnode` is currently a basis element of any plateau.
+     #[inline]
+     #[allow(unused)] // Available for future use; not called yet.
+     pub(crate) fn contains(&self, gnode: GNodeId) -> bool {
+         self.back.contains_key(&gnode)
+     }

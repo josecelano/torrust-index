@@ -1,0 +1,30 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::adversarial_cousins -> Self with Default::default()
+@@ -268,26 +268,17 @@
+         b: C,
+         setup_delta: V,
+         n_setup: usize,
+         spike_delta_a: V,
+         spike_delta_b: V,
+         n_spikes: usize,
+     ) -> Self {
+         // Gentle buildup at both coordinates
+-        for _ in 0..n_setup {
+-            self.observations.push((a, setup_delta));
+-            self.observations.push((b, setup_delta));
+-        }
+-        // Interleaved spikes
+-        for _ in 0..n_spikes {
+-            self.observations.push((a, spike_delta_a));
+-            self.observations.push((b, spike_delta_b));
+-        }
+-        self
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Phase-shifted oscillation: two spatially close hotspots (`a`,
+     /// `b`) oscillate out of phase.  When `a` is in a high-intensity
+     /// burst, `b` gets a trickle, and vice versa.
+     ///
+     /// Unlike [`oscillating_hotspot`](Self::oscillating_hotspot) which
+     /// fully alternates, here both points always receive *some*

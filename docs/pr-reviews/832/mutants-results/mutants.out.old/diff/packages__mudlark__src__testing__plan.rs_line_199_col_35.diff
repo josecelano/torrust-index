@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace % with / in Plan<C, V>::oscillating_hotspot
+@@ -191,17 +191,17 @@
+     }
+ 
+     /// Oscillating hotspot: every `burst` observations the target
+     /// switches between `a` and `b`.  Forces repeated deep refinement
+     /// followed by abandonment and eviction.
+     #[must_use]
+     pub fn oscillating_hotspot(mut self, a: C, b: C, delta: V, burst: usize, cycles: usize) -> Self {
+         for cycle in 0..cycles {
+-            let target = if cycle % 2 == 0 { a } else { b };
++            let target = if cycle / /* ~ changed by cargo-mutants ~ */ 2 == 0 { a } else { b };
+             self.observations.extend(std::iter::repeat((target, delta)).take(burst));
+         }
+         self
+     }
+ 
+     // ── Targeted patterns ─────────────────────────────
+     //
+     // These patterns create overlapping violation paths — two or more

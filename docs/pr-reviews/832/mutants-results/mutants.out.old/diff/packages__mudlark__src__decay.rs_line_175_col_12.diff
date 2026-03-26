@@ -1,0 +1,21 @@
+--- packages/mudlark/src/decay.rs
++++ delete ! in GvGraph<C, V, N>::decay_uniform
+@@ -167,17 +167,17 @@
+         //    and returns empty when no violations exist.
+         self.violations = rebalance::find_violated_nodes(&self.vnodes);
+         let new_gnodes = rebalance::rebalance(
+             &mut self.vnodes,
+             &mut self.gnodes,
+             &mut self.violations,
+             self.live_depth_evict,
+         );
+-        if !new_gnodes.is_empty() {
++        if  /* ~ changed by cargo-mutants ~ */new_gnodes.is_empty() {
+             self.handle_legacy_promotes(&new_gnodes);
+         }
+ 
+         // 5. Plateau sum recomputation (no-op without `plateau` feature).
+         self.plateau_recompute_sums("DECAY-UNIFORM");
+ 
+         // 6. Normalize plateaus after sum changes.
+         // ADR-M-031 Phase 4: mark dirty so normalize runs.

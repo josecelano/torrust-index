@@ -1,0 +1,21 @@
+--- packages/mudlark/src/gnode.rs
++++ replace || with && in GNode<C, V>::has_dependents
+@@ -142,17 +142,17 @@
+     }
+ 
+     /// True iff this node has at least one G-child.
+     /// Inverse of `is_terminal()`.
+     #[inline]
+     #[must_use]
+     #[allow(dead_code)] // used in tests
+     pub const fn has_dependents(&self) -> bool {
+-        self.left.is_some() || self.right.is_some()
++        self.left.is_some() && /* ~ changed by cargo-mutants ~ */ self.right.is_some()
+     }
+ 
+     /// True iff exactly one G-child is present.
+     #[inline]
+     #[must_use]
+     pub const fn is_semi_internal(&self) -> bool {
+         matches!(self.state(), GState::SemiInternal)
+     }

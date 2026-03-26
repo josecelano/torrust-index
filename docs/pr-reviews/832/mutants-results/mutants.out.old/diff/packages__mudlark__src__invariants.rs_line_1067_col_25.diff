@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_p_i1_i_keys_are_contour_steps
+@@ -1059,17 +1059,17 @@
+         errors.push("P-I1(i): plateaus BTreeMap is empty (must have at least 1 plateau)".into());
+         return;
+     }
+ 
+     let steps = contour_steps(graph);
+     let btree_keys: Vec<C> = plateaus.keys().map(|k| k.0).collect();
+     let step_coords: Vec<C> = steps.iter().map(|&(c, _)| c).collect();
+ 
+-    if btree_keys.len() != step_coords.len() {
++    if btree_keys.len() == /* ~ changed by cargo-mutants ~ */ step_coords.len() {
+         errors.push(format!(
+             "P-I1(i): plateau count ({}) != contour step count ({})",
+             btree_keys.len(),
+             step_coords.len()
+         ));
+     }
+ 
+     // Check each key matches and depth matches.

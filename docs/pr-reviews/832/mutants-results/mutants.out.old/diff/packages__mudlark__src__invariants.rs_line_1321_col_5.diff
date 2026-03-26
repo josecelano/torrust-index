@@ -1,0 +1,44 @@
+--- packages/mudlark/src/invariants.rs
++++ replace check_p_i3_basis_disjointness with ()
+@@ -1313,40 +1313,17 @@
+ /// half). This is stronger than the previous check which excluded
+ /// semi-internals entirely.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i3_basis_disjointness<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     // Collect (tile_lo, tile_hi, key) for all basis elements.
+-    let pb = graph.plateau_basis();
+-    let mut tiles: Vec<(f64, f64, BasisEdge<C>)> = Vec::new();
+-    for (&key, gnodes) in pb.iter() {
+-        for &gid in gnodes {
+-            if !graph.gnodes().is_occupied(gid.index()) {
+-                continue;
+-            }
+-            let g = graph.gnodes().get(gid.index());
+-            let (tlo, thi) = tile_of(g);
+-            tiles.push((tlo.to_f64(), thi.to_f64(), key));
+-        }
+-    }
+-    tiles.sort_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.total_cmp(&b.1)));
+-
+-    for w in tiles.windows(2) {
+-        let (lo1, hi1, k1) = &w[0];
+-        let (lo2, _hi2, k2) = &w[1];
+-        if k1 != k2 && *hi1 > *lo2 + 1e-12 {
+-            errors.push(format!(
+-                "P-I3 tile disjointness: tile in plateau {k1:?} [{lo1}, {hi1}) \
+-                 overlaps tile in plateau {k2:?} [{lo2}, ..)"
+-            ));
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ // ── P-I4: Thatch one-hop ───────────────────────────────────────────
+ 
+ /// Every semi-internal basis element's surviving child must be covered
+ /// by a *different* plateau.
+ #[cfg(feature = "dynamic-contour-tracking")]
+ fn check_p_i4_thatch_one_hop<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(

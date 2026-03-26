@@ -1,0 +1,21 @@
+--- packages/mudlark/src/pewei.rs
++++ replace Transition<C, V>::width -> C with Default::default()
+@@ -777,17 +777,17 @@
+     /// let pewei = g.extract();
+     /// for tr in pewei.layers.iter().flat_map(|l| &l.transitions) {
+     ///     assert_eq!(tr.width(), tr.end - tr.start);
+     /// }
+     /// ```
+     #[inline]
+     #[must_use]
+     pub fn width(&self) -> C {
+-        C::width(self.start, self.end)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Terminal ─────────────────────────────────────────────────────────
+ 
+ /// A terminal (leaf) node: a region at the finest resolution the
+ /// index has resolved
+ ///

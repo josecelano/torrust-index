@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace + with - in Plan<C, V>::repulsion_walk
+@@ -585,17 +585,17 @@
+     ///
+     /// Creates initially shared then diverging violation paths,
+     /// exercising the transition from single-spine to cousin
+     /// topology.
+     #[must_use]
+     pub fn repulsion_walk(mut self, center: u64, delta: V, max_spread: u64, burst_per_step: usize) -> Self {
+         for offset in 0..=max_spread {
+             let a = center.saturating_sub(offset);
+-            let b = center + offset;
++            let b = center - /* ~ changed by cargo-mutants ~ */ offset;
+             for _ in 0..burst_per_step {
+                 self.observations.push((C::from_u64(a), delta));
+                 if a != b {
+                     self.observations.push((C::from_u64(b), delta));
+                 }
+             }
+         }
+         self

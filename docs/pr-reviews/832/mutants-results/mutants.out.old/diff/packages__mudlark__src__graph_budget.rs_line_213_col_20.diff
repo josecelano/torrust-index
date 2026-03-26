@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_budget.rs
++++ replace > with == in GvGraph<C, V, N>::evict_candidates
+@@ -205,17 +205,17 @@
+             // batch diverged, not *which* eviction).
+             #[cfg(feature = "dynamic-contour-tracking")]
+             if cfg!(debug_assertions) {
+                 self.debug_assert_plateau_mirror_consistency(&format!("POST-EVICT-SINGLE-{evicted}"));
+             }
+         }
+ 
+         // Trailing rebalance to resolve any absorption violations.
+-        if evicted > 0 {
++        if evicted == /* ~ changed by cargo-mutants ~ */ 0 {
+             let new_gnodes = rebalance::rebalance(
+                 &mut self.vnodes,
+                 &mut self.gnodes,
+                 &mut self.violations,
+                 self.live_depth_evict,
+             );
+             if !new_gnodes.is_empty() {
+                 self.handle_legacy_promotes(&new_gnodes);

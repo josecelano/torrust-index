@@ -1,0 +1,21 @@
+--- packages/mudlark/src/split.rs
++++ replace || with && in attempt_split
+@@ -33,17 +33,17 @@
+ /// # Panics
+ ///
+ /// Panics if the entry's V-parent link is inconsistent (the parent
+ /// was confirmed to exist but is `None` after the bootstrap check).
+ pub fn attempt_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(graph: &mut GvGraph<C, V, N>, g_id: GNodeId) {
+     let g = graph.gnodes.get(g_id.index());
+ 
+     // Guard: must be terminal (no G-children).
+-    if g.left.is_some() || g.right.is_some() {
++    if g.left.is_some() && /* ~ changed by cargo-mutants ~ */ g.right.is_some() {
+         return;
+     }
+ 
+     // Guard: interval must be divisible.
+     let mid = C::midpoint(g.lo, g.hi);
+     if mid.partial_cmp(&g.lo) != Some(std::cmp::Ordering::Greater) {
+         return;
+     }

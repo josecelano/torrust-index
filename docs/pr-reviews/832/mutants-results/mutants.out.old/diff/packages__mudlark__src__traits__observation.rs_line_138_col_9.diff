@@ -1,0 +1,21 @@
+--- packages/mudlark/src/traits/observation.rs
++++ replace <impl Observation<V> for V>::accumulate -> V with Default::default()
+@@ -130,17 +130,17 @@
+ ///
+ /// Provides `accumulate` via [`Accumulator::add`].  `scale` uses
+ /// the default (panics) — `decay()` bypasses `Observation::scale`
+ /// and uses [`Attenuatable::attenuate`](super::Attenuatable::attenuate)
+ /// directly (ADR-M-024).
+ impl<V: Accumulator> Observation<V> for V {
+     #[inline]
+     fn accumulate(current: V, delta: Self) -> V {
+-        V::add(current, delta)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ // ── Cross-type: f64 → unsigned integers ─────────────────────────────
+ 
+ macro_rules! impl_observation_f64_to_uint {
+     ($($v:ty),+) => {$(
+         impl Observation<$v> for f64 {

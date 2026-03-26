@@ -1,0 +1,74 @@
+--- packages/mudlark/src/contour_range.rs
++++ replace debug_assert_contour_range_invariants with ()
+@@ -354,70 +354,10 @@
+ /// Skipped in release builds.
+ #[cfg(debug_assertions)]
+ pub fn debug_assert_contour_range_invariants<C, V>(cr: &ContourRange<C, V>)
+ where
+     C: Coordinate,
+     V: Accumulator + Proratable + Inspectable,
+ {
+     // ── CR-I8: Boundary thatch count ≤ 2 ────────────────────
+-    let thatch_count = cr.basis.iter().filter(|b| b.is_boundary_thatch).count();
+-    debug_assert!(
+-        thatch_count <= 2,
+-        "CR-I8: boundary thatch count = {} > 2 for [{:?}, {:?})",
+-        thatch_count,
+-        cr.start,
+-        cr.end,
+-    );
+-
+-    // ── CR-I3: Disjointness ─────────────────────────────────
+-    // Basis elements sorted by start; pairwise non-overlapping.
+-    let mut sorted: Vec<_> = cr.basis.iter().collect();
+-    sorted.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap_or(std::cmp::Ordering::Equal));
+-    for pair in sorted.windows(2) {
+-        debug_assert!(
+-            pair[0].end <= pair[1].start,
+-            "CR-I3: overlapping basis elements [{:?}, {:?}) and [{:?}, {:?})",
+-            pair[0].start,
+-            pair[0].end,
+-            pair[1].start,
+-            pair[1].end,
+-        );
+-    }
+-
+-    // ── CR-I2: Complete tiling ──────────────────────────────
+-    // Basis tiles are contiguous (no internal gaps).
+-    for pair in sorted.windows(2) {
+-        debug_assert!(
+-            pair[0].end >= pair[1].start,
+-            "CR-I2: gap between basis tiles [{:?}, {:?}) and [{:?}, {:?})",
+-            pair[0].start,
+-            pair[0].end,
+-            pair[1].start,
+-            pair[1].end,
+-        );
+-    }
+-
+-    // ── §CR.6: Energy = Σ basis.sum ─────────────────────────
+-    let sum = cr.basis.iter().fold(V::zero(), |acc, b| V::add(acc, b.sum));
+-    let energy_f64 = cr.energy.to_f64_approx();
+-    let sum_f64 = sum.to_f64_approx();
+-    debug_assert!(
+-        (energy_f64 - sum_f64).abs() < 1e-10,
+-        "§CR.6: energy ({energy_f64}) != Σ basis.sum ({sum_f64})",
+-    );
+-
+-    // ── §CR.13.6: energy vs exact_energy ────────────────────
+-    // The gap (energy − exact_energy) = B − A is indeterminate
+-    // in sign (§CR.13.6).  No universal ordering assertion.
+-    // Structural identity: energy = exact_energy + B − A (both
+-    // B, A ≥ 0 under P1).  Verifying this requires computing B
+-    // and A separately, deferred to dedicated tests (test 17).
+-
+-    // ── §CR.10.4: cross_plateau_energy consistency ──────────
+-    let cross_f64 = cr.cross_plateau_energy.to_f64_approx();
+-    let plateau_f64 = cr.plateau_energy.to_f64_approx();
+-    let expected_cross = energy_f64 - plateau_f64;
+-    debug_assert!(
+-        (cross_f64 - expected_cross).abs() < 1e-10,
+-        "cross_plateau_energy ({cross_f64}) != energy - plateau_energy ({expected_cross})",
+-    );
++    () /* ~ changed by cargo-mutants ~ */
+ }

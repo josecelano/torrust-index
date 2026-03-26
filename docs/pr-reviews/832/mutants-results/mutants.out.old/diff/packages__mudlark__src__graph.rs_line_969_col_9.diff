@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph.rs
++++ replace GvGraph<C, V, N>::depth_buffer -> u32 with 0
+@@ -961,17 +961,17 @@
+     /// # let g = GvGraph::<u64, u64, 8>::new(cfg);
+     /// // buffer = D_evict − D_create = 6 − 3 = 3.
+     /// assert_eq!(g.depth_buffer(), 3);
+     /// assert_eq!(g.depth_buffer(), g.depth_evict() - g.depth_create());
+     /// ```
+     #[must_use]
+     #[inline]
+     pub const fn depth_buffer(&self) -> u32 {
+-        self.depth_buffer
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Headroom: $3^{(\text{buffer}+1)}$ — worst-case entries immune
+     /// to eviction at the depth floor (ADR-M-018)
+     ///
+     /// With V-Tree branching factor up to 3, at most
+     /// $3^{(\text{buffer}+1)}$ entries can reside between the root
+     /// and `D_evict`.  These entries are not evictable, so any

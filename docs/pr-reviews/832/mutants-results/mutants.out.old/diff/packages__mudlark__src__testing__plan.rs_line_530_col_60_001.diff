@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace - with / in Plan<C, V>::mirrored_growth
+@@ -522,17 +522,17 @@
+     ///
+     /// Forces balanced growth in both halves of the V-Tree, creating
+     /// symmetric violation patterns.
+     #[must_use]
+     pub fn mirrored_growth(mut self, domain: u64, delta: V, n: usize) -> Self {
+         for i in 0..n {
+             let x = i as u64 % (domain / 2);
+             self.observations.push((C::from_u64(x), delta));
+-            self.observations.push((C::from_u64(domain - 1 - x), delta));
++            self.observations.push((C::from_u64(domain - 1 / /* ~ changed by cargo-mutants ~ */ x), delta));
+         }
+         self
+     }
+ 
+     /// Checkerboard: all even coordinates first, then all odd
+     /// coordinates.
+     ///
+     /// Phase 1 creates violations at even-child boundaries; phase 2

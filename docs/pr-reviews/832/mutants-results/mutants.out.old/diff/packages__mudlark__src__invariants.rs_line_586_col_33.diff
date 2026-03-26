@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ delete ! in check_v_i6b_evictable_flag
+@@ -578,17 +578,17 @@
+             if *is_evictable != expected {
+                 errors.push(format!(
+                     "V-I6b violated at V-node {idx}: is_evictable={is_evictable}, \
+                      expected={expected} (state={:?})",
+                     g.state()
+                 ));
+             }
+             // Implied: is_evictable ⟹ is_exposed
+-            if *is_evictable && !*is_exposed {
++            if *is_evictable &&  /* ~ changed by cargo-mutants ~ */*is_exposed {
+                 errors.push(format!(
+                     "V-I6b violated at V-node {idx}: is_evictable=true but is_exposed=false"
+                 ));
+             }
+         }
+     }
+ }
+ 

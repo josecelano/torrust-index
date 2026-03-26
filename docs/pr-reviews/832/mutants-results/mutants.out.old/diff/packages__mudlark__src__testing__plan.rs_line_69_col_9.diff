@@ -1,0 +1,21 @@
+--- packages/mudlark/src/testing/plan.rs
++++ replace Plan<C, V>::len -> usize with 0
+@@ -61,17 +61,17 @@
+     pub fn then(mut self, other: Self) -> Self {
+         self.observations.extend(other.observations);
+         self
+     }
+ 
+     /// Number of observations in the plan.
+     #[must_use]
+     pub fn len(&self) -> usize {
+-        self.observations.len()
++        0 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Whether the plan has zero observations.
+     #[must_use]
+     pub fn is_empty(&self) -> bool {
+         self.observations.is_empty()
+     }
+ }

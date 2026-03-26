@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_query.rs
++++ replace >= with < in GvGraph<C, V, N>::clamp_to_domain
+@@ -205,17 +205,17 @@
+     /// draws its interval from the arena node's `[lo, hi)` which is
+     /// always inside the domain.
+     #[inline]
+     fn clamp_to_domain(coord: C) -> C {
+         let lo = C::zero();
+         let hi = C::domain_max(N);
+         if coord < lo {
+             lo
+-        } else if coord >= hi {
++        } else if coord < /* ~ changed by cargo-mutants ~ */ hi {
+             hi
+         } else {
+             coord
+         }
+     }
+ 
+     /// Trim a G-node's interval to the effective half for semi-internals.
+     ///

@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace != with == in check_terminal_count_consistency
+@@ -756,17 +756,17 @@
+ 
+ fn check_terminal_count_consistency<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+     graph: &GvGraph<C, V, N>,
+     errors: &mut Vec<String>,
+ ) {
+     #[allow(clippy::cast_possible_truncation)] // arena can't exceed u32::MAX G-nodes
+     let actual = graph.gnodes().iter_occupied().filter(|(_, g)| g.is_terminal()).count() as u32;
+     let expected = graph.terminal_count();
+-    if actual != expected {
++    if actual == /* ~ changed by cargo-mutants ~ */ expected {
+         errors.push(format!(
+             "Terminal count: graph.terminal_count()={expected}, arena walk={actual}"
+         ));
+     }
+ }
+ 
+ // ── Hard budget (ADR-M-018) ───────────────────────────────────────────
+ 

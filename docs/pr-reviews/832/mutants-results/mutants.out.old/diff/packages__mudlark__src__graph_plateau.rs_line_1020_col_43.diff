@@ -1,0 +1,21 @@
+--- packages/mudlark/src/graph_plateau.rs
++++ replace - with + in GvGraph<C, V, N>::consolidate_all_basis
+@@ -1012,17 +1012,17 @@
+             // consolidation (its sibling was processed first).
+             if self.plateau_basis.plateau_key(gid).is_some() {
+                 let before = self.plateau_basis.basis_count();
+                 self.consolidate_basis_up(gid);
+                 let after = self.plateau_basis.basis_count();
+                 if after < before {
+                     #[allow(clippy::cast_possible_truncation)]
+                     {
+-                        merged += (before - after) as u32;
++                        merged += (before + /* ~ changed by cargo-mutants ~ */ after) as u32;
+                     }
+                 }
+             }
+         }
+         if merged > 0 {
+             tracing::debug!(
+                 basis_before = count,
+                 basis_after = self.plateau_basis.basis_count(),

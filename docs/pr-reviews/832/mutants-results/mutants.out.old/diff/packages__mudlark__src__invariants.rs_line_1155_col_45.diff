@@ -1,0 +1,21 @@
+--- packages/mudlark/src/invariants.rs
++++ replace > with == in check_p_i1_ii_tile_contiguity
+@@ -1147,17 +1147,17 @@
+         let expected_hi = next_start.to_f64();
+ 
+         if tiles.is_empty() {
+             errors.push(format!("P-I1(ii): plateau {key:?}: no live basis tiles"));
+             continue;
+         }
+ 
+         // Check left boundary.
+-        if (tiles[0].0 - expected_lo).abs() > 1e-12 {
++        if (tiles[0].0 - expected_lo).abs() == /* ~ changed by cargo-mutants ~ */ 1e-12 {
+             errors.push(format!(
+                 "P-I1(ii): plateau {key:?}: tile union starts at {}, expected {expected_lo}",
+                 tiles[0].0
+             ));
+         }
+ 
+         // Check right boundary.
+         let last_hi = tiles.last().unwrap().1;
