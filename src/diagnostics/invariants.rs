@@ -31,14 +31,7 @@ pub fn check_plateau_only<C: Coordinate, V: Accumulator + Inspectable, const N: 
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    check_plateau_btreemap_key_consistency(graph, errors);
-    check_plateau_basis_consistency(graph, errors);
-    check_p_i1_i_keys_are_contour_steps(graph, errors);
-    check_p_i1_ii_tile_contiguity(graph, errors);
-    check_p_i1_iii_run_contains_tile(graph, errors);
-    check_p_i2_basis_minimality(graph, errors);
-    check_p_i3_basis_disjointness(graph, errors);
-    check_p_i4_thatch_one_hop(graph, errors);
+    check_plateau_invariants(graph, errors);
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
@@ -56,40 +49,72 @@ pub fn check_all_invariants<C: Coordinate, V: Accumulator + Inspectable, const N
 ) -> Vec<String> {
     let mut errors: Vec<String> = Vec::new();
 
-    check_g_i1_summation(graph, &mut errors);
-    check_g_i2_variable_fanout(graph, &mut errors);
-    check_g_i4_entry_consistency(graph, &mut errors);
-    check_g_i5_entry_bijection(graph, &mut errors);
-    check_v_i1_structural_sum(graph, &mut errors);
-    check_v_i2_branching_factor(graph, &mut errors);
-    check_v_i3_max_uncle(graph, &mut errors);
-    check_v_i5_entry_leaf(graph, &mut errors);
-    check_v_i6_exposed_flag(graph, &mut errors);
-    check_v_i6b_evictable_flag(graph, &mut errors);
-    check_v_i7_structural_flag(graph, &mut errors);
-    check_clean_accounting(graph, &mut errors);
-    check_parent_link_consistency(graph, &mut errors);
-    check_v_root_consistency(graph, &mut errors);
-    check_node_count_consistency(graph, &mut errors);
-    check_terminal_count_consistency(graph, &mut errors);
-    check_depth_gate_invariants(graph, &mut errors);
-    check_hard_budget(graph, &mut errors);
+    check_g_tree_invariants(graph, &mut errors);
+    check_v_tree_invariants(graph, &mut errors);
+    check_accounting_invariants(graph, &mut errors);
     #[cfg(feature = "dynamic-contour-tracking")]
-    {
-        check_plateau_btreemap_key_consistency(graph, &mut errors);
-        check_plateau_basis_consistency(graph, &mut errors);
-        check_plateau_sum_consistency(graph, &mut errors);
-        check_plateau_depth_consistency(graph, &mut errors);
-        check_p_i1_i_keys_are_contour_steps(graph, &mut errors);
-        check_p_i1_ii_tile_contiguity(graph, &mut errors);
-        check_p_i1_iii_run_contains_tile(graph, &mut errors);
-        check_p_i2_basis_minimality(graph, &mut errors);
-        check_p_i3_basis_disjointness(graph, &mut errors);
-        check_p_i4_thatch_one_hop(graph, &mut errors);
-        check_p_i5_thatch_depth(graph, &mut errors);
-    }
+    check_plateau_invariants(graph, &mut errors);
 
     errors
+}
+
+/// G-I1, G-I2, G-I4, G-I5: structural and summation invariants on the G-tree.
+fn check_g_tree_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
+    check_g_i1_summation(graph, errors);
+    check_g_i2_variable_fanout(graph, errors);
+    check_g_i4_entry_consistency(graph, errors);
+    check_g_i5_entry_bijection(graph, errors);
+}
+
+/// V-I1..V-I7: intensity summation, branching, uncle, flag, and leaf invariants.
+fn check_v_tree_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
+    check_v_i1_structural_sum(graph, errors);
+    check_v_i2_branching_factor(graph, errors);
+    check_v_i3_max_uncle(graph, errors);
+    check_v_i5_entry_leaf(graph, errors);
+    check_v_i6_exposed_flag(graph, errors);
+    check_v_i6b_evictable_flag(graph, errors);
+    check_v_i7_structural_flag(graph, errors);
+}
+
+/// Accounting: parent links, root, node/terminal counts, depth gates, budget.
+fn check_accounting_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
+    check_clean_accounting(graph, errors);
+    check_parent_link_consistency(graph, errors);
+    check_v_root_consistency(graph, errors);
+    check_node_count_consistency(graph, errors);
+    check_terminal_count_consistency(graph, errors);
+    check_depth_gate_invariants(graph, errors);
+    check_hard_budget(graph, errors);
+}
+
+/// P-I1..P-I5: plateau key, basis, sum, depth and thatch invariants.
+/// Only compiled when the `dynamic-contour-tracking` feature is enabled.
+#[cfg(feature = "dynamic-contour-tracking")]
+fn check_plateau_invariants<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
+    check_plateau_btreemap_key_consistency(graph, errors);
+    check_plateau_basis_consistency(graph, errors);
+    check_plateau_sum_consistency(graph, errors);
+    check_plateau_depth_consistency(graph, errors);
+    check_p_i1_i_keys_are_contour_steps(graph, errors);
+    check_p_i1_ii_tile_contiguity(graph, errors);
+    check_p_i1_iii_run_contains_tile(graph, errors);
+    check_p_i2_basis_minimality(graph, errors);
+    check_p_i3_basis_disjointness(graph, errors);
+    check_p_i4_thatch_one_hop(graph, errors);
+    check_p_i5_thatch_depth(graph, errors);
 }
 
 #[allow(clippy::float_cmp)]
