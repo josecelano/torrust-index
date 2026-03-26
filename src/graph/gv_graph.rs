@@ -81,6 +81,7 @@ pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
 }
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
+    // ── Construction ─────────────────────────────────────────────────────
     #[must_use]
     pub fn new(config: Config<V>) -> Self {
         const { assert!(N <= C::BITS, "N must be <= C::BITS") };
@@ -176,6 +177,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         }
     }
 
+    // ── Accessors ──────────────────────────────────────────────────────
     #[must_use]
     #[inline]
     pub const fn node_count(&self) -> u32 {
@@ -276,6 +278,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
     }
 
+    // ── Queries ────────────────────────────────────────────────────────
     #[must_use]
     pub fn gnode_info(&self, id: GNodeId) -> Option<Node<C, V>> {
         if !self.gnodes.is_occupied(id.index()) {
