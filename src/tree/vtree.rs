@@ -83,19 +83,16 @@ pub fn recompute_all_v_intensities<V: Accumulator>(vnodes: &mut Arena<VNode<V>>,
 }
 
 fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId) {
-    let child_ids: Option<Vec<VNodeId>> = {
+    // Collect child IDs while holding a shared borrow, then release it so the
+    // recursive calls and the subsequent mutable borrows can proceed.
+    let child_ids: Vec<VNodeId> = {
         let node = vnodes.get(id.index());
         match &node.kind {
-            VKind::Entry { .. } => None,
+            VKind::Entry { .. } => return,
             VKind::Structural { children, .. } => {
-                let ids: Vec<VNodeId> = (0..children.len()).map(|i| children.get(i).0).collect();
-                Some(ids)
+                (0..children.len()).map(|i| children.get(i).0).collect()
             }
         }
-    };
-
-    let Some(child_ids) = child_ids else {
-        return;
     };
 
     for &child in &child_ids {
@@ -110,16 +107,20 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
         }
     }
 
-    let node = vnodes.get(id.index());
-    if let VKind::Structural { children, .. } = &node.kind {
-        let mut total = V::zero();
+    // Sum updated child intensities. The shared borrow must end (NLL last-use)
+    // before the mutable borrow on the next line, so total is computed first.
+    let total: V = {
+        let node = vnodes.get(id.index());
+        let VKind::Structural { children, .. } = &node.kind else {
+            return;
+        };
+        let mut t = V::zero();
         for i in 0..children.len() {
-            total = V::add(total, children.intensities[i]);
+            t = V::add(t, children.intensities[i]);
         }
-
-        let _ = node;
-        vnodes.get_mut(id.index()).intensity = total;
-    }
+        t
+    };
+    vnodes.get_mut(id.index()).intensity = total;
 }
 
 pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
