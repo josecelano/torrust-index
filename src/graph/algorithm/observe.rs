@@ -5,6 +5,7 @@ use crate::tree::{gtree, vtree};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
+        // ── Phase 1: Route observation to G-node and accumulate own value ────
         let g_id = gtree::route_to_receiver(&self.gnodes, self.g_root, coord);
         let _span = tracing::debug_span!("observe", g = g_id.index()).entered();
 
@@ -18,6 +19,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             g.own,
         );
 
+        // ── Phase 2: V-tree propagation and violation detection ──────────
         if let Some(entry_id) = self.gnodes.get(g_id.index()).entry {
             let v = self.vnodes.get_mut(entry_id.index());
             v.intensity = O::accumulate(v.intensity, delta);
@@ -40,10 +42,13 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 3: G-tree sum recompute ────────────────────────────────
         gtree::recompute_g_sums(&mut self.gnodes, g_id);
 
+        // ── Phase 4: Plateau mirror update ───────────────────────────────
         self.plateau_after_observe::<O>(g_id, delta);
 
+        // ── Phase 5: Split and rebalance ─────────────────────────────────
         split::attempt_split(self, g_id);
 
         if tracing::enabled!(tracing::Level::DEBUG) {
@@ -75,8 +80,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
         }
 
+        // ── Phase 6: Depth-gate adjustment ───────────────────────────────
         self.adjust_depth_gates();
 
+        // ── Phase 7: Eviction ─────────────────────────────────────────────
         if let Some(soft_limit) = self.soft_limit {
             if self.node_count as usize > soft_limit {
                 if self.config.bounded_eviction {
@@ -87,6 +94,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 8: Normalise plateaus and final repair ─────────────────
         self.normalize_plateaus();
 
         #[cfg(feature = "dynamic-contour-tracking")]
