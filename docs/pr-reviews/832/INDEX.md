@@ -10,20 +10,21 @@
 
 ## Documents in This Review
 
-| Document                                               | Contents                                                        |
-| ------------------------------------------------------ | --------------------------------------------------------------- |
-| [REVIEW_PR_832.md](REVIEW_PR_832.md)                   | Full phase-by-phase review notes (phases 1–5, author responses) |
-| [findings/](findings/)                                 | Individual finding files — one per confirmed or open issue      |
-| [coverage-results/](coverage-results/)                 | `cargo llvm-cov` output per run date                            |
-| [mutants-results/](mutants-results/)                   | `cargo mutants` output per run date                             |
-| [CODE_READING_GUIDE.md](CODE_READING_GUIDE.md)         | How to navigate the mudlark source                              |
-| [MUDLARK_EXPLAINED.md](MUDLARK_EXPLAINED.md)           | High-level conceptual explanation                               |
-| [GLOSSARY.md](GLOSSARY.md)                             | Term definitions                                                |
-| [DESIGN_ALTERNATIVES.md](DESIGN_ALTERNATIVES.md)       | Design alternatives considered                                  |
-| [USE_CASES.md](USE_CASES.md)                           | Use-case analysis                                               |
-| [COORDINATE_ENGINEERING.md](COORDINATE_ENGINEERING.md) | Coordinate type engineering notes                               |
-| [VERIFICATION_STRATEGY.md](VERIFICATION_STRATEGY.md)   | Test and verification strategy                                  |
-| [IDEA_ANNOTATED.md](IDEA_ANNOTATED.md)                 | Annotated formal specification                                  |
+| Document                                                           | Contents                                                        |
+| ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| [REVIEW_PR_832.md](REVIEW_PR_832.md)                               | Full phase-by-phase review notes (phases 1–5, author responses) |
+| [findings/](findings/)                                             | Individual finding files — one per confirmed or open issue      |
+| [coverage-results/](coverage-results/)                             | `cargo llvm-cov` output per run date                            |
+| [mutants-results/](mutants-results/)                               | `cargo mutants` output per run date                             |
+| [CODE_READING_GUIDE.md](CODE_READING_GUIDE.md)                     | How to navigate the mudlark source                              |
+| [MUDLARK_EXPLAINED.md](MUDLARK_EXPLAINED.md)                       | High-level conceptual explanation                               |
+| [GLOSSARY.md](GLOSSARY.md)                                         | Term definitions                                                |
+| [DESIGN_ALTERNATIVES.md](DESIGN_ALTERNATIVES.md)                   | Design alternatives considered                                  |
+| [USE_CASES.md](USE_CASES.md)                                       | Use-case analysis                                               |
+| [COORDINATE_ENGINEERING.md](COORDINATE_ENGINEERING.md)             | Coordinate type engineering notes                               |
+| [VERIFICATION_STRATEGY.md](VERIFICATION_STRATEGY.md)               | Test and verification strategy                                  |
+| [IDEA_ANNOTATED.md](IDEA_ANNOTATED.md)                             | Annotated formal specification                                  |
+| [MUDLARK_ISOLATED_EXPERIMENTS.md](MUDLARK_ISOLATED_EXPERIMENTS.md) | Isolated-branch experiment log (E-1 → E-15)                     |
 
 ---
 
