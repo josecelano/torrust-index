@@ -242,7 +242,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     // ── Phase 7: Debug audit for missed violations ───────────────────────
     if tracing::enabled!(tracing::Level::ERROR) {
-        let ctx = crate::diagnostics::diagnostic::EvictionContext {
+        let ctx = crate::diagnostics::diagnostic::MissedViolationContext {
             evicted_parent: removal_ctx.v_parent,
             evicted_parent_child_count: removal_ctx.child_count,
             collapse_sibling: removal_ctx.collapse_sibling,

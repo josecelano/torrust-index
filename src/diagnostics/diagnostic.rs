@@ -7,6 +7,7 @@ use crate::graph::algorithm::rebalance::{self, Ctx};
 use crate::handle::VNodeId;
 use crate::nodes::vnode::{VKind, VNode};
 use crate::traits::{Accumulator, Inspectable};
+use crate::tree::vtree::is_ancestor;
 
 pub fn audit_violations<V: Accumulator + Inspectable>(
     vnodes: &Arena<VNode<V>>,
@@ -29,7 +30,7 @@ pub fn audit_violations<V: Accumulator + Inspectable>(
     missed
 }
 
-pub struct EvictionContext {
+pub struct MissedViolationContext {
     pub evicted_parent: Option<VNodeId>,
     pub evicted_parent_child_count: usize,
     pub collapse_sibling: Option<VNodeId>,
@@ -39,7 +40,7 @@ pub struct EvictionContext {
 pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     vnodes: &Arena<VNode<V>>,
     violated: VNodeId,
-    context: &EvictionContext,
+    context: &MissedViolationContext,
 ) {
     let v = vnodes.get(violated.index());
     let v_intensity = v.intensity;
@@ -176,24 +177,10 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     }
 }
 
-fn is_ancestor<V: Accumulator>(
-    vnodes: &Arena<VNode<V>>,
-    ancestor: VNodeId,
-    mut descendant: VNodeId,
-) -> bool {
-    while let Some(p) = vnodes.get(descendant.index()).parent {
-        if p == ancestor {
-            return true;
-        }
-        descendant = p;
-    }
-    false
-}
-
 #[cfg(test)]
 mod tests {
     use crate::diagnostics::diagnostic::{
-        EvictionContext, audit_violations, diagnose_missed_violation,
+        MissedViolationContext, audit_violations, diagnose_missed_violation,
     };
     use crate::graph::{Config, GvGraph};
 
@@ -251,7 +238,7 @@ mod tests {
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32); // bootstrap split creates v_root
             let v_root = g.v_root.expect("v_root must exist");
-            let ctx = EvictionContext {
+            let ctx = MissedViolationContext {
                 evicted_parent: None,
                 evicted_parent_child_count: 0,
                 collapse_sibling: None,
@@ -270,7 +257,7 @@ mod tests {
                 VKind::Structural { children, .. } => children.get(0).0,
                 _ => panic!("expected Structural v_root after bootstrap"),
             };
-            let ctx = EvictionContext {
+            let ctx = MissedViolationContext {
                 evicted_parent: None,
                 evicted_parent_child_count: 0,
                 collapse_sibling: None,
@@ -309,7 +296,7 @@ mod tests {
                 return; // Not enough splits for depth-2; treat as vacuous pass.
             };
             // collapse_sibling=v_root: v_root IS an ancestor → is_ancestor returns true.
-            let ctx = EvictionContext {
+            let ctx = MissedViolationContext {
                 evicted_parent: None,
                 evicted_parent_child_count: 0,
                 collapse_sibling: Some(v_root),
@@ -348,7 +335,7 @@ mod tests {
                 return;
             };
             // evicted_parent == grandparent_id → triggers that tracing::error! branch.
-            let ctx = EvictionContext {
+            let ctx = MissedViolationContext {
                 evicted_parent: Some(grandparent_id),
                 evicted_parent_child_count: 2,
                 collapse_sibling: None,
