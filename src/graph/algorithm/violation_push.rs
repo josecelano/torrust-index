@@ -3,6 +3,24 @@
 //!
 //! These are a cohesive family unrelated to the rebalancing algorithm itself.
 //! Callers in `rebalance.rs` import them via `use super::violation_push::*`.
+//!
+//! # Violation source numbering
+//!
+//! Each push function corresponds to a *violation source* — a structural
+//! condition that can leave a V-node in a violated state after a mutation.
+//! The sources are numbered from an original taxonomy; sources 1, 2, and 5
+//! were merged into adjacent sources or no longer occur after later algorithm
+//! revisions, which is why those numbers are absent.
+//!
+//! | Source | Name field in `ViolationSources`        | Trigger                                       |
+//! |--------|-----------------------------------------|-----------------------------------------------|
+//! | 3      | `source_3_contraction_grandchildren`    | Contraction shifts grandchildren to siblings  |
+//! | 4      | `source_4_promotion_children`           | Promote exposes new children of the parent    |
+//! | 6      | `source_6_leaf_removal_ancestors`       | Leaf removal propagates up ancestor chain     |
+//! | 7      | `source_7_collapse_children`            | 2→1 collapse leaves the sole child violated   |
+//! | 8      | `source_8_three_to_two_siblings`        | 3→2 sibling reduction after removal           |
+//! | 9      | `source_9_collapse_cousins`             | Collapse exposes cousins via grandparent path |
+//! | 10     | `source_10_g_contraction_promotion`     | G-contraction followed by promotion           |
 
 use crate::arena::Arena;
 use crate::handle::VNodeId;

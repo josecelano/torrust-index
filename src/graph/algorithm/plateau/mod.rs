@@ -589,6 +589,19 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
     }
 
+    /// Restores the **P-I4 invariant**: every semi-internal G-node must belong
+    /// to a *different* plateau than its single child.
+    ///
+    /// A G-node is *semi-internal* when it has exactly one occupied child slot
+    /// (the other slot is empty — it covers the node's "uncovered" half).
+    /// After a split or promote operation the semi-internal parent and its child
+    /// may temporarily land in the same plateau.  This function detects those
+    /// cases by scanning the basis for semi-internal nodes and, for each one
+    /// whose child falls within the same plateau key, calls `split_for_p_i4`
+    /// to relocate the child's boundary into a fresh plateau.
+    ///
+    /// It is called at the end of every mutating operation (after
+    /// `normalize_plateaus`) to keep the plateau index consistent.
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) fn repair_p_i4(&mut self) {
         use crate::nodes::gnode::GState;
