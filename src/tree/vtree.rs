@@ -62,6 +62,13 @@ pub struct VTree<V: Accumulator> {
 // ── VTree methods ─────────────────────────────────────────────────────────────
 
 impl<V: Accumulator> VTree<V> {
+    // ── Violations queue ──────────────────────────────────────────────────
+
+    /// Enqueues `id` as a pending violation.
+    pub(crate) fn push_violation(&mut self, id: VNodeId) {
+        self.violations.push(id);
+    }
+
     // ── Structural modifications ──────────────────────────────────────────
 
     /// Removes leaf `v_id` from the tree and updates `self.root` in place.

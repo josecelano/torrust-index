@@ -35,7 +35,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         entry = entry_id.index(),
                         "enqueuing violated ancestor",
                     );
-                    self.vtree.violations.push(id);
+                    self.vtree.push_violation(id);
                 }
                 check_id = self.vtree.nodes.get(id.index()).parent();
             }

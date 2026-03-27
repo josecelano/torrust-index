@@ -203,7 +203,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let mut check_id = Some(p_entry_id);
             while let Some(id) = check_id {
                 if rebalance::is_violated(&self.vtree.nodes, id) {
-                    self.vtree.violations.push(id);
+                    self.vtree.push_violation(id);
                 }
                 check_id = self.vtree.nodes.get(id.index()).parent();
             }

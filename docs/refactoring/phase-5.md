@@ -72,7 +72,7 @@ pub(crate) struct VTree<V: Accumulator> {
 
 ---
 
-## [ ] Step 5.3 — Move violations queue ownership into `VTree`
+## [x] Step 5.3 — Move violations queue ownership into `VTree`
 
 **Files touched:** `src/graph/algorithm/violation_push.rs`,
 `src/graph/algorithm/violation_sources.rs`, algorithm call sites.
