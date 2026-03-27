@@ -31,28 +31,28 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             return;
         };
 
-        if self.vnodes.get(entry_id.index()).parent().is_none() {
+        if self.vtree.nodes.get(entry_id.index()).parent().is_none() {
             bootstrap_split(self, g_id);
             return;
         }
 
-        let p_id = self.vnodes.get(entry_id.index()).parent().unwrap();
-        if let VKind::Structural { children, .. } = &self.vnodes.get(p_id.index()).kind() {
+        let p_id = self.vtree.nodes.get(entry_id.index()).parent().unwrap();
+        if let VKind::Structural { children, .. } = &self.vtree.nodes.get(p_id.index()).kind() {
             if children.len() == 3 {
                 let _span = tracing::debug_span!(
                     "split_preprocess",
-                    p = %Nd(&self.vnodes, p_id),
+                    p = %Nd(&self.vtree.nodes, p_id),
                 )
                 .entered();
-                let merged = contract(&mut self.vnodes, p_id);
-                push_side_effect_violations(&self.vnodes, p_id, &mut self.violations);
-                push_side_effect_violations(&self.vnodes, merged, &mut self.violations);
-                push_promoted_violations(&self.vnodes, p_id, &mut self.violations);
+                let merged = contract(&mut self.vtree.nodes, p_id);
+                push_side_effect_violations(&self.vtree.nodes, p_id, &mut self.vtree.violations);
+                push_side_effect_violations(&self.vtree.nodes, merged, &mut self.vtree.violations);
+                push_promoted_violations(&self.vtree.nodes, p_id, &mut self.vtree.violations);
             }
         }
 
         let entry_id = self.gtree.nodes.get(g_id.index()).entry().unwrap();
-        if v_depth(&self.vnodes, entry_id) > self.gtree.live_depth_create {
+        if v_depth(&self.vtree.nodes, entry_id) > self.gtree.live_depth_create {
             return;
         }
 
@@ -76,12 +76,12 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     let (left_id, right_id) = graph.gtree.allocate_children(g_id);
 
-    let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, left_id);
-    let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, right_id);
+    let le_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, left_id);
+    let re_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, right_id);
 
-    let cs_id = alloc_v_structural_2(&mut graph.vnodes, le_id, re_id);
+    let cs_id = alloc_v_structural_2(&mut graph.vtree.nodes, le_id, re_id);
 
-    let entry_int = graph.vnodes.get(entry_id.index()).intensity();
+    let entry_int = graph.vtree.nodes.get(entry_id.index()).intensity();
     let root_structural = VNode::new_structural(
         entry_int,
         None,
@@ -89,26 +89,34 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         Children::new_2((entry_id, entry_int), (cs_id, V::zero())),
         true,
     );
-    let root_s_id = VNodeId::from_index(graph.vnodes.alloc(root_structural));
-    graph.vnodes.get_mut(entry_id.index()).set_parent(root_s_id);
-    graph.vnodes.get_mut(cs_id.index()).set_parent(root_s_id);
+    let root_s_id = VNodeId::from_index(graph.vtree.nodes.alloc(root_structural));
+    graph
+        .vtree
+        .nodes
+        .get_mut(entry_id.index())
+        .set_parent(root_s_id);
+    graph
+        .vtree
+        .nodes
+        .get_mut(cs_id.index())
+        .set_parent(root_s_id);
 
-    graph.vnodes.get(entry_id.index()).store_depth(1);
-    graph.vnodes.get(cs_id.index()).store_depth(1);
-    graph.vnodes.get(le_id.index()).store_depth(2);
-    graph.vnodes.get(re_id.index()).store_depth(2);
+    graph.vtree.nodes.get(entry_id.index()).store_depth(1);
+    graph.vtree.nodes.get(cs_id.index()).store_depth(1);
+    graph.vtree.nodes.get(le_id.index()).store_depth(2);
+    graph.vtree.nodes.get(re_id.index()).store_depth(2);
 
     if let VKind::Entry {
         is_exposed,
         is_evictable,
         ..
-    } = graph.vnodes.get_mut(entry_id.index()).kind_mut()
+    } = graph.vtree.nodes.get_mut(entry_id.index()).kind_mut()
     {
         *is_exposed = false;
         *is_evictable = false;
     }
 
-    graph.v_root = Some(root_s_id);
+    graph.vtree.root = Some(root_s_id);
 
     graph.plateau_after_bootstrap_split(g_id, left_id);
 
@@ -146,7 +154,8 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let _span =
         tracing::debug_span!("catalytic_split", g_id = g_id.index(), ?lo, ?hi, ?mid,).entered();
     let p_id = graph
-        .vnodes
+        .vtree
+        .nodes
         .get(entry_id.index())
         .parent()
         .expect("catalytic_split: entry must have a parent");
@@ -154,11 +163,11 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     // ── Phase 1: Allocate G-children and V-entry nodes ───────────────────
     let (left_id, right_id) = graph.gtree.allocate_children(g_id);
 
-    let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, left_id);
-    let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, right_id);
+    let le_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, left_id);
+    let re_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, right_id);
 
     // ── Phase 2: Compute depth metadata ───────────────────────────────────
-    let p_depth = graph.vnodes.get(p_id.index()).cached_depth_raw();
+    let p_depth = graph.vtree.nodes.get(p_id.index()).cached_depth_raw();
     let s_depth = depth_plus_one(p_depth);
     let child_depth = depth_plus_one(s_depth);
 
@@ -169,15 +178,23 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         Children::new_2((le_id, V::zero()), (re_id, V::zero())),
         true,
     );
-    let s_id = VNodeId::from_index(graph.vnodes.alloc(s));
-    graph.vnodes.get_mut(le_id.index()).set_parent(s_id);
-    graph.vnodes.get_mut(re_id.index()).set_parent(s_id);
+    let s_id = VNodeId::from_index(graph.vtree.nodes.alloc(s));
+    graph.vtree.nodes.get_mut(le_id.index()).set_parent(s_id);
+    graph.vtree.nodes.get_mut(re_id.index()).set_parent(s_id);
 
     // ── Phase 4: Wire `s` into the parent's child list; store child depths ───
-    graph.vnodes.get(le_id.index()).store_depth(child_depth);
-    graph.vnodes.get(re_id.index()).store_depth(child_depth);
+    graph
+        .vtree
+        .nodes
+        .get(le_id.index())
+        .store_depth(child_depth);
+    graph
+        .vtree
+        .nodes
+        .get(re_id.index())
+        .store_depth(child_depth);
 
-    let p = graph.vnodes.get_mut(p_id.index());
+    let p = graph.vtree.nodes.get_mut(p_id.index());
     if let VKind::Structural { children, .. } = p.kind_mut() {
         children.add_child(s_id, V::zero());
     }
@@ -186,14 +203,14 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         is_exposed,
         is_evictable,
         ..
-    } = graph.vnodes.get_mut(entry_id.index()).kind_mut()
+    } = graph.vtree.nodes.get_mut(entry_id.index()).kind_mut()
     {
         *is_exposed = false;
         *is_evictable = false;
     }
 
     // ── Phase 5: Propagate evictable flags ────────────────────────────────
-    propagate_evictable_flags(&mut graph.vnodes, p_id);
+    propagate_evictable_flags(&mut graph.vtree.nodes, p_id);
 
     // ── Phase 6: Plateau state update ─────────────────────────────────────
     graph.plateau_after_catalytic_split(g_id, left_id);

@@ -107,13 +107,32 @@ those orchestrators:
 
 ## Review checkpoint
 
-> _Fill in after completing all three steps._
->
-> - Did any free function turn out to need both `gnodes` and `vnodes`? Document
->   it as a cross-tree operation and leave it on `GvGraph` or a future coordinator.
-> - Is the `Capacity` computation now cleanly inside `GTree::new()`? Or does
->   `GvGraph::new()` still duplicate any of it?
-> - Are `node_count` and `terminal_count` correctly maintained through the
->   `GTree` method boundary, or are there callers that still update them directly?
-> - After this phase: what fields remain in `GvGraph` that are not `gtree`,
->   `vtree` (Phase 5), `config`, or plateau state (Phase 7)?
+- **Cross-tree operations:** `attempt_split` and `evict_tip` both coordinate
+  across both trees — they became `GvGraph` methods, not `GTree`/`VTree` methods.
+  `scan_for_candidates` and `scan_dfs` (in `evict.rs`) also traverse both trees
+  and were left as free functions with a `&GvGraph` parameter.
+
+- **`Capacity` computation:** Cleanly inside `GTree::new(config)` since Step 4.1.
+  `GvGraph::new` constructs `gtree: GTree::new(&config.structural)` and no longer
+  contains any capacity / depth-buffer arithmetic.
+
+- **`node_count` / `terminal_count` maintenance:** Correctly maintained through the
+  `GTree` method boundary:
+  - `allocate_children` increments `node_count += 2; terminal_count += 1` (the
+    bookkeeping is always identical for every split, so it belongs inside the helper).
+  - Phase 8 of `evict_tip` decrements `node_count -= 1; terminal_count -= 1`
+    (and conditionally adds 1 if the parent becomes terminal) — this remains inline
+    because the dealloc must happen _after_ `vtree_remove_leaf` (which calls
+    `clear_entry` on the evicted G-node slot).
+  - No caller outside `GTree` touches these counters directly anymore.
+
+- **Fields remaining in `GvGraph` after Phase 4:**
+
+  | Field                             | Phase that will own it |
+  | --------------------------------- | ---------------------- |
+  | `gtree: GTree<C, V, N>`           | ✅ Phase 4 (done)      |
+  | `vnodes: Arena<VNode<V>>`         | Phase 5 (`VTree`)      |
+  | `v_root: Option<VNodeId>`         | Phase 5 (`VTree`)      |
+  | `violations: Vec<VNodeId>`        | Phase 5 (`VTree`)      |
+  | `config: Config<V>`               | stays in `GvGraph`     |
+  | `plateaus`, `plateau_basis`, etc. | Phase 7                |

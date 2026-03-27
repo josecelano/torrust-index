@@ -133,7 +133,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             // second tree traversal.
             if let Some(v_id) = g.entry() {
                 let own = g.own();
-                self.vnodes.get_mut(v_id.index()).set_intensity(own);
+                self.vtree.nodes.get_mut(v_id.index()).set_intensity(own);
             }
 
             let g = self.gtree.nodes.get(gid.index());
@@ -153,8 +153,8 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             }
         }
 
-        if let Some(v_root) = self.v_root {
-            vtree::recompute_all_v_intensities(&mut self.vnodes, v_root);
+        if let Some(v_root) = self.vtree.root {
+            vtree::recompute_all_v_intensities(&mut self.vtree.nodes, v_root);
         }
 
         self.post_decay_repair("DECAY-UNIFORM");
@@ -217,23 +217,23 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             let g = self.gtree.nodes.get(gid.index());
             if let Some(v_id) = g.entry() {
                 let own = g.own();
-                self.vnodes.get_mut(v_id.index()).set_intensity(own);
+                self.vtree.nodes.get_mut(v_id.index()).set_intensity(own);
             }
         }
 
-        if let Some(v_root) = self.v_root {
-            vtree::recompute_all_v_intensities(&mut self.vnodes, v_root);
+        if let Some(v_root) = self.vtree.root {
+            vtree::recompute_all_v_intensities(&mut self.vtree.nodes, v_root);
         }
 
         self.post_decay_repair("DECAY-SELECTIVE");
     }
 
     fn post_decay_repair(&mut self, label: &str) {
-        self.violations = rebalance::find_violated_nodes(&self.vnodes);
+        self.vtree.violations = rebalance::find_violated_nodes(&self.vtree.nodes);
         let new_gnodes = rebalance::rebalance(
-            &mut self.vnodes,
+            &mut self.vtree.nodes,
             &mut self.gtree.nodes,
-            &mut self.violations,
+            &mut self.vtree.violations,
             self.gtree.live_depth_evict,
         );
         if !new_gnodes.is_empty() {

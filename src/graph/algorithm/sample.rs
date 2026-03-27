@@ -12,15 +12,15 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
     ) -> Option<crate::spatial::view::Cell<C, V>> {
         use crate::nodes::vnode::VKind;
 
-        let v_root = self.v_root?;
-        let root_node = self.vnodes.get(v_root.index());
+        let v_root = self.vtree.root?;
+        let root_node = self.vtree.nodes.get(v_root.index());
         if root_node.intensity() == V::zero() {
             return None;
         }
 
         let mut current = v_root;
         loop {
-            let vnode = self.vnodes.get(current.index());
+            let vnode = self.vtree.nodes.get(current.index());
             match &vnode.kind() {
                 VKind::Entry { gnode, .. } => {
                     let g = self.gtree.nodes.get(gnode.index());

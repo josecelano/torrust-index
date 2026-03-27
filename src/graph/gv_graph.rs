@@ -9,6 +9,7 @@ use crate::spatial::plateau::{BasisEdge, Plateau};
 use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate};
 use crate::tree::gtree::GTree;
+use crate::tree::vtree::VTree;
 #[cfg(feature = "dynamic-contour-tracking")]
 use std::collections::BTreeMap;
 
@@ -18,13 +19,9 @@ use super::config::Config;
 pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
     pub(crate) gtree: GTree<C, V, N>,
 
-    pub(crate) vnodes: Arena<VNode<V>>,
-
-    pub(crate) v_root: Option<VNodeId>,
+    pub(crate) vtree: VTree<V>,
 
     pub(crate) config: Config<V>,
-
-    pub(crate) violations: Vec<VNodeId>,
 
     #[cfg(feature = "dynamic-contour-tracking")]
     pub(crate) plateaus: BTreeMap<BasisEdge<C>, Plateau<C, V>>,
@@ -100,12 +97,16 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             (map, pb)
         };
 
+        let vtree = VTree {
+            nodes: vnodes,
+            root: Some(v_root_id),
+            violations: Vec::new(),
+        };
+
         Self {
             gtree,
-            vnodes,
-            v_root: Some(v_root_id),
+            vtree,
             config,
-            violations: Vec::new(),
             #[cfg(feature = "dynamic-contour-tracking")]
             plateaus,
             #[cfg(feature = "dynamic-contour-tracking")]
@@ -151,7 +152,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     #[inline]
     pub(crate) const fn v_root(&self) -> Option<VNodeId> {
-        self.v_root
+        self.vtree.root
     }
 
     #[must_use]
@@ -163,14 +164,14 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     #[inline]
     pub(crate) const fn vnodes(&self) -> &Arena<VNode<V>> {
-        &self.vnodes
+        &self.vtree.nodes
     }
 
     #[cfg(test)]
     #[must_use]
     #[inline]
     pub(crate) fn has_pending_violations(&self) -> bool {
-        !self.violations.is_empty()
+        !self.vtree.violations.is_empty()
     }
 
     #[must_use]

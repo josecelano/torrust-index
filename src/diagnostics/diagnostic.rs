@@ -239,7 +239,7 @@ mod tests {
         fn does_not_panic_for_root_vnode_after_bootstrap() {
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32); // bootstrap split creates v_root
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             let ctx = MissedViolationContext {
                 evicted_parent: None,
                 evicted_parent_child_count: 0,
@@ -253,7 +253,7 @@ mod tests {
         fn depth_one_child_hits_grandparent_not_found_path() {
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32);
-            let v_root = g.v_root.expect("v_root must exist after bootstrap");
+            let v_root = g.v_root().expect("v_root must exist after bootstrap");
             // Get a depth-1 child of v_root (parent=v_root, grandparent=None)
             let child_id = match &g.vnodes().get(v_root.index()).kind() {
                 VKind::Structural { children, .. } => children.get(0).0,
@@ -275,7 +275,7 @@ mod tests {
             for coord in [32u8, 96u8, 160u8, 224u8] {
                 g.observe(coord, 3u32);
             }
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             // BFS to find a depth-2+ Entry node.
             let mut stack: Vec<(crate::handle::VNodeId, usize)> = vec![(v_root, 0)];
             let mut depth2_entry = None;
@@ -312,7 +312,7 @@ mod tests {
             for coord in [32u8, 96u8, 160u8, 224u8] {
                 g.observe(coord, 3u32);
             }
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             // BFS to find depth-2 entry and its grandparent.
             let mut stack: Vec<(crate::handle::VNodeId, usize)> = vec![(v_root, 0)];
             let mut found: Option<(crate::handle::VNodeId, crate::handle::VNodeId)> = None;

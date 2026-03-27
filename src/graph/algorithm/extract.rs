@@ -14,7 +14,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let domain_start = C::zero();
         let domain_end = C::domain_max(N);
 
-        let Some(v_root) = self.v_root else {
+        let Some(v_root) = self.vtree.root else {
             return Pewei {
                 domain_start,
                 domain_end,
@@ -28,7 +28,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let mut layers: Vec<Layer<C, V>> = Vec::new();
 
         while let Some((vid, bfs_depth)) = queue.pop_front() {
-            let vnode = self.vnodes.get(vid.index());
+            let vnode = self.vtree.nodes.get(vid.index());
 
             match &vnode.kind() {
                 VKind::Entry { gnode, .. } => {
@@ -84,7 +84,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     pub fn layers(&self) -> impl Iterator<Item = (usize, crate::spatial::node::Node<C, V>)> + '_ {
         let mut queue = std::collections::VecDeque::new();
-        if let Some(v_root) = self.v_root {
+        if let Some(v_root) = self.vtree.root {
             queue.push_back((v_root, 0usize));
         }
         Layers { graph: self, queue }
@@ -128,7 +128,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
 
         loop {
             let (vid, bfs_depth) = self.queue.pop_front()?;
-            let vnode = self.graph.vnodes.get(vid.index());
+            let vnode = self.graph.vtree.nodes.get(vid.index());
 
             match &vnode.kind() {
                 VKind::Structural { children, .. } => {

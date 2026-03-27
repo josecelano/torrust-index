@@ -552,7 +552,7 @@ mod tests {
             // v_root is the new structural root at depth 0.
             // Its children: original entry + cs structural.
             // Walk to a depth-1 child.
-            let v_root = g.v_root.expect("v_root must exist after bootstrap split");
+            let v_root = g.v_root().expect("v_root must exist after bootstrap split");
             let result = max_uncle_intensity(g.vnodes(), v_root);
             // v_root has no parent → no grandparent → None
             assert!(result.is_none());
@@ -567,7 +567,7 @@ mod tests {
             g.observe(32u8, 3u32); // catalytic split in left child
             // Find a deep entry by using the extract API and checking total_sum.
             // The presence of a result is what we are testing — not the value.
-            let v_root = g.v_root.unwrap();
+            let v_root = g.v_root().unwrap();
             // The root itself has no grandparent → None
             assert!(max_uncle_intensity(g.vnodes(), v_root).is_none());
             // But total_sum being correct proves rebalance ran successfully.
@@ -614,7 +614,7 @@ mod tests {
         fn entry_vnode_shows_entry_label() {
             let mut g = fresh();
             g.observe(64u8, 2u32); // value == threshold: no split; single Entry remains
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             let display = format!("{}", Nd(g.vnodes(), v_root));
             assert!(
                 display.contains("(E,"),
@@ -626,7 +626,7 @@ mod tests {
         fn structural_vnode_shows_structural_label() {
             let mut g = fresh();
             g.observe(64u8, 3u32); // value > threshold → bootstrap split → v_root becomes Structural
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             let display = format!("{}", Nd(g.vnodes(), v_root));
             assert!(
                 display.contains("(S"),
@@ -645,7 +645,7 @@ mod tests {
         fn root_node_includes_root_label() {
             let mut g = fresh();
             g.observe(64u8, 3u32); // bootstrap split → Structural root
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             // v_root has no parent → formatting appends " (root)"
             let display = format!("{}", Ctx(g.vnodes(), v_root));
             assert!(
@@ -658,7 +658,7 @@ mod tests {
         fn depth_one_child_includes_parent_info() {
             let mut g = fresh();
             g.observe(64u8, 3u32); // bootstrap split
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             // Get a depth-1 child (first child of Structural root)
             let child_id = match &g.vnodes().get(v_root.index()).kind() {
                 VKind::Structural { children, .. } => children.get(0).0,
@@ -677,7 +677,7 @@ mod tests {
             let mut g = fresh();
             g.observe(64u8, 3u32); // first split
             g.observe(64u8, 3u32); // second split in left child
-            let v_root = g.v_root.expect("v_root must exist");
+            let v_root = g.v_root().expect("v_root must exist");
             // BFS for a depth-2+ Entry
             let mut stack = vec![(v_root, 0usize)];
             let mut depth2 = None;
@@ -716,7 +716,7 @@ mod tests {
             // In a fresh graph (no observations), v_root is an Entry vnode.
             // Ch(vnodes, entry_id) hits VKind::Entry arm → writes "∅" (line 77).
             let g = fresh();
-            let v_root_id = g.v_root.expect("fresh graph has v_root");
+            let v_root_id = g.v_root().expect("fresh graph has v_root");
             let result = format!("{}", Ch(g.vnodes(), v_root_id));
             assert_eq!(result, "\u{2205}", "Ch on Entry vnode should display '∅'");
         }

@@ -114,7 +114,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         )
         .entered();
 
-        let gnode_id = match &self.vnodes.get(v_id.index()).kind() {
+        let gnode_id = match &self.vtree.nodes.get(v_id.index()).kind() {
             VKind::Entry {
                 gnode,
                 is_evictable,
@@ -194,16 +194,16 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             .expect("evict_tip: parent must have V-entry (has dependents)");
         {
             let p_own = self.gtree.nodes.get(parent_id.index()).own();
-            self.vnodes.get_mut(p_entry_id.index()).set_intensity(p_own);
-            vtree::sync_intensity_in_parent(&mut self.vnodes, p_entry_id, p_own);
-            vtree::propagate_v_sums(&mut self.vnodes, p_entry_id);
+            self.vtree.nodes.get_mut(p_entry_id.index()).set_intensity(p_own);
+            vtree::sync_intensity_in_parent(&mut self.vtree.nodes, p_entry_id, p_own);
+            vtree::propagate_v_sums(&mut self.vtree.nodes, p_entry_id);
 
             let mut check_id = Some(p_entry_id);
             while let Some(id) = check_id {
-                if rebalance::is_violated(&self.vnodes, id) {
-                    self.violations.push(id);
+                if rebalance::is_violated(&self.vtree.nodes, id) {
+                    self.vtree.violations.push(id);
                 }
-                check_id = self.vnodes.get(id.index()).parent();
+                check_id = self.vtree.nodes.get(id.index()).parent();
             }
         }
 
@@ -219,22 +219,22 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 is_exposed,
                 is_evictable,
                 ..
-            } = self.vnodes.get_mut(p_entry_id.index()).kind_mut()
+            } = self.vtree.nodes.get_mut(p_entry_id.index()).kind_mut()
             {
                 *is_exposed = parent_is_exposed;
                 *is_evictable = parent_is_evictable;
             }
-            vtree::propagate_evictable_flags(&mut self.vnodes, p_entry_id);
+            vtree::propagate_evictable_flags(&mut self.vtree.nodes, p_entry_id);
         }
 
         // ── Phase 4–6: Capture V-topology, remove leaf, push violations ─────
         // Topology must be captured before removal; violations are pushed after.
-        let removal_ctx = classify_leaf_removal(&self.vnodes, v_id);
+        let removal_ctx = classify_leaf_removal(&self.vtree.nodes, v_id);
 
-        self.v_root =
-            vtree::vtree_remove_leaf(&mut self.vnodes, &mut self.gtree.nodes, v_id, self.v_root);
+        self.vtree.root =
+            vtree::vtree_remove_leaf(&mut self.vtree.nodes, &mut self.gtree.nodes, v_id, self.vtree.root);
 
-        push_eviction_violations(&self.vnodes, v_id, &removal_ctx, &mut self.violations);
+        push_eviction_violations(&self.vtree.nodes, v_id, &removal_ctx, &mut self.vtree.violations);
 
         // ── Phase 7: Debug audit for missed violations ───────────────────────
         if tracing::enabled!(tracing::Level::ERROR) {
@@ -243,13 +243,13 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 evicted_parent_child_count: removal_ctx.child_count,
                 collapse_sibling: removal_ctx.collapse_sibling,
             };
-            let all_violated = rebalance::find_violated_nodes(&self.vnodes);
+            let all_violated = rebalance::find_violated_nodes(&self.vtree.nodes);
             let queued: std::collections::HashSet<usize> =
-                self.violations.iter().map(|v| v.index()).collect();
+                self.vtree.violations.iter().map(|v| v.index()).collect();
             for v in all_violated {
                 if !queued.contains(&v.index()) {
                     crate::diagnostics::diagnostic::diagnose_missed_violation(
-                        &self.vnodes,
+                        &self.vtree.nodes,
                         v,
                         &ctx,
                     );
@@ -294,7 +294,7 @@ pub fn scan_for_candidates<C: Coordinate, V: Accumulator, const N: u32>(
 ) -> Vec<VNodeId> {
     let _span = tracing::trace_span!("scan_for_candidates").entered();
     let mut candidates = Vec::new();
-    if let Some(v_root) = graph.v_root {
+    if let Some(v_root) = graph.vtree.root {
         scan_dfs(graph, v_root, 0, &mut candidates);
     }
     tracing::trace!(candidates = candidates.len(), "scan complete");
@@ -307,7 +307,7 @@ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
     depth: u32,
     candidates: &mut Vec<VNodeId>,
 ) {
-    let node = graph.vnodes.get(v_id.index());
+    let node = graph.vtree.nodes.get(v_id.index());
     match &node.kind() {
         VKind::Entry {
             gnode,

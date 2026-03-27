@@ -21,24 +21,24 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         // ── Phase 2: V-tree propagation and violation detection ──────────
         if let Some(entry_id) = self.gtree.nodes.get(g_id.index()).entry() {
-            let v = self.vnodes.get_mut(entry_id.index());
+            let v = self.vtree.nodes.get_mut(entry_id.index());
             v.set_intensity(O::accumulate(v.intensity(), delta));
             let new_intensity = v.intensity();
 
-            vtree::sync_intensity_in_parent(&mut self.vnodes, entry_id, new_intensity);
-            vtree::propagate_v_sums(&mut self.vnodes, entry_id);
+            vtree::sync_intensity_in_parent(&mut self.vtree.nodes, entry_id, new_intensity);
+            vtree::propagate_v_sums(&mut self.vtree.nodes, entry_id);
 
             let mut check_id = Some(entry_id);
             while let Some(id) = check_id {
-                if rebalance::is_violated(&self.vnodes, id) {
+                if rebalance::is_violated(&self.vtree.nodes, id) {
                     tracing::debug!(
-                        violated = %rebalance::Nd(&self.vnodes, id),
+                        violated = %rebalance::Nd(&self.vtree.nodes, id),
                         entry = entry_id.index(),
                         "enqueuing violated ancestor",
                     );
-                    self.violations.push(id);
+                    self.vtree.violations.push(id);
                 }
-                check_id = self.vnodes.get(id.index()).parent();
+                check_id = self.vtree.nodes.get(id.index()).parent();
             }
         }
 
@@ -53,8 +53,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         if tracing::enabled!(tracing::Level::DEBUG) {
             crate::diagnostics::diagnostic::audit_violations(
-                &self.vnodes,
-                &self.violations,
+                &self.vtree.nodes,
+                &self.vtree.violations,
                 "POST-SPLIT",
             );
         }
@@ -65,9 +65,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         let new_gnodes = rebalance::rebalance(
-            &mut self.vnodes,
+            &mut self.vtree.nodes,
             &mut self.gtree.nodes,
-            &mut self.violations,
+            &mut self.vtree.violations,
             self.gtree.live_depth_evict,
         );
         if !new_gnodes.is_empty() {
@@ -106,8 +106,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             let remaining = crate::diagnostics::diagnostic::audit_violations(
-                &self.vnodes,
-                &self.violations,
+                &self.vtree.nodes,
+                &self.vtree.violations,
                 "POST-OBSERVE",
             );
             debug_assert!(

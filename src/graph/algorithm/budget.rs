@@ -91,10 +91,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 }
             }
 
-            if !self.vnodes.is_occupied(v_id.index()) {
+            if !self.vtree.nodes.is_occupied(v_id.index()) {
                 continue;
             }
-            match &self.vnodes.get(v_id.index()).kind() {
+            match &self.vtree.nodes.get(v_id.index()).kind() {
                 crate::nodes::vnode::VKind::Entry {
                     gnode,
                     is_evictable,
@@ -107,7 +107,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         continue;
                     }
 
-                    let depth = vtree::v_depth(&self.vnodes, v_id);
+                    let depth = vtree::v_depth(&self.vtree.nodes, v_id);
                     if depth <= self.gtree.live_depth_evict {
                         continue;
                     }
@@ -120,8 +120,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
             if tracing::enabled!(tracing::Level::DEBUG) {
                 crate::diagnostics::diagnostic::audit_violations(
-                    &self.vnodes,
-                    &self.violations,
+                    &self.vtree.nodes,
+                    &self.vtree.violations,
                     "POST-EVICT",
                 );
             }
@@ -137,9 +137,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         // ── Phase 2: Post-batch rebalance, plateau repair, and normalisation ───
         if evicted > 0 {
             let new_gnodes = rebalance::rebalance(
-                &mut self.vnodes,
+                &mut self.vtree.nodes,
                 &mut self.gtree.nodes,
-                &mut self.violations,
+                &mut self.vtree.violations,
                 self.gtree.live_depth_evict,
             );
             if !new_gnodes.is_empty() {

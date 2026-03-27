@@ -45,6 +45,20 @@ use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 
+// ── VTree ────────────────────────────────────────────────────────────────────
+
+/// The V-tree: an intensity-aggregation binary tree overlaid on the G-tree.
+/// Owns the node arena, the root pointer, and the violations queue.
+#[derive(Debug, Clone)]
+pub struct VTree<V: Accumulator> {
+    /// Backing store for all V-nodes.
+    pub(crate) nodes: Arena<VNode<V>>,
+    /// Root V-node (`None` only when the tree is empty).
+    pub(crate) root: Option<VNodeId>,
+    /// V-nodes whose intensity distribution violates the balance threshold.
+    pub(crate) violations: Vec<VNodeId>,
+}
+
 pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     vnodes: &mut Arena<VNode<V>>,
     gnodes: &mut Arena<GNode<C, V>>,

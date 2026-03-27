@@ -10,7 +10,7 @@ so that scheduling state has a natural home.
 
 ---
 
-## [ ] Step 5.1 — Define `VTree<V>` as a struct wrapper
+## [x] Step 5.1 — Define `VTree<V>` as a struct wrapper
 
 **Files touched:** `src/tree/mod.rs`, `src/graph/gv_graph.rs`.
 
