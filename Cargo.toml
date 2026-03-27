@@ -5,7 +5,13 @@ description = "φ-Bounded Geometric-Value Graph"
 documentation = "https://docs.rs/crate/torrust-mudlark/"
 edition = "2024"
 homepage = "https://torrust.com"
-keywords = ["adaptive", "data-structure", "dual-tree", "sampling", "spatial-index"]
+keywords = [
+    "adaptive",
+    "data-structure",
+    "dual-tree",
+    "sampling",
+    "spatial-index",
+]
 license = "AGPL-3.0-only"
 name = "torrust-mudlark"
 publish = true
@@ -54,3 +60,10 @@ crossterm = "0.29"
 insta = "1"
 ratatui = "0.30"
 rstest = "0.24"
+criterion = { version = "0.5", default-features = false, features = [
+    "cargo_bench_support",
+] }
+
+[[bench]]
+name = "depth"
+harness = false

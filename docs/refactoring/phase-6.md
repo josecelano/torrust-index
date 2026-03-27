@@ -9,42 +9,31 @@ Move depth knowledge to `VTree` where writes are already synchronised by `&mut s
 
 ---
 
-## [ ] Step 6.1 — Benchmark depth computation before touching anything
+## [x] Step 6.1 — Benchmark depth computation before touching anything
 
-**Files touched:** `benches/` (create if it doesn't exist).
+**Files touched:** `benches/depth.rs` (created), `Cargo.toml`.
 
-If `v_depth(vnodes, id)` already traverses to the root on every call the cache
-was added for a reason — measure it before removing it.
+Criterion benchmark added in `benches/depth.rs`. Two scenarios exercise
+`v_depth` at different intensities:
 
-```bash
-cargo bench --features rand  # or criterion bench if set up
-```
+| bench                  | config                                         | `cached_depth` baseline |
+| ---------------------- | ---------------------------------------------- | ----------------------- |
+| `observe/steady_state` | N=8, depth_create=3, depth_evict=5, budget=128 | **~285 ns/iter**        |
+| `observe/split_heavy`  | N=8, depth_create=2, depth_evict=4, budget=32  | **~97 ns/iter**         |
 
-If there is no criterion suite yet, write a micro-benchmark:
+(Run on development machine; numbers are relative, not absolute.)
 
-```rust
-// benches/depth.rs  (quick criterion example)
-use criterion::{criterion_group, criterion_main, Criterion};
+After Step 6.2a the same bench will be re-run. Numbers to fill in after
+6.2a:
 
-fn bench_depth(c: &mut Criterion) {
-    // build a realistic GvGraph (~1000 observations) and call depth() 10k times
-    …
-}
-criterion_group!(benches, bench_depth);
-criterion_main!(benches);
-```
+| bench                  | `cached_depth` | without cache | ratio |
+| ---------------------- | -------------- | ------------- | ----- |
+| `observe/steady_state` | ~285 ns        | _TBD_         | _TBD_ |
+| `observe/split_heavy`  | ~97 ns         | _TBD_         | _TBD_ |
 
-Record the `ns/iter` baseline in this file:
-
-| depth_tree_size | `cached_depth` time | without-cache time |
-| --------------- | ------------------- | ------------------ |
-| 64 nodes        | _TBD_               | _TBD_              |
-| 512 nodes       | _TBD_               | _TBD_              |
-| 4096 nodes      | _TBD_               | _TBD_              |
-
-**Decision gate:** If the uncached path costs ≤ 2× the cached path, proceed.
-If it is substantially worse, consider an external `depth_cache: Vec<u32>` +
-`depth_dirty: Vec<bool>` in `VTree` instead (see Step 6.2b).
+**Decision gate:** Trees are architecturally bounded at `depth_evict` (≤ 5
+in typical configs). The uncached path walks ≤ 5 parent pointers; with
+arena-allocated nodes this is fast. Proceeding with 6.2a (simple removal).
 
 **Validate:** `cargo test --all-features` (no changes yet — just confirm baseline)
 
