@@ -18,6 +18,8 @@ pub struct Node<C: Coordinate, V: Accumulator> {
 
     pub state: GState,
 
+    // TODO(opportunity-8): Node exposes gnode_id (an internal handle);
+    // consider replacing with an opaque query result in a later phase.
     pub gnode_id: GNodeId,
 
     pub parent: Option<GNodeId>,
