@@ -114,11 +114,31 @@ already requires `Copy` via usage; add the bound there if so.
 
 ## Review checkpoint
 
-> _Fill in after completing all steps._
->
-> - Was the `cached_depth` cache actually providing a measurable speedup, or had
->   it been added pre-emptively? Record the benchmark numbers in Step 6.1's table.
-> - After this phase, is there any remaining interior mutability (`Cell`, `RefCell`,
->   `Mutex`, `AtomicXxx`) in the data types (`GNode`, `VNode`, `Arena`)? List
->   what remains and whether it is justified.
-> - Is `VNode<V>` now `Send + Sync` without needing `Arc`?
+**Was the `cached_depth` cache providing a measurable speedup?**
+
+No. The benchmark comparison in Step 6.1's table shows ratios of 1.01–1.02×,
+which is within measurement noise. The cache was added pre-emptively. The
+parent-chain walk is equally fast because trees are architecturally bounded at
+`depth_evict` (≤ 5 levels), so the walk visits at most 5 nodes with
+cache-warm arena pointers.
+
+**Remaining interior mutability in data types after Phase 6:**
+
+None. A `grep` for `AtomicU{32,64,size}`, `Cell<`, `RefCell<`, `Mutex<`,
+`RwLock<` across `src/` returns only hits for `spatial::view::Cell<C, V>` — a
+domain struct unrelated to standard-library interior mutability.
+
+**Is `VNode<V>` now `Send + Sync` without needing `Arc`?**
+
+Yes. `VNode<V>` now only contains `V`, `Option<VNodeId>`, and
+`VKind<V>`/`Children<V>` — all of which are plain-data enums/arrays with no
+heap allocation. `VNode<V>` is `Send + Sync` whenever `V: Send + Sync`, and
+`Copy` whenever `V: Copy`.
+
+**Commits:**
+
+| Step | Commit    | Description                                                             |
+| ---- | --------- | ----------------------------------------------------------------------- |
+| 6.1  | `a94a7ea` | Add criterion depth benchmark (baseline: ~285 ns / ~97 ns)              |
+| 6.2a | `213af08` | Remove `cached_depth AtomicU32`, rewrite `v_depth` as parent-chain walk |
+| 6.3  | `a59cc89` | Derive `Copy` for `VNode`, `VKind`, `Children` when `V: Copy`           |
