@@ -94,7 +94,7 @@ With `violations` now a field of `VTree`, the push helpers become `VTree` method
 
 ---
 
-## [ ] Step 5.4 — Move rebalance entry point into `VTree`
+## [x] Step 5.4 — Move rebalance entry point into `VTree`
 
 **Files touched:** `src/graph/algorithm/rebalance.rs`.
 

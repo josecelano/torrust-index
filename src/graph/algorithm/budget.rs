@@ -138,9 +138,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         // ── Phase 2: Post-batch rebalance, plateau repair, and normalisation ───
         if evicted > 0 {
             let new_gnodes = rebalance::rebalance(
-                &mut self.vtree.nodes,
+                &mut self.vtree,
                 &mut self.gtree.nodes,
-                &mut self.vtree.violations,
                 self.gtree.live_depth_evict,
             );
             if !new_gnodes.is_empty() {

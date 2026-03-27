@@ -3,7 +3,7 @@ use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::vtree::{invalidate_depth_subtree, propagate_evictable_flags, v_depth};
+use crate::tree::vtree::{VTree, invalidate_depth_subtree, propagate_evictable_flags, v_depth};
 
 use super::promote::{legacy_promote, skip_promote, standard_promote};
 use super::violation_push::{
@@ -395,11 +395,11 @@ fn handle_iteration_limit<V: Accumulator>(
 }
 
 pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
-    vnodes: &mut Arena<VNode<V>>,
+    vtree: &mut VTree<V>,
     gnodes: &mut Arena<GNode<C, V>>,
-    violations: &mut Vec<VNodeId>,
     depth_evict: u32,
 ) -> Vec<GNodeId> {
+    let (vnodes, violations) = (&mut vtree.nodes, &mut vtree.violations);
     let mut new_gnodes = Vec::new();
 
     let max_iterations: u32 = vnodes.count().saturating_mul(20).max(10_000);
