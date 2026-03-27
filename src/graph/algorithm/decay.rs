@@ -2,7 +2,6 @@ use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
-use crate::tree::vtree;
 
 #[allow(clippy::float_cmp)]
 /// Compute per-depth attenuation factors for a decay operation over a G-tree
@@ -153,9 +152,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             }
         }
 
-        if let Some(v_root) = self.vtree.root {
-            vtree::recompute_all_v_intensities(&mut self.vtree.nodes, v_root);
-        }
+        self.vtree.recompute_all_intensities();
 
         self.post_decay_repair("DECAY-UNIFORM");
     }
@@ -221,9 +218,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             }
         }
 
-        if let Some(v_root) = self.vtree.root {
-            vtree::recompute_all_v_intensities(&mut self.vtree.nodes, v_root);
-        }
+        self.vtree.recompute_all_intensities();
 
         self.post_decay_repair("DECAY-SELECTIVE");
     }

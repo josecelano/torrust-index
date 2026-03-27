@@ -40,7 +40,7 @@
 //! breaches the configured balance threshold.  See `rebalance.rs` for the
 //! `is_violated` predicate and the `resolve` function that repairs violations.
 use crate::arena::Arena;
-use crate::handle::VNodeId;
+use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
@@ -57,6 +57,103 @@ pub struct VTree<V: Accumulator> {
     pub(crate) root: Option<VNodeId>,
     /// V-nodes whose intensity distribution violates the balance threshold.
     pub(crate) violations: Vec<VNodeId>,
+}
+
+// ── VTree methods ─────────────────────────────────────────────────────────────
+
+impl<V: Accumulator> VTree<V> {
+    // ── Structural modifications ──────────────────────────────────────────
+
+    /// Removes leaf `v_id` from the tree and updates `self.root` in place.
+    pub(crate) fn remove_leaf<C: Coordinate>(
+        &mut self,
+        gnodes: &mut Arena<GNode<C, V>>,
+        v_id: VNodeId,
+    ) {
+        self.root = vtree_remove_leaf(&mut self.nodes, gnodes, v_id, self.root);
+    }
+
+    // ── Sum / intensity propagation ───────────────────────────────────────
+
+    pub(crate) fn propagate_sums(&mut self, id: VNodeId) {
+        propagate_v_sums(&mut self.nodes, id);
+    }
+
+    pub(crate) fn sync_intensity(&mut self, id: VNodeId, val: V) {
+        sync_intensity_in_parent(&mut self.nodes, id, val);
+    }
+
+    pub(crate) fn recompute_all_intensities(&mut self) {
+        if let Some(root) = self.root {
+            recompute_all_v_intensities(&mut self.nodes, root);
+        }
+    }
+
+    // ── Depth cache ───────────────────────────────────────────────────────
+
+    pub(crate) fn depth(&self, id: VNodeId) -> u32 {
+        v_depth(&self.nodes, id)
+    }
+
+    // ── Evictable flags ───────────────────────────────────────────────────
+
+    pub(crate) fn propagate_evictable(&mut self, id: VNodeId) {
+        propagate_evictable_flags(&mut self.nodes, id);
+    }
+
+    // ── Eviction candidate scan ───────────────────────────────────────────
+
+    /// Returns all V-entry nodes eligible for eviction.
+    ///
+    /// A node is a candidate when it is deeper than `live_depth_evict`,
+    /// flagged `is_evictable`, and does not belong to the G-tree root.
+    pub(crate) fn scan_for_candidates(
+        &self,
+        live_depth_evict: u32,
+        g_root: GNodeId,
+    ) -> Vec<VNodeId> {
+        let _span = tracing::trace_span!("scan_for_candidates").entered();
+        let mut candidates = Vec::new();
+        if let Some(v_root) = self.root {
+            self.scan_dfs(v_root, 0, live_depth_evict, g_root, &mut candidates);
+        }
+        tracing::trace!(candidates = candidates.len(), "scan complete");
+        candidates
+    }
+
+    fn scan_dfs(
+        &self,
+        v_id: VNodeId,
+        depth: u32,
+        live_depth_evict: u32,
+        g_root: GNodeId,
+        candidates: &mut Vec<VNodeId>,
+    ) {
+        let node = self.nodes.get(v_id.index());
+        match &node.kind() {
+            VKind::Entry {
+                gnode,
+                is_evictable,
+                ..
+            } => {
+                if depth > live_depth_evict && *is_evictable && *gnode != g_root {
+                    candidates.push(v_id);
+                }
+            }
+            VKind::Structural {
+                children,
+                has_evictable,
+            } => {
+                if !has_evictable {
+                    return;
+                }
+                for i in 0..children.len() {
+                    let (child_id, _) = children.get(i);
+                    self.scan_dfs(child_id, depth + 1, live_depth_evict, g_root, candidates);
+                }
+            }
+        }
+    }
 }
 
 pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(

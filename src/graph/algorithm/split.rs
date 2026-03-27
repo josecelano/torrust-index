@@ -8,7 +8,6 @@ use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
 use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub(crate) fn attempt_split(&mut self, g_id: GNodeId) {
@@ -52,7 +51,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         let entry_id = self.gtree.nodes.get(g_id.index()).entry().unwrap();
-        if v_depth(&self.vtree.nodes, entry_id) > self.gtree.live_depth_create {
+        if self.vtree.depth(entry_id) > self.gtree.live_depth_create {
             return;
         }
 
@@ -210,7 +209,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     }
 
     // ── Phase 5: Propagate evictable flags ────────────────────────────────
-    propagate_evictable_flags(&mut graph.vtree.nodes, p_id);
+    graph.vtree.propagate_evictable(p_id);
 
     // ── Phase 6: Plateau state update ─────────────────────────────────────
     graph.plateau_after_catalytic_split(g_id, left_id);

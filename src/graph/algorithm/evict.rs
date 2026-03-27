@@ -6,7 +6,6 @@ use crate::handle::VNodeId;
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::{VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::vtree;
 
 /// Topology of the V-node being evicted, captured before the leaf is removed.
 struct LeafRemovalContext {
@@ -194,9 +193,12 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             .expect("evict_tip: parent must have V-entry (has dependents)");
         {
             let p_own = self.gtree.nodes.get(parent_id.index()).own();
-            self.vtree.nodes.get_mut(p_entry_id.index()).set_intensity(p_own);
-            vtree::sync_intensity_in_parent(&mut self.vtree.nodes, p_entry_id, p_own);
-            vtree::propagate_v_sums(&mut self.vtree.nodes, p_entry_id);
+            self.vtree
+                .nodes
+                .get_mut(p_entry_id.index())
+                .set_intensity(p_own);
+            self.vtree.sync_intensity(p_entry_id, p_own);
+            self.vtree.propagate_sums(p_entry_id);
 
             let mut check_id = Some(p_entry_id);
             while let Some(id) = check_id {
@@ -224,17 +226,21 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 *is_exposed = parent_is_exposed;
                 *is_evictable = parent_is_evictable;
             }
-            vtree::propagate_evictable_flags(&mut self.vtree.nodes, p_entry_id);
+            self.vtree.propagate_evictable(p_entry_id);
         }
 
         // ── Phase 4–6: Capture V-topology, remove leaf, push violations ─────
         // Topology must be captured before removal; violations are pushed after.
         let removal_ctx = classify_leaf_removal(&self.vtree.nodes, v_id);
 
-        self.vtree.root =
-            vtree::vtree_remove_leaf(&mut self.vtree.nodes, &mut self.gtree.nodes, v_id, self.vtree.root);
+        self.vtree.remove_leaf(&mut self.gtree.nodes, v_id);
 
-        push_eviction_violations(&self.vtree.nodes, v_id, &removal_ctx, &mut self.vtree.violations);
+        push_eviction_violations(
+            &self.vtree.nodes,
+            v_id,
+            &removal_ctx,
+            &mut self.vtree.violations,
+        );
 
         // ── Phase 7: Debug audit for missed violations ───────────────────────
         if tracing::enabled!(tracing::Level::ERROR) {
@@ -289,53 +295,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 }
 
-pub fn scan_for_candidates<C: Coordinate, V: Accumulator, const N: u32>(
-    graph: &GvGraph<C, V, N>,
-) -> Vec<VNodeId> {
-    let _span = tracing::trace_span!("scan_for_candidates").entered();
-    let mut candidates = Vec::new();
-    if let Some(v_root) = graph.vtree.root {
-        scan_dfs(graph, v_root, 0, &mut candidates);
-    }
-    tracing::trace!(candidates = candidates.len(), "scan complete");
-    candidates
-}
-
-fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
-    graph: &GvGraph<C, V, N>,
-    v_id: VNodeId,
-    depth: u32,
-    candidates: &mut Vec<VNodeId>,
-) {
-    let node = graph.vtree.nodes.get(v_id.index());
-    match &node.kind() {
-        VKind::Entry {
-            gnode,
-            is_evictable,
-            ..
-        } => {
-            if depth > graph.gtree.live_depth_evict && *is_evictable && *gnode != graph.gtree.root {
-                candidates.push(v_id);
-            }
-        }
-        VKind::Structural {
-            children,
-            has_evictable,
-        } => {
-            if !has_evictable {
-                return;
-            }
-            for i in 0..children.len() {
-                let (child_id, _) = children.get(i);
-                scan_dfs(graph, child_id, depth + 1, candidates);
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::graph::algorithm::evict::scan_for_candidates;
     use crate::graph::{Config, GvGraph, StructuralConfig};
 
     type G = GvGraph<u8, u32, 8>;
@@ -381,7 +342,9 @@ mod tests {
         fn returns_empty_for_fresh_graph() {
             // v_root is None on a fresh graph — scan returns nothing
             let g: G = GvGraph::new(make_config());
-            let candidates = scan_for_candidates(&g);
+            let candidates = g
+                .vtree
+                .scan_for_candidates(g.gtree.live_depth_evict, g.gtree.root);
             assert!(candidates.is_empty());
         }
 
@@ -391,7 +354,9 @@ mod tests {
             // v-depth 2 which is well below 5 → no candidates
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32); // triggers bootstrap split
-            let candidates = scan_for_candidates(&g);
+            let candidates = g
+                .vtree
+                .scan_for_candidates(g.gtree.live_depth_evict, g.gtree.root);
             assert!(candidates.is_empty());
         }
 
@@ -402,7 +367,9 @@ mod tests {
             let mut g: G = GvGraph::new(eviction_config());
             g.observe(32u8, 3u32);
             g.observe(192u8, 3u32);
-            let candidates = scan_for_candidates(&g);
+            let candidates = g
+                .vtree
+                .scan_for_candidates(g.gtree.live_depth_evict, g.gtree.root);
             // entries at depth 2 are not > live_depth_evict=2 → empty
             assert!(candidates.is_empty());
         }

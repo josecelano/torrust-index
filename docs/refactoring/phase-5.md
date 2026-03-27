@@ -39,7 +39,7 @@ pub(crate) struct VTree<V: Accumulator> {
 
 ---
 
-## [ ] Step 5.2 — Move `tree/vtree.rs` free functions → `VTree` methods
+## [x] Step 5.2 — Move `tree/vtree.rs` free functions → `VTree` methods
 
 **Files touched:** `src/tree/vtree.rs`, `src/graph/algorithm/*.rs`.
 

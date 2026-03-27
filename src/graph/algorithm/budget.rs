@@ -1,8 +1,7 @@
 use crate::graph::GvGraph;
-use crate::graph::algorithm::{evict, rebalance};
+use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::vtree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub(crate) fn handle_legacy_promotes(&mut self, new_gnodes: &[GNodeId]) {
@@ -78,7 +77,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
     #[allow(clippy::too_many_lines)]
     fn evict_candidates(&mut self, stop_at: Option<usize>) -> u32 {
-        let candidates = evict::scan_for_candidates(self);
+        let candidates = self
+            .vtree
+            .scan_for_candidates(self.gtree.live_depth_evict, self.gtree.root);
         let _span =
             tracing::debug_span!("evict_batch", candidate_count = candidates.len(),).entered();
         let mut evicted: u32 = 0;
@@ -107,7 +108,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         continue;
                     }
 
-                    let depth = vtree::v_depth(&self.vtree.nodes, v_id);
+                    let depth = self.vtree.depth(v_id);
                     if depth <= self.gtree.live_depth_evict {
                         continue;
                     }

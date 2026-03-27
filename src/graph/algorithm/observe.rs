@@ -1,7 +1,6 @@
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::traits::{Accumulator, Coordinate, Inspectable, Observation};
-use crate::tree::vtree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
@@ -25,8 +24,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             v.set_intensity(O::accumulate(v.intensity(), delta));
             let new_intensity = v.intensity();
 
-            vtree::sync_intensity_in_parent(&mut self.vtree.nodes, entry_id, new_intensity);
-            vtree::propagate_v_sums(&mut self.vtree.nodes, entry_id);
+            self.vtree.sync_intensity(entry_id, new_intensity);
+            self.vtree.propagate_sums(entry_id);
 
             let mut check_id = Some(entry_id);
             while let Some(id) = check_id {
