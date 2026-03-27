@@ -4,12 +4,12 @@
 //! that changes the shape of the G-tree (observe, decay, rebalance, evict).
 //!
 //! Execution order within a normalisation cycle:
-//!   1. `plateau_recompute_sums`   — refresh sum values from the G-tree
-//!   2. `normalize_plateaus`       — rebuild the plateau map and merge adjacent
-//!                                   same-depth tiles
-//!      ↳ `consolidate_all_basis`  — walk every basis element upward and merge
-//!                                   sibling pairs into their parent
-//!         ↳ `consolidate_basis_up` — the per-element upward walk
+//!
+//! 1. `plateau_recompute_sums` — refresh sum values from the G-tree
+//! 2. `normalize_plateaus` — rebuild the plateau map and merge adjacent same-depth tiles
+//!    - `consolidate_all_basis` — walk every basis element upward and merge sibling pairs
+//!      into their parent
+//!      - `consolidate_basis_up` — the per-element upward walk
 
 use crate::graph::{GvGraph, uniform_contour_depth_of};
 use crate::handle::GNodeId;

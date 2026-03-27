@@ -1,7 +1,7 @@
-pub(crate) mod algorithm;
-pub(crate) mod config;
+pub mod algorithm;
+pub mod config;
 mod gv_graph;
-pub(crate) mod traits;
+pub mod traits;
 
 pub use crate::nodes::gnode::GNodeChildren;
 pub use config::Config;

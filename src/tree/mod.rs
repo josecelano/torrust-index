@@ -1,2 +1,2 @@
-pub(crate) mod gtree;
-pub(crate) mod vtree;
+pub mod gtree;
+pub mod vtree;

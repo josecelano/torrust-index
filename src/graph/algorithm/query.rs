@@ -11,6 +11,11 @@ use crate::traits::{Accumulator, Coordinate, DiscreteCoordinate, Inspectable, Pr
 use crate::tree::gtree::gnode_depth_from_interval;
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
+    /// Return the cell that covers `coord`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `coord` is NaN.
     #[must_use]
     pub fn get(&self, coord: C) -> crate::spatial::view::Cell<C, V> {
         assert!(!coord.is_nan(), "get(): coordinate is NaN");
@@ -98,6 +103,11 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 }
 
 impl<C: DiscreteCoordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C, V, N> {
+    /// Sum all intensity values in the given coordinate range.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any bound of `range` is NaN.
     #[must_use]
     pub fn range_sum<R: std::ops::RangeBounds<C>>(&self, range: R) -> V {
         use std::ops::Bound;

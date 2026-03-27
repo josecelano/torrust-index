@@ -252,9 +252,7 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
                     continue;
                 }
                 let actual_int = graph.vnodes().get(child_id.index()).intensity;
-                if (cached_int.to_f64_approx() != actual_int.to_f64_approx())
-                    && (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() > 1e-9
-                {
+                if (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() > 1e-9 {
                     errors.push(format!(
                         "V-I1 cached intensity mismatch at V-node {idx}, child {}: \
                          cached={}, actual={}",
@@ -267,7 +265,7 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
             }
 
             let node_int = v.intensity.to_f64_approx();
-            if node_int != sum && (node_int - sum).abs() > 1e-9 {
+            if (node_int - sum).abs() > 1e-9 {
                 errors.push(format!(
                     "V-I1 violated at V-node {idx}: intensity={node_int}, sum of children={sum}"
                 ));

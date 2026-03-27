@@ -10,7 +10,7 @@ use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::gtree::gnode_depth_from_interval;
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_plateau_btreemap_key_consistency<
+pub fn check_plateau_btreemap_key_consistency<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -29,7 +29,7 @@ pub(crate) fn check_plateau_btreemap_key_consistency<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_plateau_basis_consistency<
+pub fn check_plateau_basis_consistency<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -86,7 +86,7 @@ pub(crate) fn check_plateau_basis_consistency<
 
 #[cfg(feature = "dynamic-contour-tracking")]
 #[allow(clippy::float_cmp)]
-pub(crate) fn check_plateau_sum_consistency<
+pub fn check_plateau_sum_consistency<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -112,7 +112,7 @@ pub(crate) fn check_plateau_sum_consistency<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_plateau_depth_consistency<
+pub fn check_plateau_depth_consistency<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -211,7 +211,7 @@ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i1_i_keys_are_contour_steps<
+pub fn check_p_i1_i_keys_are_contour_steps<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -270,7 +270,7 @@ pub(crate) fn check_p_i1_i_keys_are_contour_steps<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i1_ii_tile_contiguity<
+pub fn check_p_i1_ii_tile_contiguity<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -341,7 +341,7 @@ pub(crate) fn check_p_i1_ii_tile_contiguity<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i1_iii_run_contains_tile<
+pub fn check_p_i1_iii_run_contains_tile<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -413,7 +413,7 @@ pub(crate) fn check_p_i1_iii_run_contains_tile<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i2_basis_minimality<
+pub fn check_p_i2_basis_minimality<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -457,7 +457,7 @@ pub(crate) fn check_p_i2_basis_minimality<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i3_basis_disjointness<
+pub fn check_p_i3_basis_disjointness<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -492,7 +492,7 @@ pub(crate) fn check_p_i3_basis_disjointness<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i4_thatch_one_hop<
+pub fn check_p_i4_thatch_one_hop<
     C: Coordinate,
     V: Accumulator + Inspectable,
     const N: u32,
@@ -548,7 +548,7 @@ pub(crate) fn check_p_i4_thatch_one_hop<
 }
 
 #[cfg(feature = "dynamic-contour-tracking")]
-pub(crate) fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+pub fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {

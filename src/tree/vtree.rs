@@ -344,7 +344,7 @@ fn set_has_evictable<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId, 
 
 /// Returns `true` if `ancestor` is a strict ancestor of `descendant` in the V-tree
 /// (i.e. reachable by following parent links from `descendant`).
-pub(crate) fn is_ancestor<V: Accumulator>(
+pub fn is_ancestor<V: Accumulator>(
     vnodes: &Arena<VNode<V>>,
     ancestor: VNodeId,
     mut descendant: VNodeId,

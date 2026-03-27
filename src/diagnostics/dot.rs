@@ -18,7 +18,7 @@ const fn state_label(s: GState) -> &'static str {
 /// Each node shows:
 /// - node id, coordinate range `[lo, hi)`
 /// - geometric depth (`d`), node state (`T`=Terminal, `I`=Internal,
-///   `S`=SemiInternal)
+///   `S`=`SemiInternal`)
 /// - accumulated `own` value and subtree `sum`
 /// - whether a V-Tree Entry is currently attached
 ///
@@ -26,8 +26,11 @@ const fn state_label(s: GState) -> &'static str {
 /// - green  — Terminal with a V-tree entry
 /// - grey   — Terminal without a V-tree entry (orphaned leaf)
 /// - yellow — Internal (both children present)
-/// - orange — SemiInternal (one child present)
-#[allow(dead_code)]
+/// - orange — `SemiInternal` (one child present)///
+/// # Panics
+///
+/// Panics if a terminal G-node is marked as having a V-tree entry but the
+/// entry handle is `None` (internal invariant violation).
 pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &GvGraph<C, V, N>,
     label: &str,

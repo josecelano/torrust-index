@@ -8,7 +8,10 @@ use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{invalidate_depth_subtree, propagate_evictable_flags, v_depth};
 
 use super::promote::{legacy_promote, skip_promote, standard_promote};
-use super::violation_push::*;
+use super::violation_push::{
+    push_contraction_child_violations, push_promoted_violations, push_side_effect_violations,
+    push_source_10_violations,
+};
 
 pub(super) use super::fmt::Ch;
 pub use super::fmt::{Ctx, Nd};
@@ -415,10 +418,10 @@ pub fn rebalance<C: Coordinate, V: Accumulator + Inspectable>(
 
     while let Some(c) = violations.pop() {
         iterations += 1;
-        if iterations > max_iterations {
-            if handle_iteration_limit(vnodes, violations, iterations, max_iterations, resolved, c) {
-                break;
-            }
+        if iterations > max_iterations
+            && handle_iteration_limit(vnodes, violations, iterations, max_iterations, resolved, c)
+        {
+            break;
         }
 
         if !vnodes.is_occupied(c.index()) {

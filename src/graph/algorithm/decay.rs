@@ -75,6 +75,12 @@ fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
 }
 
 impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> GvGraph<C, V, N> {
+    /// Apply temporal decay to all G-nodes in the subtree rooted at `root`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `root` does not refer to a live G-node, if `attenuation` is
+    /// negative or NaN, or if `q` is outside `[0.0, 1.0]` or NaN.
     pub fn decay(&mut self, root: GNodeId, attenuation: f64, q: f64) {
         let _span = tracing::debug_span!("decay", root = root.index(), attenuation, q,).entered();
 

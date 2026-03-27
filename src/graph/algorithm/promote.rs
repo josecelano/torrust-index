@@ -180,6 +180,7 @@ pub fn skip_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId) ->
     None
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn legacy_promote<C: Coordinate, V: Accumulator>(
     vnodes: &mut Arena<VNode<V>>,
     gnodes: &mut Arena<GNode<C, V>>,

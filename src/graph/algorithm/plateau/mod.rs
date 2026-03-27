@@ -297,6 +297,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     #[cfg(feature = "dynamic-contour-tracking")]
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
         use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 

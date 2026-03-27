@@ -153,7 +153,7 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 /// Saturating depth increment: returns `d + 1` unless `d` is `DEPTH_STALE`,
 /// in which case `DEPTH_STALE` is propagated unchanged.
 #[inline]
-fn depth_plus_one(d: u32) -> u32 {
+const fn depth_plus_one(d: u32) -> u32 {
     if d == DEPTH_STALE { DEPTH_STALE } else { d + 1 }
 }
 

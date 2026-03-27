@@ -103,6 +103,7 @@ struct ParentSnapshot<C> {
     hi: C,
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &mut GvGraph<C, V, N>,
     v_id: VNodeId,
