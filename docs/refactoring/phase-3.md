@@ -11,7 +11,7 @@ move from scattered call sites into the methods.
 
 ---
 
-## [ ] Step 3.1 — Encapsulate `GNode<C, V>` fields
+## [x] Step 3.1 — Encapsulate `GNode<C, V>` fields
 
 **Files touched:** `src/nodes/gnode.rs`, all algorithm modules in
 `src/graph/algorithm/`, `src/tree/gtree.rs`.
@@ -42,7 +42,7 @@ move from scattered call sites into the methods.
 
 ---
 
-## [ ] Step 3.2 — Encapsulate `VNode<V>` fields
+## [x] Step 3.2 — Encapsulate `VNode<V>` fields
 
 **Files touched:** `src/nodes/vnode.rs`, all algorithm modules, `src/tree/vtree.rs`.
 
@@ -67,13 +67,24 @@ This way Phase 6 can remove the field without touching algorithm modules again.
 
 ## Review checkpoint
 
-> _Fill in after completing both steps._
->
-> - Did hiding the fields reveal algorithm code that always accesses two fields
->   together (e.g., `lo + hi` always read as a pair)? If so, add a compound
->   getter: `interval() -> (C, C)`.
-> - Did any mutator feel forced or awkward? That usually signals a behaviour that
->   belongs on `GNode`/`VNode` itself (e.g., `accumulate_own(delta: V)` instead of
->   `set_own(own() + delta)`).
-> - After this phase, are the `debug_assert!` calls in algorithm modules now
->   redundant (moved into the mutators) or are some still needed at a higher level?
+_Completed in commit `d9cec0c` — 27 files changed._
+
+- **Compound getters:** `lo` and `hi` are read together in several algorithm modules (e.g.,
+  `split.rs`, `evict.rs`). No compound getter was added yet; the pair is still read individually.
+  If Phase 4 moves G-tree operations into `GTree`, adding `interval() -> (C, C)` at that point
+  would be the natural place.
+- **Forced mutators:** `set_own` in `evict.rs` felt slightly forced — the caller pre-reads `own()`
+  into a local variable before the mutable borrow to avoid `E0502`, then passes the combined value
+  to `set_own`. An `accumulate_own(delta: V)` method would remove that pattern.
+- **Dead code removed:** `link_children`, `clear_parent` (GNode), `depth_hint`, `clear_parent`,
+  `invalidate_depth` (VNode), and `set_parent` (GNode) were never called outside the module and
+  were removed rather than suppressed.
+- **`cached_depth` accessor design:** `depth_hint() -> Option<u32>` was added but turned out unused;
+  callers only ever need the raw value via `cached_depth_raw()`. Removed. Phase 6 will hide
+  `AtomicU32` entirely.
+- **`or_fun_call` lint:** Several callers used `.or(g.right())` on Option — now `.or_else(|| g.right())`
+  after all accessors became `const fn`. The clippy lint fired because `const fn` was not initially
+  applied; adding `const` to all trivial accessors silenced it.
+- **Test false positives:** The bulk-conversion script incorrectly added `()` to public-field structs
+  (`GNodeChildren.left/.right`, `Cell.intensity`, `Span.intensity`). These were reverted to plain
+  field access since those structs are not encapsulated in this phase.
