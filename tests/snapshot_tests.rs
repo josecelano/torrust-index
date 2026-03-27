@@ -41,7 +41,7 @@
 use std::collections::HashMap;
 use std::fmt::Write as _;
 
-use torrust_mudlark::{Config, GNodeId, GState, GvGraph};
+use torrust_mudlark::{Config, GNodeId, GState, GvGraph, StructuralConfig};
 
 // ── Graph type ────────────────────────────────────────────────────────────────
 // u32 coordinate, u64 value, N=16 → address space 0..65 535.
@@ -52,11 +52,13 @@ type TestGraph = GvGraph<u32, u64, 16>;
 fn make_config() -> Config<u64> {
     Config {
         split_threshold: 5,
-        depth_create: 3,
-        depth_evict: 8,
-        budget: None,
-        alpha_relax: 0.5,
-        bounded_eviction: false,
+        structural: StructuralConfig {
+            depth_create: 3,
+            depth_evict: 8,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        },
     }
 }
 

@@ -590,7 +590,7 @@ fn check_hard_budget<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    if let Some(budget) = graph.config().budget {
+    if let Some(budget) = graph.config().structural.budget {
         if graph.node_count() as usize > budget {
             errors.push(format!(
                 "Hard budget violated (ADR-M-018): node_count ({}) > budget ({})",

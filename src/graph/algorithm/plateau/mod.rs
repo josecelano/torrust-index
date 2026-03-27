@@ -1269,7 +1269,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
     use crate::spatial::plateau::BasisEdge;
 
     type G = GvGraph<u8, u32, 8>;
@@ -1277,11 +1277,13 @@ mod tests {
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

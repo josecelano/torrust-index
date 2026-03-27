@@ -15,7 +15,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     pub(crate) fn adjust_depth_gates(&mut self) {
-        let Some(budget) = self.config.budget else {
+        let Some(budget) = self.config.structural.budget else {
             return;
         };
         let count = self.node_count as usize;
@@ -47,7 +47,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         } else {
             #[allow(clippy::cast_precision_loss)]
-            let threshold = soft_limit as f64 * self.config.alpha_relax;
+            let threshold = soft_limit as f64 * self.config.structural.alpha_relax;
             #[allow(clippy::cast_precision_loss)]
             let count_f = count as f64;
             if count_f < threshold {
@@ -166,18 +166,20 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
 
     type G = GvGraph<u8, u32, 8>;
 
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 
@@ -189,11 +191,13 @@ mod tests {
     fn gate_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 2,
-            depth_evict: 4,
-            budget: Some(30),
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 2,
+                depth_evict: 4,
+                budget: Some(30),
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

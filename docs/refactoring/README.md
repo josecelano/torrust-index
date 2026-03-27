@@ -46,8 +46,8 @@ cargo clippy --all-features -- -D warnings
 | [1.1](phase-1.md#step-11--packedchildrenv--childrenv-enum)                        | ✅     | `PackedChildren` → `Children` enum   | #6          |
 | [1.2](phase-1.md#step-12--split-plateaus-into-a-separate-capability-trait)        | ✅     | Split `PlateauRead` trait            | #9          |
 | [1.3](phase-1.md#step-13--tighten-visibility-of-internal-spatial-types)           | ✅     | Tighten visibility of internal types | #8          |
-| [2.1](phase-2.md#step-21--extract-structuralconfig)                               | ⬜     | Extract `StructuralConfig`           | #4          |
-| [2.2](phase-2.md#step-22--re-export-and-clean-up)                                 | ⬜     | Re-export and clean up               | #4          |
+| [2.1](phase-2.md#step-21--extract-structuralconfig)                               | ✅     | Extract `StructuralConfig`           | #4          |
+| [2.2](phase-2.md#step-22--re-export-and-clean-up)                                 | ✅     | Re-export and clean up               | #4          |
 | [3.1](phase-3.md#step-31--encapsulate-gnodev-fields)                              | ⬜     | Encapsulate `GNode` fields           | #10         |
 | [3.2](phase-3.md#step-32--encapsulate-vnodev-fields)                              | ⬜     | Encapsulate `VNode` fields           | #10         |
 | [4.1](phase-4.md#step-41--define-gtree-as-a-struct-wrapper-no-logic-yet)          | ⬜     | Introduce `GTree` struct             | #1, #2      |

@@ -38,7 +38,7 @@
 use std::fs;
 use std::path::Path;
 
-use torrust_mudlark::{Config, GState, GvGraph};
+use torrust_mudlark::{Config, GState, GvGraph, StructuralConfig};
 
 // ---------------------------------------------------------------------------
 // Graph type
@@ -153,11 +153,13 @@ fn main() {
     // N = 4 (type-level)   → domain [0, 16).
     let mut graph = TinyMap::new(Config {
         split_threshold: 2_u32,
-        depth_create: 3,
-        depth_evict: 5,
-        budget: None,
-        alpha_relax: 0.5,
-        bounded_eviction: false,
+        structural: StructuralConfig {
+            depth_create: 3,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        },
     });
 
     let mut step = 0;

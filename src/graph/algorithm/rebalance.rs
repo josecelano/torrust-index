@@ -490,18 +490,20 @@ pub fn find_violated_nodes<V: Accumulator>(vnodes: &Arena<VNode<V>>) -> Vec<VNod
 #[cfg(test)]
 mod tests {
     use crate::graph::algorithm::rebalance::max_uncle_intensity;
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
 
     type G = GvGraph<u8, u32, 8>;
 
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

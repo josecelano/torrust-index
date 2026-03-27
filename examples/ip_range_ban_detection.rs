@@ -12,7 +12,7 @@
 
 use std::net::Ipv4Addr;
 
-use torrust_mudlark::{Config, GState, GvGraph};
+use torrust_mudlark::{Config, GState, GvGraph, StructuralConfig};
 
 // ---------------------------------------------------------------------------
 // Graph type
@@ -188,14 +188,16 @@ fn print_tree(label: &str, graph: &BadRequestMap) {
 fn main() {
     let mut graph = BadRequestMap::new(Config {
         split_threshold: 5, // split once a sub-range accumulates ≥5 bad requests
-        depth_create: 4,
-        depth_evict: 16,
-        // budget: None means unbounded for this demo.
-        // In production set a hard cap; it must exceed 3^(depth_evict-depth_create+1).
-        // E.g. depth_create=2, depth_evict=7 → 3^6=729 → budget: Some(1024).
-        budget: None,
-        alpha_relax: 0.5,
-        bounded_eviction: false,
+        structural: StructuralConfig {
+            depth_create: 4,
+            depth_evict: 16,
+            // budget: None means unbounded for this demo.
+            // In production set a hard cap; it must exceed 3^(depth_evict-depth_create+1).
+            // E.g. depth_create=2, depth_evict=7 → 3^6=729 → budget: Some(1024).
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        },
     });
 
     // -- 1. Background noise: a few isolated bad requests from separate IPs ---

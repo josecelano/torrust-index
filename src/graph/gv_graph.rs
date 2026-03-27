@@ -111,11 +111,11 @@ struct Capacity {
 /// - **Convergence bound**: `2 * depth_create - 1` — minimum headroom required
 ///   for the rebalance algorithm to converge without starvation.
 fn compute_capacity<V: Accumulator>(config: &Config<V>) -> Capacity {
-    let depth_buffer = config.depth_evict - config.depth_create;
+    let depth_buffer = config.structural.depth_evict - config.structural.depth_create;
     let headroom_fanout = 3usize.pow(depth_buffer + 1);
-    let headroom_convergence = 2 * (config.depth_create as usize).saturating_sub(1);
+    let headroom_convergence = 2 * (config.structural.depth_create as usize).saturating_sub(1);
     let headroom = headroom_fanout.max(headroom_convergence);
-    let soft_limit = config.budget.map(|b| {
+    let soft_limit = config.structural.budget.map(|b| {
         let s = b - headroom;
         assert!(
             s >= 1,
@@ -165,8 +165,8 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         let v_root_id = VNodeId::from_index(vnodes.alloc(root_entry));
         gnodes.get_mut(g_root.index()).entry = Some(v_root_id);
 
-        let live_depth_evict = config.depth_evict;
-        let live_depth_create = config.depth_create;
+        let live_depth_evict = config.structural.depth_evict;
+        let live_depth_create = config.structural.depth_create;
         let Capacity {
             depth_buffer,
             headroom,
@@ -241,7 +241,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     #[inline]
     pub const fn budget(&self) -> Option<usize> {
-        self.config.budget
+        self.config.structural.budget
     }
 
     #[must_use]
@@ -367,16 +367,18 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
 
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

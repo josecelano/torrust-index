@@ -346,18 +346,20 @@ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
 #[cfg(test)]
 mod tests {
     use crate::graph::algorithm::evict::scan_for_candidates;
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
 
     type G = GvGraph<u8, u32, 8>;
 
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 
@@ -371,11 +373,13 @@ mod tests {
         // soft_limit   = budget - 9 = 10 - 9 = 1
         Config {
             split_threshold: 2,
-            depth_create: 1,
-            depth_evict: 2,
-            budget: Some(10),
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 1,
+                depth_evict: 2,
+                budget: Some(10),
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

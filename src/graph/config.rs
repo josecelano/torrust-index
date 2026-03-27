@@ -1,9 +1,7 @@
 use crate::traits::Accumulator;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Config<V: Accumulator> {
-    pub split_threshold: V,
-
+pub struct StructuralConfig {
     pub depth_create: u32,
 
     pub depth_evict: u32,
@@ -15,7 +13,7 @@ pub struct Config<V: Accumulator> {
     pub bounded_eviction: bool,
 }
 
-impl<V: Accumulator> Config<V> {
+impl StructuralConfig {
     pub(crate) fn validate(&self) {
         assert!(
             self.depth_create < self.depth_evict,
@@ -45,5 +43,18 @@ impl<V: Accumulator> Config<V> {
                  for hard ceiling guarantee)"
             );
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Config<V: Accumulator> {
+    pub structural: StructuralConfig,
+
+    pub split_threshold: V,
+}
+
+impl<V: Accumulator> Config<V> {
+    pub(crate) fn validate(&self) {
+        self.structural.validate();
     }
 }

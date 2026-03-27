@@ -57,7 +57,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable + crate::traits::Weighable, con
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
     #[cfg(feature = "dynamic-contour-tracking")]
     use crate::traits::PlateauRead;
     use crate::traits::{SpatialRead, SpatialWrite, TemporalDecay, WeightedSampler};
@@ -65,11 +65,13 @@ mod tests {
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 

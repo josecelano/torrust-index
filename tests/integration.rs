@@ -1,4 +1,4 @@
-use torrust_mudlark::{Config, GNodeId, GvGraph};
+use torrust_mudlark::{Config, GNodeId, GvGraph, StructuralConfig};
 
 // u32 coordinate, u64 accumulator, N=16 → address space [0, 2^16 - 1]
 type TestGraph = GvGraph<u32, u64, 16>;
@@ -10,11 +10,13 @@ type TestGraph = GvGraph<u32, u64, 16>;
 fn minimal_config() -> Config<u64> {
     Config {
         split_threshold: 10,
-        depth_create: 2,
-        depth_evict: 5,
-        budget: None,
-        alpha_relax: 0.5,
-        bounded_eviction: false,
+        structural: StructuralConfig {
+            depth_create: 2,
+            depth_evict: 5,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        },
     }
 }
 
@@ -171,11 +173,13 @@ fn decay_satisfies_invariants() {
 fn bounded_budget_satisfies_invariants() {
     let config: Config<u64> = Config {
         split_threshold: 1,
-        depth_create: 2,
-        depth_evict: 4,
-        budget: Some(50),
-        alpha_relax: 0.5,
-        bounded_eviction: true,
+        structural: StructuralConfig {
+            depth_create: 2,
+            depth_evict: 4,
+            budget: Some(50),
+            alpha_relax: 0.5,
+            bounded_eviction: true,
+        },
     };
     let mut graph: GvGraph<u32, u64, 16> = GvGraph::new(config);
     for i in 0_u32..500 {

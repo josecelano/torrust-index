@@ -16,7 +16,7 @@ pub use diagnostics::invariants;
 
 #[doc(hidden)]
 pub use graph::GNodeChildren;
-pub use graph::{Config, GvGraph};
+pub use graph::{Config, GvGraph, StructuralConfig};
 pub use handle::GNodeId;
 pub use nodes::gnode::GState;
 pub use spatial::contour_range::{BasisElement, ContourRange, ContourRangeEnergy};

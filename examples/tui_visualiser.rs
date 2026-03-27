@@ -48,7 +48,7 @@ use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Bar, BarChart, BarGroup, Block, Borders, Paragraph};
-use torrust_mudlark::{Config, GNodeId, GState, GvGraph};
+use torrust_mudlark::{Config, GNodeId, GState, GvGraph, StructuralConfig};
 
 // ---------------------------------------------------------------------------
 // Graph type alias
@@ -604,11 +604,13 @@ fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> 
 
     let mut graph = BadRequestMap::new(Config {
         split_threshold: 5,
-        depth_create: 4,
-        depth_evict: 16,
-        budget: None,
-        alpha_relax: 0.5,
-        bounded_eviction: false,
+        structural: StructuralConfig {
+            depth_create: 4,
+            depth_evict: 16,
+            budget: None,
+            alpha_relax: 0.5,
+            bounded_eviction: false,
+        },
     });
 
     let mut state = AppState { scroll: 0 };

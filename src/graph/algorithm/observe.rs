@@ -86,7 +86,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         // ── Phase 7: Eviction ─────────────────────────────────────────────
         if let Some(soft_limit) = self.soft_limit {
             if self.node_count as usize > soft_limit {
-                if self.config.bounded_eviction {
+                if self.config.structural.bounded_eviction {
                     self.check_evictions_bounded(self.node_count as usize - soft_limit);
                 } else {
                     self.check_evictions();
@@ -125,18 +125,20 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::{Config, GvGraph};
+    use crate::graph::{Config, GvGraph, StructuralConfig};
 
     type G = GvGraph<u8, u32, 8>;
 
     fn make_config() -> Config<u32> {
         Config {
             split_threshold: 2,
-            depth_create: 3,
-            depth_evict: 5,
-            budget: None,
-            alpha_relax: 0.5,
-            bounded_eviction: false,
+            structural: StructuralConfig {
+                depth_create: 3,
+                depth_evict: 5,
+                budget: None,
+                alpha_relax: 0.5,
+                bounded_eviction: false,
+            },
         }
     }
 
@@ -201,11 +203,13 @@ mod tests {
             // is called, but nodes are at depth 1-2 << depth_evict=4 → 0 evictions.
             let cfg = Config {
                 split_threshold: 2,
-                depth_create: 2,
-                depth_evict: 4,
-                budget: Some(28),
-                alpha_relax: 0.5,
-                bounded_eviction: true,
+                structural: StructuralConfig {
+                    depth_create: 2,
+                    depth_evict: 4,
+                    budget: Some(28),
+                    alpha_relax: 0.5,
+                    bounded_eviction: true,
+                },
             };
             let mut g: G = GvGraph::new(cfg);
             g.observe(64u8, 3u32); // bootstrap split → node_count=3 > soft_limit=1
@@ -217,11 +221,13 @@ mod tests {
             // check_evictions (unbounded) path when node_count > soft_limit.
             let cfg = Config {
                 split_threshold: 2,
-                depth_create: 2,
-                depth_evict: 4,
-                budget: Some(28),
-                alpha_relax: 0.5,
-                bounded_eviction: false,
+                structural: StructuralConfig {
+                    depth_create: 2,
+                    depth_evict: 4,
+                    budget: Some(28),
+                    alpha_relax: 0.5,
+                    bounded_eviction: false,
+                },
             };
             let mut g: G = GvGraph::new(cfg);
             g.observe(64u8, 3u32); // bootstrap split → node_count=3 > soft_limit=1

@@ -12,7 +12,7 @@ can be passed and inspected without knowing the value type `V`.
 
 ---
 
-## [ ] Step 2.1 — Extract `StructuralConfig`
+## [x] Step 2.1 — Extract `StructuralConfig`
 
 Add a plain struct for the non-generic fields and rewrite `Config<V>` to nest it:
 
@@ -46,7 +46,7 @@ pub struct Config<V: Accumulator> {
 
 ---
 
-## [ ] Step 2.2 — Re-export and clean up
+## [x] Step 2.2 — Re-export and clean up
 
 1. Re-export `StructuralConfig` from `lib.rs`.
 2. Decide whether to keep `Config<V>` as a public convenience wrapper or add a
@@ -60,11 +60,20 @@ pub struct Config<V: Accumulator> {
 
 ## Review checkpoint
 
-> _Fill in after completing both steps._
->
-> - Does nesting `structural: StructuralConfig` inside `Config<V>` feel ergonomic
->   for callers constructing configs in tests and examples? If not, add a
->   `Config::new(structural: StructuralConfig, split_threshold: V) -> Self` builder.
-> - Are there places that use `Config<V>` only to read structural fields?
->   Those are candidates to accept `&StructuralConfig` directly instead, reducing
->   their own generic bounds.
+> _Filled in after completing both steps._
+
+**Does nesting `structural: StructuralConfig` inside `Config<V>` feel ergonomic
+for callers constructing configs in tests and examples?**
+
+It is slightly more verbose but clearly communicates which fields are
+structural/algorithmic vs. value-typed. The separation is most visible in the
+examples where comments explaining the budget sit naturally inside
+`StructuralConfig { ... }`. No `Config::new` builder was added — struct literal
+construction is idiomatic Rust and callers can name the fields they mean.
+
+**Are there places that use `Config<V>` only to read structural fields?**
+
+`compute_capacity(&Config<V>)` in `gv_graph.rs` and `adjust_depth_gates` in
+`budget.rs` — both now read only `config.structural.*`. These are internal
+functions that could accept `&StructuralConfig` directly in a later clean-up
+pass, but changing their signatures is outside the scope of Phase 2.
