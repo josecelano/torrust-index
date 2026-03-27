@@ -6,7 +6,7 @@ use crate::graph::algorithm::violation_push::{
 };
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
+use crate::nodes::vnode::{Children, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
@@ -84,7 +84,6 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let root_structural = VNode::new_structural(
         entry_int,
         None,
-        0,
         Children::new_2((entry_id, entry_int), (cs_id, V::zero())),
         true,
     );
@@ -99,11 +98,6 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         .nodes
         .get_mut(cs_id.index())
         .set_parent(root_s_id);
-
-    graph.vtree.nodes.get(entry_id.index()).store_depth(1);
-    graph.vtree.nodes.get(cs_id.index()).store_depth(1);
-    graph.vtree.nodes.get(le_id.index()).store_depth(2);
-    graph.vtree.nodes.get(re_id.index()).store_depth(2);
 
     if let VKind::Entry {
         is_exposed,
@@ -127,13 +121,6 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             None,
         );
     }
-}
-
-/// Saturating depth increment: returns `d + 1` unless `d` is `DEPTH_STALE`,
-/// in which case `DEPTH_STALE` is propagated unchanged.
-#[inline]
-const fn depth_plus_one(d: u32) -> u32 {
-    if d == DEPTH_STALE { DEPTH_STALE } else { d + 1 }
 }
 
 #[allow(clippy::too_many_lines)]
@@ -165,15 +152,10 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let le_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, left_id);
     let re_id = alloc_v_entry(&mut graph.vtree.nodes, &mut graph.gtree.nodes, right_id);
 
-    // ── Phase 2: Compute depth metadata ───────────────────────────────────
-    let p_depth = graph.vtree.nodes.get(p_id.index()).cached_depth_raw();
-    let s_depth = depth_plus_one(p_depth);
-    let child_depth = depth_plus_one(s_depth);
-
+    // ── Phase 2: Allocate structural node ───────────────────────────────
     let s = VNode::new_structural(
         V::zero(),
         Some(p_id),
-        s_depth,
         Children::new_2((le_id, V::zero()), (re_id, V::zero())),
         true,
     );
@@ -181,18 +163,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     graph.vtree.nodes.get_mut(le_id.index()).set_parent(s_id);
     graph.vtree.nodes.get_mut(re_id.index()).set_parent(s_id);
 
-    // ── Phase 4: Wire `s` into the parent's child list; store child depths ───
-    graph
-        .vtree
-        .nodes
-        .get(le_id.index())
-        .store_depth(child_depth);
-    graph
-        .vtree
-        .nodes
-        .get(re_id.index())
-        .store_depth(child_depth);
-
+    // ── Phase 4: Wire `s` into the parent's child list ───────────────────
     let p = graph.vtree.nodes.get_mut(p_id.index());
     if let VKind::Structural { children, .. } = p.kind_mut() {
         children.add_child(s_id, V::zero());
@@ -229,7 +200,7 @@ fn alloc_v_entry<C: Coordinate, V: Accumulator>(
     gnodes: &mut Arena<GNode<C, V>>,
     gnode: GNodeId,
 ) -> VNodeId {
-    let e = VNode::new_entry(V::zero(), None, DEPTH_STALE, gnode, true, true);
+    let e = VNode::new_entry(V::zero(), None, gnode, true, true);
     let e_id = VNodeId::from_index(vnodes.alloc(e));
     gnodes.get_mut(gnode.index()).assign_entry(e_id);
     e_id
@@ -245,7 +216,6 @@ fn alloc_v_structural_2<V: Accumulator>(
     let s = VNode::new_structural(
         V::add(a_int, b_int),
         None,
-        DEPTH_STALE,
         Children::new_2((a, a_int), (b, b_int)),
         true,
     );

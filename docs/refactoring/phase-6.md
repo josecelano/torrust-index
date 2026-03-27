@@ -28,8 +28,8 @@ After Step 6.2a the same bench will be re-run. Numbers to fill in after
 
 | bench                  | `cached_depth` | without cache | ratio |
 | ---------------------- | -------------- | ------------- | ----- |
-| `observe/steady_state` | ~285 ns        | _TBD_         | _TBD_ |
-| `observe/split_heavy`  | ~97 ns         | _TBD_         | _TBD_ |
+| `observe/steady_state` | ~285 ns        | ~291 ns       | 1.02× |
+| `observe/split_heavy`  | ~97 ns         | ~97.8 ns      | 1.01× |
 
 **Decision gate:** Trees are architecturally bounded at `depth_evict` (≤ 5
 in typical configs). The uncached path walks ≤ 5 parent pointers; with
@@ -39,7 +39,7 @@ arena-allocated nodes this is fast. Proceeding with 6.2a (simple removal).
 
 ---
 
-## [ ] Step 6.2a — Remove `cached_depth` (simple path, if benchmark is acceptable)
+## [x] Step 6.2a — Remove `cached_depth` (simple path, if benchmark is acceptable)
 
 **Files touched:** `src/nodes/vnode.rs`, `src/tree/vtree.rs`.
 

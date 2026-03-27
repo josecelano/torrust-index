@@ -15,10 +15,10 @@
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
+use crate::nodes::vnode::{Children, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 use crate::tree::vtree::{
-    invalidate_depth_subtree, propagate_evictable_flags, recompute_structural_intensity,
+    propagate_evictable_flags, recompute_structural_intensity,
     replace_child_in_parent, sync_intensity_in_parent,
 };
 
@@ -83,9 +83,6 @@ pub fn standard_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId
 
     vnodes.get_mut(c1_id.index()).set_parent(p);
     vnodes.get_mut(c2_id.index()).set_parent(p);
-
-    invalidate_depth_subtree(vnodes, c1_id);
-    invalidate_depth_subtree(vnodes, c2_id);
 
     vnodes.dealloc(c.index());
 
@@ -166,9 +163,6 @@ pub fn skip_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId) ->
     vnodes.get_mut(c.index()).set_parent(g);
     vnodes.get_mut(s_id.index()).set_parent(g);
 
-    invalidate_depth_subtree(vnodes, c);
-    invalidate_depth_subtree(vnodes, s_id);
-
     vnodes.dealloc(p.index());
 
     propagate_evictable_flags(vnodes, g);
@@ -232,8 +226,7 @@ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
         }
     }
 
-    let c_depth = vnodes.get(c.index()).cached_depth_raw();
-    let ne = VNode::new_entry(V::zero(), Some(p), c_depth, new_child_id, true, true);
+    let ne = VNode::new_entry(V::zero(), Some(p), new_child_id, true, true);
     let ne_id = VNodeId::from_index(vnodes.alloc(ne));
     gnodes.get_mut(new_child_id.index()).assign_entry(ne_id);
 
@@ -258,13 +251,6 @@ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
     }
 
     vnodes.get_mut(c.index()).set_parent(g);
-
-    let new_c_depth = if c_depth == DEPTH_STALE {
-        DEPTH_STALE
-    } else {
-        c_depth - 1
-    };
-    vnodes.get(c.index()).store_depth(new_c_depth);
 
     if let VKind::Entry {
         is_exposed,

@@ -1,9 +1,9 @@
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
+use crate::nodes::vnode::{Children, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::vtree::{VTree, invalidate_depth_subtree, propagate_evictable_flags, v_depth};
+use crate::tree::vtree::{VTree, propagate_evictable_flags, v_depth};
 
 use super::promote::{legacy_promote, skip_promote, standard_promote};
 use super::violation_push::{
@@ -77,17 +77,9 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
     let a_terminal = node_has_evictable(vnodes, a_id);
     let b_terminal = node_has_evictable(vnodes, b_id);
 
-    let p_depth = vnodes.get(p.index()).cached_depth_raw();
-    let m_depth = if p_depth == DEPTH_STALE {
-        DEPTH_STALE
-    } else {
-        p_depth + 1
-    };
-
     let merged = VNode::new_structural(
         V::add(a_int, b_int),
         Some(p),
-        m_depth,
         Children::new_2((a_id, a_int), (b_id, b_int)),
         a_terminal || b_terminal,
     );
@@ -95,9 +87,6 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
 
     vnodes.get_mut(a_id.index()).set_parent(m_id);
     vnodes.get_mut(b_id.index()).set_parent(m_id);
-
-    invalidate_depth_subtree(vnodes, a_id);
-    invalidate_depth_subtree(vnodes, b_id);
 
     let merged_int = V::add(a_int, b_int);
     let iso_terminal = node_has_evictable(vnodes, isolate.0);

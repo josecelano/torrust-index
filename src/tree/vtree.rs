@@ -29,10 +29,9 @@
 //!    visits every V-node in post-order.  O(n) work, but correct regardless of
 //!    which entries changed.
 //!
-//! 3. **Depth invalidation** (`split`, `evict`): structural changes (inserts,
-//!    removes) invalidate cached depth values.  Call
-//!    [`invalidate_depth_subtree`] to mark a subtree stale; depths are
-//!    recomputed on demand via [`v_depth`].
+//! 3. **Structural changes** (`split`, `evict`): inserts / removes reparent
+//!    nodes.  Depth is always computed on demand by walking the parent chain
+//!    via [`v_depth`] — no cache to invalidate.
 //!
 //! ## Rebalance violations
 //!
@@ -42,7 +41,7 @@
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
+use crate::nodes::vnode::{Children, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 
 // ── VTree ────────────────────────────────────────────────────────────────────
@@ -209,8 +208,6 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
 
     vnodes.get_mut(sole_id.index()).set_parent_opt(grandparent);
 
-    invalidate_depth_subtree(vnodes, sole_id);
-
     let new_root = grandparent.map_or(Some(sole_id), |g_id| {
         let sole_int = vnodes.get(sole_id.index()).intensity();
         replace_child_in_parent(vnodes, g_id, p_id, sole_id, sole_int);
@@ -312,49 +309,10 @@ pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, s
     }
 }
 
-#[cfg(debug_assertions)]
-fn v_depth_uncached<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
-    let node = vnodes.get(id.index());
-    node.parent().map_or(0, |p| v_depth_uncached(vnodes, p) + 1)
-}
-
 #[must_use]
 pub fn v_depth<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
     let node = vnodes.get(id.index());
-    let cached = node.cached_depth_raw();
-
-    if cached != DEPTH_STALE {
-        #[cfg(debug_assertions)]
-        assert_eq!(
-            cached,
-            v_depth_uncached(vnodes, id),
-            "cached depth mismatch for VNode {id:?}"
-        );
-        return cached;
-    }
-
-    let depth = node.parent().map_or(0, |p| v_depth(vnodes, p) + 1);
-    node.store_depth(depth);
-    depth
-}
-
-pub fn invalidate_depth_subtree<V: Accumulator>(vnodes: &Arena<VNode<V>>, root: VNodeId) {
-    let mut stack = vec![root];
-    while let Some(id) = stack.pop() {
-        let node = vnodes.get(id.index());
-
-        if node.cached_depth_raw() == DEPTH_STALE {
-            continue;
-        }
-
-        node.store_depth(DEPTH_STALE);
-
-        if let VKind::Structural { children, .. } = &node.kind() {
-            for i in 0..children.len() {
-                stack.push(children.get(i).0);
-            }
-        }
-    }
+    node.parent().map_or(0, |p| v_depth(vnodes, p) + 1)
 }
 
 pub fn sync_intensity_in_parent<V: Accumulator>(
@@ -474,20 +432,13 @@ pub fn is_ancestor<V: Accumulator>(
 #[cfg(test)]
 mod tests {
 
-    use super::{invalidate_depth_subtree, propagate_v_sums, v_depth, vtree_remove_leaf};
+    use super::{propagate_v_sums, v_depth, vtree_remove_leaf};
     use crate::arena::Arena;
     use crate::handle::{GNodeId, VNodeId};
-    use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
+    use crate::nodes::vnode::{Children, VKind, VNode};
 
     fn entry_vnode(intensity: u32, parent: Option<VNodeId>) -> VNode<u32> {
-        VNode::new_entry(
-            intensity,
-            parent,
-            DEPTH_STALE,
-            GNodeId::from_index(0),
-            true,
-            true,
-        )
+        VNode::new_entry(intensity, parent, GNodeId::from_index(0), true, true)
     }
 
     // ── v_depth ──────────────────────────────────────────────────────────
@@ -510,44 +461,12 @@ mod tests {
         }
 
         #[test]
-        fn result_is_cached_after_first_call() {
+        fn depth_is_consistent_across_calls() {
             let mut vnodes: Arena<VNode<u32>> = Arena::new();
             let id = VNodeId::from_index(vnodes.alloc(entry_vnode(0, None)));
             let d1 = v_depth(&vnodes, id);
             let d2 = v_depth(&vnodes, id);
             assert_eq!(d1, d2);
-            // Verify the cached value is no longer DEPTH_STALE
-            let cached = vnodes.get(id.index()).cached_depth_raw();
-            assert_ne!(cached, DEPTH_STALE);
-        }
-    }
-
-    // ── invalidate_depth_subtree ─────────────────────────────────────────
-    mod invalidate_depth_subtree_fn {
-        use super::*;
-
-        #[test]
-        fn marks_cached_depth_stale_on_root() {
-            let mut vnodes: Arena<VNode<u32>> = Arena::new();
-            // Pre-populate the cached_depth to a non-stale value
-            let node = entry_vnode(0, None);
-            node.store_depth(0);
-            let id = VNodeId::from_index(vnodes.alloc(node));
-
-            invalidate_depth_subtree(&vnodes, id);
-
-            let cached = vnodes.get(id.index()).cached_depth_raw();
-            assert_eq!(cached, DEPTH_STALE);
-        }
-
-        #[test]
-        fn leaves_already_stale_nodes_unchanged() {
-            let mut vnodes: Arena<VNode<u32>> = Arena::new();
-            // cached_depth is already DEPTH_STALE from entry_vnode helper
-            let id = VNodeId::from_index(vnodes.alloc(entry_vnode(0, None)));
-            invalidate_depth_subtree(&vnodes, id); // should not panic
-            let cached = vnodes.get(id.index()).cached_depth_raw();
-            assert_eq!(cached, DEPTH_STALE);
         }
     }
 
@@ -574,7 +493,6 @@ mod tests {
             let parent_node: VNode<u32> = VNode::new_structural(
                 0,
                 None,
-                DEPTH_STALE,
                 Children::new_2((child_a_id, 5u32), (child_b_id, 7u32)),
                 false,
             );
@@ -632,7 +550,6 @@ mod tests {
             let parent_id = VNodeId::from_index(vnodes.alloc(VNode::new_structural(
                 15,
                 None,
-                DEPTH_STALE,
                 Children::new_3((child_a, 5u32), (child_b, 5u32), (child_c, 5u32)),
                 true,
             )));
@@ -662,7 +579,6 @@ mod tests {
             let parent_id = VNodeId::from_index(vnodes.alloc(VNode::new_structural(
                 10,
                 None,
-                DEPTH_STALE,
                 Children::new_2((target, 5u32), (sibling, 5u32)),
                 true,
             )));

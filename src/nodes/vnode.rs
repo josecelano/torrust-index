@@ -1,16 +1,10 @@
-use std::sync::atomic::{AtomicU32, Ordering};
-
 use crate::handle::{GNodeId, VNodeId};
-
-pub const DEPTH_STALE: u32 = u32::MAX;
 
 #[derive(Debug)]
 pub struct VNode<V> {
     pub(super) intensity: V,
 
     pub(super) parent: Option<VNodeId>,
-
-    pub(super) cached_depth: AtomicU32,
 
     pub(super) kind: VKind<V>,
 }
@@ -21,7 +15,6 @@ impl<V: Copy> VNode<V> {
     pub const fn new_entry(
         intensity: V,
         parent: Option<VNodeId>,
-        depth: u32,
         gnode: GNodeId,
         is_exposed: bool,
         is_evictable: bool,
@@ -29,7 +22,6 @@ impl<V: Copy> VNode<V> {
         Self {
             intensity,
             parent,
-            cached_depth: AtomicU32::new(depth),
             kind: VKind::Entry {
                 gnode,
                 is_exposed,
@@ -43,14 +35,12 @@ impl<V: Copy> VNode<V> {
     pub const fn new_structural(
         intensity: V,
         parent: Option<VNodeId>,
-        depth: u32,
         children: Children<V>,
         has_evictable: bool,
     ) -> Self {
         Self {
             intensity,
             parent,
-            cached_depth: AtomicU32::new(depth),
             kind: VKind::Structural {
                 children,
                 has_evictable,
@@ -70,13 +60,6 @@ impl<V: Copy> VNode<V> {
     #[must_use]
     pub const fn parent(&self) -> Option<VNodeId> {
         self.parent
-    }
-
-    /// Loads the raw cached depth (may be `DEPTH_STALE`).
-    #[inline]
-    #[must_use]
-    pub fn cached_depth_raw(&self) -> u32 {
-        self.cached_depth.load(Ordering::Relaxed)
     }
 
     #[inline]
@@ -108,11 +91,6 @@ impl<V: Copy> VNode<V> {
         self.parent = p;
     }
 
-    /// Stores a concrete depth value into the cache.
-    #[inline]
-    pub fn store_depth(&self, depth: u32) {
-        self.cached_depth.store(depth, Ordering::Relaxed);
-    }
 }
 
 impl<V: Clone> Clone for VNode<V> {
@@ -120,7 +98,6 @@ impl<V: Clone> Clone for VNode<V> {
         Self {
             intensity: self.intensity.clone(),
             parent: self.parent,
-            cached_depth: AtomicU32::new(self.cached_depth.load(Ordering::Relaxed)),
             kind: self.kind.clone(),
         }
     }
@@ -336,7 +313,6 @@ impl<V: Default> Default for VNode<V> {
         Self {
             intensity: V::default(),
             parent: None,
-            cached_depth: AtomicU32::new(DEPTH_STALE),
             kind: VKind::Entry {
                 gnode: GNodeId::from_index(0),
                 is_exposed: false,
@@ -519,38 +495,34 @@ mod tests {
 
     // ── VNode::default ─────────────────────────────────────────────────────
     mod default_vnode {
-        use super::super::{DEPTH_STALE, VKind, VNode};
-        use std::sync::atomic::Ordering;
+        use super::super::{VKind, VNode};
 
         #[test]
-        fn default_is_an_entry_node_with_stale_depth() {
+        fn default_is_an_entry_node() {
             let n: VNode<u32> = VNode::default();
             assert!(matches!(n.kind, VKind::Entry { .. }));
-            assert_eq!(n.cached_depth.load(Ordering::Relaxed), DEPTH_STALE);
         }
     }
 
     // ── VNode::clone ───────────────────────────────────────────────────────
     mod clone_vnode {
-        use super::super::{DEPTH_STALE, VNode};
-        use std::sync::atomic::Ordering;
+        use super::super::VNode;
 
         #[test]
-        fn clone_preserves_intensity_and_cached_depth() {
+        fn clone_preserves_intensity() {
             let mut original: VNode<u32> = VNode::default();
             original.intensity = 42;
-            original.cached_depth.store(3, Ordering::Relaxed);
             let cloned = original.clone();
             assert_eq!(cloned.intensity, 42);
-            assert_eq!(cloned.cached_depth.load(Ordering::Relaxed), 3);
         }
 
         #[test]
-        fn clone_is_independent_of_original_depth() {
-            let original: VNode<u32> = VNode::default();
+        fn clone_is_independent_of_original_intensity() {
+            let mut original: VNode<u32> = VNode::default();
+            original.intensity = 10;
             let cloned = original.clone();
-            cloned.cached_depth.store(99, Ordering::Relaxed);
-            assert_eq!(original.cached_depth.load(Ordering::Relaxed), DEPTH_STALE);
+            assert_eq!(original.intensity, 10);
+            assert_ne!(cloned.intensity, 99);
         }
     }
 }

@@ -61,7 +61,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         let g_root = GNodeId::from_index(gnodes.alloc(root_gnode));
 
         let mut vnodes = Arena::new();
-        let root_entry = VNode::new_entry(V::zero(), None, 0, g_root, true, true);
+        let root_entry = VNode::new_entry(V::zero(), None, g_root, true, true);
         let v_root_id = VNodeId::from_index(vnodes.alloc(root_entry));
         gnodes.get_mut(g_root.index()).assign_entry(v_root_id);
 
