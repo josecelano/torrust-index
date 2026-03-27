@@ -1,6 +1,6 @@
 use crate::handle::{GNodeId, VNodeId};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct VNode<V> {
     pub(super) intensity: V,
 
@@ -90,22 +90,11 @@ impl<V: Copy> VNode<V> {
     pub const fn set_parent_opt(&mut self, p: Option<VNodeId>) {
         self.parent = p;
     }
-
-}
-
-impl<V: Clone> Clone for VNode<V> {
-    fn clone(&self) -> Self {
-        Self {
-            intensity: self.intensity.clone(),
-            parent: self.parent,
-            kind: self.kind.clone(),
-        }
-    }
 }
 
 const _: () = assert!(std::mem::size_of::<VNode<u64>>() == 64);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum VKind<V> {
     Entry {
         gnode: GNodeId,
@@ -127,7 +116,7 @@ pub enum VKind<V> {
 /// The V-tree is a 2-3 tree: a structural node always has exactly 2 or 3
 /// children. Using an enum instead of a runtime `len` field makes the
 /// constraint a type-system invariant rather than a runtime assertion.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Children<V> {
     /// A structural node with exactly 2 children.
     Pair {

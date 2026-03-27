@@ -88,7 +88,7 @@ node (interior mutability).
 
 ---
 
-## [ ] Step 6.3 — Make `VNode<V>` `Copy` (if `V: Copy`)
+## [x] Step 6.3 — Make `VNode<V>` `Copy` (if `V: Copy`)
 
 **Files touched:** `src/nodes/vnode.rs`.
 
