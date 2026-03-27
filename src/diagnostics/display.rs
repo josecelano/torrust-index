@@ -95,7 +95,7 @@ mod tests {
         fn dead_gnode_shows_dead_marker() {
             // Fresh graph: only gnode 0 is allocated; index 1 is dead.
             let g: G = GvGraph::new(make_config());
-            let display = format!("{}", Gn(g.gnodes(), GNodeId::from_index(1)));
+            let display = format!("{}", Gn(&g.gtree.nodes, GNodeId::from_index(1)));
             assert_eq!(display, "G1(DEAD)");
         }
 
@@ -105,8 +105,8 @@ mod tests {
             g.observe(64u8, 3u32);
             // Find the first occupied gnode index.
             for i in 0..10 {
-                if g.gnodes().is_occupied(i) {
-                    let display = format!("{}", Gn(g.gnodes(), GNodeId::from_index(i)));
+                if g.gtree.nodes.is_occupied(i) {
+                    let display = format!("{}", Gn(&g.gtree.nodes, GNodeId::from_index(i)));
                     assert!(display.starts_with(&format!("G{i}(")));
                     assert!(!display.contains("DEAD"));
                     return;

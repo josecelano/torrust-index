@@ -22,8 +22,8 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
         let clamped = Self::clamp_to_domain(coord);
 
-        let g_id = crate::tree::gtree::route_to_receiver(&self.gnodes, self.g_root, clamped);
-        let g = self.gnodes.get(g_id.index());
+        let g_id = crate::tree::gtree::route_to_receiver(&self.gtree.nodes, self.gtree.root, clamped);
+        let g = self.gtree.nodes.get(g_id.index());
 
         let (start, end) = Self::trimmed_interval(g, clamped);
 
@@ -145,11 +145,11 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C
             return V::zero();
         }
 
-        self.range_sum_inner(self.g_root, lo, hi)
+        self.range_sum_inner(self.gtree.root, lo, hi)
     }
 
     fn range_sum_inner(&self, gid: crate::handle::GNodeId, query_lo: C, query_hi: C) -> V {
-        let g = self.gnodes.get(gid.index());
+        let g = self.gtree.nodes.get(gid.index());
         let node_lo = g.lo();
         let node_hi = g.hi();
 
@@ -203,7 +203,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
         let (plateau_energy, plateau_count) = compute_plateau_energy(&plateaus, start, end);
 
         let mut basis = Vec::new();
-        self.decompose_basis(self.g_root, start.0, end.0, &mut basis);
+        self.decompose_basis(self.gtree.root, start.0, end.0, &mut basis);
 
         let energy = basis.iter().fold(V::zero(), |acc, b| V::add(acc, b.sum));
 
@@ -251,7 +251,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
         query_hi: C,
         basis: &mut Vec<BasisElement<C, V>>,
     ) {
-        let g = self.gnodes.get(gid.index());
+        let g = self.gtree.nodes.get(gid.index());
 
         if query_lo >= g.hi() || query_hi <= g.lo() {
             return;

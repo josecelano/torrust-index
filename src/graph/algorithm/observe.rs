@@ -6,10 +6,10 @@ use crate::tree::{gtree, vtree};
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
         // ── Phase 1: Route observation to G-node and accumulate own value ────
-        let g_id = gtree::route_to_receiver(&self.gnodes, self.g_root, coord);
+        let g_id = gtree::route_to_receiver(&self.gtree.nodes, self.gtree.root, coord);
         let _span = tracing::debug_span!("observe", g = g_id.index()).entered();
 
-        let g = self.gnodes.get_mut(g_id.index());
+        let g = self.gtree.nodes.get_mut(g_id.index());
         g.set_own(O::accumulate(g.own(), delta));
 
         debug_assert!(
@@ -20,7 +20,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         );
 
         // ── Phase 2: V-tree propagation and violation detection ──────────
-        if let Some(entry_id) = self.gnodes.get(g_id.index()).entry() {
+        if let Some(entry_id) = self.gtree.nodes.get(g_id.index()).entry() {
             let v = self.vnodes.get_mut(entry_id.index());
             v.set_intensity(O::accumulate(v.intensity(), delta));
             let new_intensity = v.intensity();
@@ -43,7 +43,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         // ── Phase 3: G-tree sum recompute ────────────────────────────────
-        gtree::recompute_g_sums(&mut self.gnodes, g_id);
+        gtree::recompute_g_sums(&mut self.gtree.nodes, g_id);
 
         // ── Phase 4: Plateau mirror update ───────────────────────────────
         self.plateau_after_observe::<O>(g_id, delta);
@@ -66,9 +66,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         let new_gnodes = rebalance::rebalance(
             &mut self.vnodes,
-            &mut self.gnodes,
+            &mut self.gtree.nodes,
             &mut self.violations,
-            self.live_depth_evict,
+            self.gtree.live_depth_evict,
         );
         if !new_gnodes.is_empty() {
             self.handle_legacy_promotes(&new_gnodes);
@@ -84,10 +84,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.adjust_depth_gates();
 
         // ── Phase 7: Eviction ─────────────────────────────────────────────
-        if let Some(soft_limit) = self.soft_limit {
-            if self.node_count as usize > soft_limit {
+        if let Some(soft_limit) = self.gtree.soft_limit {
+            if self.gtree.node_count as usize > soft_limit {
                 if self.config.structural.bounded_eviction {
-                    self.check_evictions_bounded(self.node_count as usize - soft_limit);
+                    self.check_evictions_bounded(self.gtree.node_count as usize - soft_limit);
                 } else {
                     self.check_evictions();
                 }
@@ -178,12 +178,12 @@ mod tests {
         fn enough_observations_trigger_split() {
             // split_threshold = 2, so 3 observations at same coord should split
             let mut g = fresh_graph();
-            let initial_nodes = g.node_count();
+            let initial_nodes = g.gtree.node_count;
             for _ in 0..3 {
                 g.observe(64u8, 10u32);
             }
             // After a split the node_count should have grown
-            assert!(g.node_count() > initial_nodes);
+            assert!(g.gtree.node_count > initial_nodes);
         }
 
         #[test]

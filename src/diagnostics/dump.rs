@@ -31,9 +31,9 @@ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u
 ) -> String {
     let mut parts = Vec::new();
 
-    let g = graph.gnodes().get(gnode.index());
+    let g = graph.gtree.nodes.get(gnode.index());
     if let Some(parent_id) = g.parent() {
-        let parent = graph.gnodes().get(parent_id.index());
+        let parent = graph.gtree.nodes.get(parent_id.index());
         if parent.state() == GState::SemiInternal {
             parts.push(format!("SI-child (par=G({}))", parent_id.index()));
         }
@@ -42,9 +42,9 @@ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u
     let mut cur = g.parent();
     let mut depth = 1;
     while let Some(anc_id) = cur {
-        let anc = graph.gnodes().get(anc_id.index());
+        let anc = graph.gtree.nodes.get(anc_id.index());
         if let Some(anc_parent_id) = anc.parent() {
-            let anc_parent = graph.gnodes().get(anc_parent_id.index());
+            let anc_parent = graph.gtree.nodes.get(anc_parent_id.index());
             if anc_parent.state() == GState::SemiInternal {
                 parts.push(format!(
                     "{} is SI-child (G({}) under G({}))",
@@ -74,12 +74,12 @@ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     writeln!(
         out,
         "═══ G-Tree dump (root=GNodeId({}), {} nodes) ═══",
-        graph.g_root().index(),
-        graph.node_count()
+        graph.gtree.root.index(),
+        graph.gtree.node_count
     )
     .unwrap();
 
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         let gnode_id = GNodeId::from_index(idx);
         let state = state_label(g.state());
         let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
@@ -149,7 +149,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         writeln!(out, "    basis_elements (raw): {raw_ids:?}").unwrap();
 
         for &gid in elements {
-            if !graph.gnodes().is_occupied(gid.index()) {
+            if !graph.gtree.nodes.is_occupied(gid.index()) {
                 writeln!(
                     out,
                     "    !! DANGLING GNodeId({}) — slot deallocated !!",
@@ -158,7 +158,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
                 .unwrap();
                 continue;
             }
-            let g = graph.gnodes().get(gid.index());
+            let g = graph.gtree.nodes.get(gid.index());
             let state = state_label(g.state());
             let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
             let contour_depth = match g.state() {

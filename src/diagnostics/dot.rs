@@ -50,10 +50,10 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
 
     // BFS from the root so the node ordering in the file is breadth-first.
     let mut queue = std::collections::VecDeque::new();
-    queue.push_back(graph.g_root());
+    queue.push_back(graph.gtree.root);
 
     while let Some(gid) = queue.pop_front() {
-        let g = graph.gnodes().get(gid.index());
+        let g = graph.gtree.nodes.get(gid.index());
         let idx = gid.index();
         let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
         let state = state_label(g.state());
@@ -95,9 +95,9 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
 
     // Edges (separate pass so all nodes are declared before edges).
     let mut queue = std::collections::VecDeque::new();
-    queue.push_back(graph.g_root());
+    queue.push_back(graph.gtree.root);
     while let Some(gid) = queue.pop_front() {
-        let g = graph.gnodes().get(gid.index());
+        let g = graph.gtree.nodes.get(gid.index());
         let idx = gid.index();
         if let Some(left) = g.left() {
             writeln!(out, "  G{idx} -> G{} [label=\"L\"];", left.index()).unwrap();
@@ -162,7 +162,7 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
                 is_exposed,
                 is_evictable,
             } => {
-                let g = graph.gnodes().get(gnode.index());
+                let g = graph.gtree.nodes.get(gnode.index());
                 let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
                 let g_state = state_label(g.state());
                 writeln!(

@@ -47,7 +47,7 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
 
     if let Some(ctx) = context {
         if ctx.parent_state == GState::SemiInternal {
-            let g = graph.gnodes.get(ctx.parent_id.index());
+            let g = graph.gtree.nodes.get(ctx.parent_id.index());
             let surviving = g.left().or_else(|| g.right());
             if let Some(surviving_id) = surviving {
                 let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);

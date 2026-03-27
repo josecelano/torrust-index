@@ -136,10 +136,10 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     };
     span.record("gnode", gnode_id.index());
 
-    assert_ne!(gnode_id, graph.g_root, "evict_tip: cannot evict the G-root");
+    assert_ne!(gnode_id, graph.gtree.root, "evict_tip: cannot evict the G-root");
 
     let parent_id = graph
-        .gnodes
+        .gtree.nodes
         .get(gnode_id.index())
         .parent()
         .expect("evict_tip: terminal G-node must have a parent");
@@ -148,25 +148,28 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     // ── Phase 1: G-tree restructuring ───────────────────────────────────────
     // Absorb the evicted child's sum into the parent's own weight, detach
     // the child slot, and recompute the parent sum invariant.
-    let child_sum = graph.gnodes.get(gnode_id.index()).sum();
-    let parent_sum_before = graph.gnodes.get(parent_id.index()).sum();
+    let child_sum = graph.gtree.nodes.get(gnode_id.index()).sum();
+    let parent_sum_before = graph.gtree.nodes.get(parent_id.index()).sum();
 
-    let parent_own_before = graph.gnodes.get(parent_id.index()).own();
+    let parent_own_before = graph.gtree.nodes.get(parent_id.index()).own();
     graph
-        .gnodes
+        .gtree.nodes
         .get_mut(parent_id.index())
         .set_own(V::add(parent_own_before, child_sum));
 
-    graph.gnodes.get_mut(parent_id.index()).clear_child(gnode_id);
+    graph
+        .gtree.nodes
+        .get_mut(parent_id.index())
+        .clear_child(gnode_id);
 
     {
-        let p = graph.gnodes.get(parent_id.index());
+        let p = graph.gtree.nodes.get(parent_id.index());
         let left_sum = p
             .left()
-            .map_or_else(V::zero, |l| graph.gnodes.get(l.index()).sum());
+            .map_or_else(V::zero, |l| graph.gtree.nodes.get(l.index()).sum());
         let right_sum = p
             .right()
-            .map_or_else(V::zero, |r| graph.gnodes.get(r.index()).sum());
+            .map_or_else(V::zero, |r| graph.gtree.nodes.get(r.index()).sum());
         let recomputed = V::add(p.own(), V::add(left_sum, right_sum));
         debug_assert!(
             (recomputed.to_f64_approx() - parent_sum_before.to_f64_approx()).abs() < 1e-9,
@@ -176,19 +179,19 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             parent_sum_before.to_f64_approx()
         );
 
-        graph.gnodes.get_mut(parent_id.index()).set_sum(recomputed);
+        graph.gtree.nodes.get_mut(parent_id.index()).set_sum(recomputed);
     }
 
     // ── Phase 2: V-intensity propagation ────────────────────────────────────
     // The parent's `own` changed; push its new intensity up the V-tree and
     // requeue any nodes that are now violated.
     let p_entry_id = graph
-        .gnodes
+        .gtree.nodes
         .get(parent_id.index())
         .entry()
         .expect("evict_tip: parent must have V-entry (has dependents)");
     {
-        let p_own = graph.gnodes.get(parent_id.index()).own();
+        let p_own = graph.gtree.nodes.get(parent_id.index()).own();
         graph
             .vnodes
             .get_mut(p_entry_id.index())
@@ -207,7 +210,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     // ── Phase 3: Evictable / exposed flag propagation ────────────────────────
     {
-        let p = graph.gnodes.get(parent_id.index());
+        let p = graph.gtree.nodes.get(parent_id.index());
         let parent_is_exposed = p.uncovered_range().is_some();
         let parent_is_evictable = p.is_terminal();
         let p_entry_id = p
@@ -230,7 +233,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let removal_ctx = classify_leaf_removal(&graph.vnodes, v_id);
 
     graph.v_root =
-        vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gnodes, v_id, graph.v_root);
+        vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gtree.nodes, v_id, graph.v_root);
 
     push_eviction_violations(&graph.vnodes, v_id, &removal_ctx, &mut graph.violations);
 
@@ -253,7 +256,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     // ── Phase 8: Plateau snapshot, dealloc, terminal-count update ────────
     let parent_snapshot = {
-        let pg = graph.gnodes.get(parent_id.index());
+        let pg = graph.gtree.nodes.get(parent_id.index());
         ParentSnapshot {
             state: pg.state(),
             lo: pg.lo(),
@@ -261,12 +264,12 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         }
     };
 
-    graph.gnodes.dealloc(gnode_id.index());
-    graph.node_count -= 1;
+    graph.gtree.nodes.dealloc(gnode_id.index());
+    graph.gtree.node_count -= 1;
 
-    graph.terminal_count -= 1;
-    if graph.gnodes.get(parent_id.index()).is_terminal() {
-        graph.terminal_count += 1;
+    graph.gtree.terminal_count -= 1;
+    if graph.gtree.nodes.get(parent_id.index()).is_terminal() {
+        graph.gtree.terminal_count += 1;
     }
 
     // ── Phase 9: Plateau mirror update ───────────────────────────────────────
@@ -317,7 +320,7 @@ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
             is_evictable,
             ..
         } => {
-            if depth > graph.live_depth_evict && *is_evictable && *gnode != graph.g_root {
+            if depth > graph.gtree.live_depth_evict && *is_evictable && *gnode != graph.gtree.root {
                 candidates.push(v_id);
             }
         }
@@ -423,7 +426,7 @@ mod tests {
                 g.observe(i.wrapping_mul(13), 3u32);
             }
             // The eviction mechanism must keep the graph alive (no panic).
-            assert!(g.node_count() >= 1);
+            assert!(g.gtree.node_count >= 1);
         }
 
         #[test]

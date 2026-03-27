@@ -122,13 +122,13 @@ fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u3
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         let left_sum = g
             .left()
-            .map_or(0.0, |l| graph.gnodes().get(l.index()).sum().to_f64_approx());
+            .map_or(0.0, |l| graph.gtree.nodes.get(l.index()).sum().to_f64_approx());
         let right_sum = g
             .right()
-            .map_or(0.0, |r| graph.gnodes().get(r.index()).sum().to_f64_approx());
+            .map_or(0.0, |r| graph.gtree.nodes.get(r.index()).sum().to_f64_approx());
         let expected = g.own().to_f64_approx() + left_sum + right_sum;
         let actual = g.sum().to_f64_approx();
         if expected != actual && (expected - actual).abs() > 1e-9 {
@@ -145,7 +145,7 @@ fn check_g_i2_variable_fanout<C: Coordinate, V: Accumulator + Inspectable, const
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         let count = usize::from(g.left().is_some()) + usize::from(g.right().is_some());
         if count > 2 {
             errors.push(format!(
@@ -159,7 +159,7 @@ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, con
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         if let Some(v_id) = g.entry() {
             if !graph.vnodes().is_occupied(v_id.index()) {
                 errors.push(format!(
@@ -208,7 +208,7 @@ fn check_g_i5_entry_bijection<C: Coordinate, V: Accumulator + Inspectable, const
 ) {
     let mut g_without_entry = Vec::new();
     let mut g_count = 0usize;
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         g_count += 1;
         if g.entry().is_none() {
             g_without_entry.push(idx);
@@ -336,14 +336,14 @@ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N:
             gnode, is_exposed, ..
         } = &v.kind()
         {
-            if !graph.gnodes().is_occupied(gnode.index()) {
+            if !graph.gtree.nodes.is_occupied(gnode.index()) {
                 errors.push(format!(
                     "V-I6 violated at V-node {idx}: backing G-node {} is not occupied",
                     gnode.index()
                 ));
                 continue;
             }
-            let g = graph.gnodes().get(gnode.index());
+            let g = graph.gtree.nodes.get(gnode.index());
             let expected = g.uncovered_range().is_some();
             if *is_exposed != expected {
                 errors.push(format!(
@@ -368,10 +368,10 @@ fn check_v_i6b_evictable_flag<C: Coordinate, V: Accumulator + Inspectable, const
             ..
         } = &v.kind()
         {
-            if !graph.gnodes().is_occupied(gnode.index()) {
+            if !graph.gtree.nodes.is_occupied(gnode.index()) {
                 continue;
             }
-            let g = graph.gnodes().get(gnode.index());
+            let g = graph.gtree.nodes.get(gnode.index());
             let expected = g.is_terminal();
             if *is_evictable != expected {
                 errors.push(format!(
@@ -433,8 +433,8 @@ fn check_clean_accounting<C: Coordinate, V: Accumulator + Inspectable, const N: 
         }
     }
     let g_root_sum = graph
-        .gnodes()
-        .get(graph.g_root().index())
+        .gtree.nodes
+        .get(graph.gtree.root.index())
         .sum()
         .to_f64_approx();
     if total_v != g_root_sum && (total_v - g_root_sum).abs() > 1e-9 {
@@ -458,11 +458,11 @@ fn check_g_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    for (idx, g) in graph.gnodes().iter_occupied() {
+    for (idx, g) in graph.gtree.nodes.iter_occupied() {
         let g_id = GNodeId::from_index(idx);
         if let Some(left) = g.left() {
-            if graph.gnodes().is_occupied(left.index()) {
-                let child_parent = graph.gnodes().get(left.index()).parent();
+            if graph.gtree.nodes.is_occupied(left.index()) {
+                let child_parent = graph.gtree.nodes.get(left.index()).parent();
                 if child_parent != Some(g_id) {
                     errors.push(format!(
                         "G-parent link: G-node {idx}'s left child {}'s parent is {:?}, expected {g_id:?}",
@@ -473,8 +473,8 @@ fn check_g_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
             }
         }
         if let Some(right) = g.right() {
-            if graph.gnodes().is_occupied(right.index()) {
-                let child_parent = graph.gnodes().get(right.index()).parent();
+            if graph.gtree.nodes.is_occupied(right.index()) {
+                let child_parent = graph.gtree.nodes.get(right.index()).parent();
                 if child_parent != Some(g_id) {
                     errors.push(format!(
                         "G-parent link: G-node {idx}'s right child {}'s parent is {:?}, expected {g_id:?}",
@@ -559,11 +559,11 @@ fn check_node_count_consistency<C: Coordinate, V: Accumulator + Inspectable, con
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    let actual = graph.gnodes().count();
-    let expected = graph.node_count();
+    let actual = graph.gtree.nodes.count();
+    let expected = graph.gtree.node_count;
     if actual != expected {
         errors.push(format!(
-            "Node count: graph.node_count()={expected}, arena count={actual}"
+            "Node count: graph.gtree.node_count={expected}, arena count={actual}"
         ));
     }
 }
@@ -574,14 +574,14 @@ fn check_terminal_count_consistency<C: Coordinate, V: Accumulator + Inspectable,
 ) {
     #[allow(clippy::cast_possible_truncation)]
     let actual = graph
-        .gnodes()
+        .gtree.nodes
         .iter_occupied()
         .filter(|(_, g)| g.is_terminal())
         .count() as u32;
-    let expected = graph.terminal_count();
+    let expected = graph.gtree.terminal_count;
     if actual != expected {
         errors.push(format!(
-            "Terminal count: graph.terminal_count()={expected}, arena walk={actual}"
+            "Terminal count: graph.gtree.terminal_count={expected}, arena walk={actual}"
         ));
     }
 }
@@ -591,10 +591,10 @@ fn check_hard_budget<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     errors: &mut Vec<String>,
 ) {
     if let Some(budget) = graph.config().structural.budget {
-        if graph.node_count() as usize > budget {
+        if graph.gtree.node_count as usize > budget {
             errors.push(format!(
                 "Hard budget violated (ADR-M-018): node_count ({}) > budget ({})",
-                graph.node_count(),
+                graph.gtree.node_count,
                 budget
             ));
         }
@@ -607,7 +607,7 @@ fn check_depth_gate_invariants<C: Coordinate, V: Accumulator + Inspectable, cons
 ) {
     let d_create = graph.depth_create();
     let d_evict = graph.depth_evict();
-    let buffer = graph.depth_buffer();
+    let buffer = graph.gtree.depth_buffer;
 
     if d_create >= d_evict {
         errors.push(format!(

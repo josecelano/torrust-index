@@ -22,7 +22,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
             let vnode = self.vnodes.get(current.index());
             match &vnode.kind() {
                 VKind::Entry { gnode, .. } => {
-                    let g = self.gnodes.get(gnode.index());
+                    let g = self.gtree.nodes.get(gnode.index());
                     let (start, end) = Self::uncovered_interval(g);
                     return Some(crate::spatial::view::Cell {
                         start,

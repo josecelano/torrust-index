@@ -66,8 +66,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     "DYNAMIC-ONLY plateau",
                 );
                 for &gid in basis {
-                    if self.gnodes.is_occupied(gid.index()) {
-                        let g = self.gnodes.get(gid.index());
+                    if self.gtree.nodes.is_occupied(gid.index()) {
+                        let g = self.gtree.nodes.get(gid.index());
                         tracing::error!(
                             gid = gid.index(),
                             state = ?g.state(),
@@ -110,9 +110,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     "DIFFERS",
                 );
                 for &gid in basis {
-                    if self.gnodes.is_occupied(gid.index()) {
-                        let g = self.gnodes.get(gid.index());
-                        let ud = uniform_contour_depth_of(&self.gnodes, gid, N);
+                    if self.gtree.nodes.is_occupied(gid.index()) {
+                        let g = self.gtree.nodes.get(gid.index());
+                        let ud = uniform_contour_depth_of(&self.gtree.nodes, gid, N);
                         tracing::error!(
                             gid = gid.index(),
                             state = ?g.state(),
@@ -145,9 +145,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         use crate::tree::gtree::gnode_depth_from_interval;
 
         let mut basis: Vec<(BasisEdge<C>, u32, C, C, V)> = Vec::new();
-        let mut stack = vec![self.g_root];
+        let mut stack = vec![self.gtree.root];
         while let Some(gid) = stack.pop() {
-            let g = self.gnodes.get(gid.index());
+            let g = self.gtree.nodes.get(gid.index());
             match g.state() {
                 GState::Terminal => {
                     let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
@@ -165,7 +165,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     }
                 }
                 GState::Internal => {
-                    if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
+                    if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, gid, N) {
                         basis.push((basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                     } else {
                         if let Some(left) = g.left() {
@@ -236,7 +236,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let infos: Vec<_> = elements
                 .iter()
                 .map(|&gid| {
-                    let g = self.gnodes.get(gid.index());
+                    let g = self.gtree.nodes.get(gid.index());
                     let state_str = match g.state() {
                         crate::nodes::gnode::GState::Terminal => "Terminal",
                         crate::nodes::gnode::GState::Internal => "Internal",
@@ -259,13 +259,13 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         let first = *elements.iter().next().unwrap();
-        let mut min_lo = self.gnodes.get(first.index()).lo();
-        let mut max_hi = self.gnodes.get(first.index()).hi();
+        let mut min_lo = self.gtree.nodes.get(first.index()).lo();
+        let mut max_hi = self.gtree.nodes.get(first.index()).hi();
         let mut sum = V::zero();
         let mut depth = 0u32;
 
         for &gid in elements {
-            let g = self.gnodes.get(gid.index());
+            let g = self.gtree.nodes.get(gid.index());
             if g.lo().total_cmp(&min_lo) == std::cmp::Ordering::Less {
                 min_lo = g.lo();
             }
@@ -280,7 +280,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
                 }
                 crate::nodes::gnode::GState::Internal => {
-                    uniform_contour_depth_of(&self.gnodes, gid, N).unwrap_or_else(|| {
+                    uniform_contour_depth_of(&self.gtree.nodes, gid, N).unwrap_or_else(|| {
                         crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N) + 1
                     })
                 }
@@ -301,7 +301,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn place_basis_element(&mut self, gnode: GNodeId, depth: u32) {
         use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 
-        let g = self.gnodes.get(gnode.index());
+        let g = self.gtree.nodes.get(gnode.index());
         let key = basis_edge_of(g);
         let lo = g.lo();
         let hi = g.hi();
@@ -432,7 +432,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         self.consolidate_basis_up(gnode);
 
-        if self.gnodes.get(gnode.index()).state() == crate::nodes::gnode::GState::SemiInternal {
+        if self.gtree.nodes.get(gnode.index()).state() == crate::nodes::gnode::GState::SemiInternal {
             let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
             self.pending_p_i4.push((gnode, final_key));
         }
@@ -445,14 +445,14 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         out: &mut Vec<(GNodeId, u32)>,
     ) {
         use crate::nodes::gnode::GState;
-        let g = self.gnodes.get(gid.index());
+        let g = self.gtree.nodes.get(gid.index());
         match g.state() {
             GState::Terminal | GState::SemiInternal => {
                 let depth = crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N);
                 out.push((gid, depth));
             }
             GState::Internal => {
-                if let Some(ud) = uniform_contour_depth_of(&self.gnodes, gid, N) {
+                if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, gid, N) {
                     out.push((gid, ud));
                 } else {
                     if let Some(l) = g.left() {
@@ -470,8 +470,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn place_sorted(&mut self, elements: &mut [(GNodeId, u32)]) {
         use crate::spatial::plateau::basis_edge_of;
         elements.sort_by(|a, b| {
-            let a_key = basis_edge_of(self.gnodes.get(a.0.index()));
-            let b_key = basis_edge_of(self.gnodes.get(b.0.index()));
+            let a_key = basis_edge_of(self.gtree.nodes.get(a.0.index()));
+            let b_key = basis_edge_of(self.gtree.nodes.get(b.0.index()));
             a_key.cmp(&b_key)
         });
         for &(gid, depth) in elements.iter() {
@@ -492,7 +492,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 .basis_elements(&key)
                 .iter()
                 .map(|&gid| {
-                    let g = self.gnodes.get(gid.index());
+                    let g = self.gtree.nodes.get(gid.index());
                     (
                         gid.index(),
                         g.sum().to_f64_approx(),
@@ -531,7 +531,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let mut intervals: Vec<(GNodeId, C, C)> = element_ids
                 .iter()
                 .map(|&gid| {
-                    let g = self.gnodes.get(gid.index());
+                    let g = self.gtree.nodes.get(gid.index());
                     (gid, g.lo(), g.hi())
                 })
                 .collect();
@@ -550,14 +550,14 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 let mut displaced: Vec<(GNodeId, u32)> = Vec::with_capacity(element_ids.len());
                 for &gid in &element_ids {
                     self.plateau_basis.remove(gid);
-                    let g = self.gnodes.get(gid.index());
+                    let g = self.gtree.nodes.get(gid.index());
                     let d = match g.state() {
                         crate::nodes::gnode::GState::Terminal
                         | crate::nodes::gnode::GState::SemiInternal => {
                             crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
                         }
                         crate::nodes::gnode::GState::Internal => {
-                            crate::graph::uniform_contour_depth_of(&self.gnodes, gid, N)
+                            crate::graph::uniform_contour_depth_of(&self.gtree.nodes, gid, N)
                                 .unwrap_or_else(|| {
                                     crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N) + 1
                                 })
@@ -573,7 +573,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         let min_key: BasisEdge<C> = element_ids
             .iter()
-            .map(|&gid| basis_edge_of(self.gnodes.get(gid.index())))
+            .map(|&gid| basis_edge_of(self.gtree.nodes.get(gid.index())))
             .min()
             .unwrap();
 
@@ -629,8 +629,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let mut candidates: Vec<(GNodeId, BasisEdge<C>)> = Vec::new();
         for (&key, elements) in self.plateau_basis.iter() {
             for &gid in elements {
-                if self.gnodes.is_occupied(gid.index())
-                    && self.gnodes.get(gid.index()).state() == GState::SemiInternal
+                if self.gtree.nodes.is_occupied(gid.index())
+                    && self.gtree.nodes.get(gid.index()).state() == GState::SemiInternal
                 {
                     candidates.push((gid, key));
                 }
@@ -643,10 +643,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             if self.plateau_basis.plateau_key(gid) != Some(pk) {
                 continue;
             }
-            if !self.gnodes.is_occupied(gid.index()) {
+            if !self.gtree.nodes.is_occupied(gid.index()) {
                 continue;
             }
-            let g = self.gnodes.get(gid.index());
+            let g = self.gtree.nodes.get(gid.index());
             if g.state() != GState::SemiInternal {
                 continue;
             }
@@ -654,7 +654,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let Some(child_id) = g.left().or_else(|| g.right()) else {
                 continue;
             };
-            let child_lo = self.gnodes.get(child_id.index()).lo();
+            let child_lo = self.gtree.nodes.get(child_id.index()).lo();
             let child_pk = self
                 .plateaus
                 .range(..=BasisEdge(child_lo))
@@ -681,7 +681,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             return;
         };
 
-        let bg = self.gnodes.get(boundary_id.index());
+        let bg = self.gtree.nodes.get(boundary_id.index());
         let boundary_key = basis_edge_of(bg);
         let boundary_depth = match bg.state() {
             GState::Terminal | GState::SemiInternal => {
@@ -718,7 +718,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     ) -> Option<GNodeId> {
         use crate::spatial::plateau::basis_edge_of;
 
-        let g = self.gnodes.get(gid.index());
+        let g = self.gtree.nodes.get(gid.index());
         let key = basis_edge_of(g);
         if key > parent_pk {
             return Some(gid);
@@ -751,7 +751,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     p.sum = V::add(p.sum, value_v);
                 }
             }
-            cur = self.gnodes.get(id.index()).parent();
+            cur = self.gtree.nodes.get(id.index()).parent();
         }
 
         #[cfg(debug_assertions)]
@@ -764,7 +764,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         .basis_elements(&key)
                         .iter()
                         .map(|&r| {
-                            let g = self.gnodes.get(r.index());
+                            let g = self.gtree.nodes.get(r.index());
                             (r.index(), g.sum().to_f64_approx(), format!("{:?}", g.state()))
                         })
                         .collect();
@@ -772,7 +772,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         .plateau_basis
                         .basis_elements(&key)
                         .iter()
-                        .map(|&r| self.gnodes.get(r.index()).sum())
+                        .map(|&r| self.gtree.nodes.get(r.index()).sum())
                         .fold(V::zero(), V::add);
                     assert_eq!(
                         self.plateaus[&key].sum,
@@ -785,7 +785,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         id.index(),
                     );
                 }
-                cur = self.gnodes.get(id.index()).parent();
+                cur = self.gtree.nodes.get(id.index()).parent();
             }
         }
     }
@@ -808,19 +808,19 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.fixup_plateau(old_key);
 
         let right_id = self
-            .gnodes
+            .gtree.nodes
             .get(g_id.index())
             .right()
             .expect("bootstrap_split: g_id must have a right child");
 
         let left_depth = crate::tree::gtree::gnode_depth_from_interval(
-            self.gnodes.get(left_id.index()).lo(),
-            self.gnodes.get(left_id.index()).hi(),
+            self.gtree.nodes.get(left_id.index()).lo(),
+            self.gtree.nodes.get(left_id.index()).hi(),
             N,
         );
         let right_depth = crate::tree::gtree::gnode_depth_from_interval(
-            self.gnodes.get(right_id.index()).lo(),
-            self.gnodes.get(right_id.index()).hi(),
+            self.gtree.nodes.get(right_id.index()).lo(),
+            self.gtree.nodes.get(right_id.index()).hi(),
             N,
         );
 
@@ -852,19 +852,19 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.plateaus_dirty = true;
 
         let right_id = self
-            .gnodes
+            .gtree.nodes
             .get(g_id.index())
             .right()
             .expect("catalytic_split: g_id must have a right child");
 
         let left_depth = crate::tree::gtree::gnode_depth_from_interval(
-            self.gnodes.get(left_id.index()).lo(),
-            self.gnodes.get(left_id.index()).hi(),
+            self.gtree.nodes.get(left_id.index()).lo(),
+            self.gtree.nodes.get(left_id.index()).hi(),
             N,
         );
         let right_depth = crate::tree::gtree::gnode_depth_from_interval(
-            self.gnodes.get(right_id.index()).lo(),
-            self.gnodes.get(right_id.index()).hi(),
+            self.gtree.nodes.get(right_id.index()).lo(),
+            self.gtree.nodes.get(right_id.index()).hi(),
             N,
         );
 
@@ -884,7 +884,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             (key, co_members)
         } else {
             let mut path: Vec<GNodeId> = vec![g_id];
-            let mut parent_opt = self.gnodes.get(g_id.index()).parent();
+            let mut parent_opt = self.gtree.nodes.get(g_id.index()).parent();
             let mut result = None;
 
             while let Some(p_id) = parent_opt {
@@ -892,11 +892,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     let mut displaced: Vec<GNodeId> = Vec::new();
                     for &path_node in &path {
                         let par = self
-                            .gnodes
+                            .gtree.nodes
                             .get(path_node.index())
                             .parent()
                             .expect("path node must have a parent");
-                        let pg = self.gnodes.get(par.index());
+                        let pg = self.gtree.nodes.get(par.index());
                         let sibling = if pg.left() == Some(path_node) {
                             pg.right()
                         } else {
@@ -921,7 +921,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     break;
                 }
                 path.push(p_id);
-                parent_opt = self.gnodes.get(p_id.index()).parent();
+                parent_opt = self.gtree.nodes.get(p_id.index()).parent();
             }
 
             result.expect("catalytic_split: no basis element covers g_id")
@@ -949,11 +949,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn plateau_after_legacy_promote(&mut self, new_gid: GNodeId) {
         use crate::nodes::gnode::GState;
 
-        let ng = self.gnodes.get(new_gid.index());
+        let ng = self.gtree.nodes.get(new_gid.index());
         let parent_id = ng.parent().expect("legacy_promote child must have a parent");
         let child_depth = crate::tree::gtree::gnode_depth_from_interval(ng.lo(), ng.hi(), N);
 
-        let pg = self.gnodes.get(parent_id.index());
+        let pg = self.gtree.nodes.get(parent_id.index());
         let existing_child_id = if pg.left() == Some(new_gid) {
             pg.right()
         } else {
@@ -966,7 +966,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         let mut to_place = Vec::new();
         if let Some(ec_id) = existing_child_id {
-            let ec = self.gnodes.get(ec_id.index());
+            let ec = self.gtree.nodes.get(ec_id.index());
             if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
                 let existing_depth = crate::tree::gtree::gnode_depth_from_interval(ec.lo(), ec.hi(), N);
                 to_place.push((ec_id, existing_depth));
@@ -995,11 +995,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let mut to_place = Vec::new();
 
         for &new_gid in new_gnodes {
-            let ng = self.gnodes.get(new_gid.index());
+            let ng = self.gtree.nodes.get(new_gid.index());
             let parent_id = ng.parent().expect("legacy_promote child must have a parent");
             let child_depth = crate::tree::gtree::gnode_depth_from_interval(ng.lo(), ng.hi(), N);
 
-            let pg = self.gnodes.get(parent_id.index());
+            let pg = self.gtree.nodes.get(parent_id.index());
             let existing_child_id = if pg.left() == Some(new_gid) {
                 pg.right()
             } else {
@@ -1011,7 +1011,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
 
             if let Some(ec_id) = existing_child_id {
-                let ec = self.gnodes.get(ec_id.index());
+                let ec = self.gtree.nodes.get(ec_id.index());
                 if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none()
                 {
                     let existing_depth =
@@ -1053,7 +1053,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         let ancestor_key = if let Some(key) = self.plateau_basis.remove(parent_id) {
             if parent_state_after == GState::SemiInternal {
-                let g = self.gnodes.get(parent_id.index());
+                let g = self.gtree.nodes.get(parent_id.index());
                 if let Some(sib) = g.left().or_else(|| g.right()) {
                     if let Some(ok) = self.plateau_basis.remove(sib) {
                         self.fixup_plateau(ok);
@@ -1064,11 +1064,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             Some(key)
         } else {
             let mut path: Vec<GNodeId> = vec![parent_id];
-            let mut cur = self.gnodes.get(parent_id.index()).parent();
+            let mut cur = self.gtree.nodes.get(parent_id.index()).parent();
             let mut found = None;
 
             let parent_key = {
-                let pg = self.gnodes.get(parent_id.index());
+                let pg = self.gtree.nodes.get(parent_id.index());
                 crate::spatial::plateau::basis_edge_of(pg)
             };
 
@@ -1089,7 +1089,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         self.plateau_basis.remove(anc);
 
                         if parent_state_after == GState::SemiInternal {
-                            let g = self.gnodes.get(parent_id.index());
+                            let g = self.gtree.nodes.get(parent_id.index());
                             if let Some(sib) = g.left().or_else(|| g.right()) {
                                 if let Some(ok) = self.plateau_basis.remove(sib) {
                                     self.fixup_plateau(ok);
@@ -1100,11 +1100,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
                         for &path_node in &path {
                             let par = self
-                                .gnodes
+                                .gtree.nodes
                                 .get(path_node.index())
                                 .parent()
                                 .expect("path node must have a parent");
-                            let pg = self.gnodes.get(par.index());
+                            let pg = self.gtree.nodes.get(par.index());
                             let sibling = if pg.left() == Some(path_node) {
                                 pg.right()
                             } else {
@@ -1126,7 +1126,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     }
                 }
                 path.push(anc);
-                cur = self.gnodes.get(anc.index()).parent();
+                cur = self.gtree.nodes.get(anc.index()).parent();
             }
 
             found

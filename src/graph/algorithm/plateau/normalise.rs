@@ -27,29 +27,29 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         use crate::nodes::gnode::GState;
 
         loop {
-            let Some(parent_id) = self.gnodes.get(gid.index()).parent() else {
+            let Some(parent_id) = self.gtree.nodes.get(gid.index()).parent() else {
                 tracing::trace!(from = gid.index(), "consolidate_basis_up: stop — no parent");
                 break;
             };
-            if self.gnodes.get(parent_id.index()).state() != GState::Internal {
+            if self.gtree.nodes.get(parent_id.index()).state() != GState::Internal {
                 tracing::trace!(
                     from = gid.index(),
                     parent = parent_id.index(),
-                    parent_state = ?self.gnodes.get(parent_id.index()).state(),
+                    parent_state = ?self.gtree.nodes.get(parent_id.index()).state(),
                     "consolidate_basis_up: stop — parent not Internal",
                 );
                 break;
             }
             let (left, right) = {
-                let pg = self.gnodes.get(parent_id.index());
+                let pg = self.gtree.nodes.get(parent_id.index());
                 match (pg.left(), pg.right()) {
                     (Some(l), Some(r)) => (l, r),
                     _ => break,
                 }
             };
 
-            if self.gnodes.get(left.index()).state() == GState::SemiInternal
-                || self.gnodes.get(right.index()).state() == GState::SemiInternal
+            if self.gtree.nodes.get(left.index()).state() == GState::SemiInternal
+                || self.gtree.nodes.get(right.index()).state() == GState::SemiInternal
             {
                 tracing::trace!(
                     from = gid.index(),
@@ -88,7 +88,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 break;
             }
 
-            let Some(uniform_depth) = uniform_contour_depth_of(&self.gnodes, parent_id, N) else {
+            let Some(uniform_depth) = uniform_contour_depth_of(&self.gtree.nodes, parent_id, N) else {
                 tracing::trace!(
                     from = gid.index(),
                     parent = parent_id.index(),
@@ -163,7 +163,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 if !seen.insert(nid) {
                     continue;
                 }
-                let g = self.gnodes.get(nid.index());
+                let g = self.gtree.nodes.get(nid.index());
                 match g.state() {
                     GState::Terminal => {
                         let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
@@ -181,7 +181,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         }
                     }
                     GState::Internal => {
-                        if let Some(ud) = uniform_contour_depth_of(&self.gnodes, nid, N) {
+                        if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, nid, N) {
                             elems.push((nid, basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                         } else {
                             if let Some(left) = g.left() {
@@ -333,7 +333,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 .plateau_basis
                 .basis_elements(&key)
                 .iter()
-                .map(|&r| self.gnodes.get(r.index()).sum())
+                .map(|&r| self.gtree.nodes.get(r.index()).sum())
                 .fold(V::zero(), V::add);
         }
         #[cfg(debug_assertions)]
@@ -342,7 +342,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 .plateau_basis
                 .basis_elements(&key)
                 .iter()
-                .map(|&r| self.gnodes.get(r.index()).sum())
+                .map(|&r| self.gtree.nodes.get(r.index()).sum())
                 .fold(V::zero(), V::add);
             assert_eq!(
                 plateau.sum, expected,
