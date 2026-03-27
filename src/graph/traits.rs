@@ -7,20 +7,24 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::S
     type Coord = C;
     type Accum = V;
 
-    fn plateaus(
-        &self,
-    ) -> std::borrow::Cow<
-        '_,
-        std::collections::BTreeMap<
-            crate::spatial::plateau::BasisEdge<C>,
-            crate::spatial::plateau::Plateau<C, V>,
-        >,
-    > {
-        self.plateaus()
-    }
-
     fn get(&self, coord: C) -> crate::spatial::view::Cell<C, V> {
         self.get(coord)
+    }
+}
+
+#[cfg(feature = "dynamic-contour-tracking")]
+impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::PlateauRead
+    for GvGraph<C, V, N>
+{
+    fn plateaus(
+        &self,
+    ) -> impl Iterator<
+        Item = (
+            &crate::spatial::plateau::BasisEdge<C>,
+            &crate::spatial::plateau::Plateau<C, V>,
+        ),
+    > {
+        self.plateaus.iter()
     }
 }
 
@@ -54,6 +58,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable + crate::traits::Weighable, con
 #[cfg(test)]
 mod tests {
     use crate::graph::{Config, GvGraph};
+    #[cfg(feature = "dynamic-contour-tracking")]
+    use crate::traits::PlateauRead;
     use crate::traits::{SpatialRead, SpatialWrite, TemporalDecay, WeightedSampler};
 
     fn make_config() -> Config<u32> {
@@ -77,14 +83,20 @@ mod tests {
             r.get(coord).intensity
         }
 
-        fn call_plateaus_via_trait<T: SpatialRead<Coord = u8, Accum = u32>>(r: &T) -> usize {
-            r.plateaus().len()
-        }
-
         #[test]
         fn get_returns_zero_for_unobserved_coordinate() {
             let g: TestGraph = GvGraph::new(make_config());
             assert_eq!(call_get_via_trait(&g, 42u8), 0u32);
+        }
+    }
+
+    // ── PlateauRead impl ─────────────────────────────────────────────────
+    #[cfg(feature = "dynamic-contour-tracking")]
+    mod plateau_read {
+        use super::*;
+
+        fn call_plateaus_via_trait<T: PlateauRead<Coord = u8, Accum = u32>>(r: &T) -> usize {
+            r.plateaus().count()
         }
 
         #[test]

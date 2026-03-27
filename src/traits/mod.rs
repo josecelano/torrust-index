@@ -25,6 +25,11 @@ pub use rng::Rng;
 mod spatial_read;
 pub use spatial_read::SpatialRead;
 
+#[cfg(feature = "dynamic-contour-tracking")]
+mod plateau_read;
+#[cfg(feature = "dynamic-contour-tracking")]
+pub use plateau_read::PlateauRead;
+
 mod spatial_write;
 pub use spatial_write::SpatialWrite;
 
