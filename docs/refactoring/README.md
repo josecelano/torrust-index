@@ -41,8 +41,8 @@ cargo clippy --all-features -- -D warnings
 
 | Step                                                                              | Status | Title                                | Opportunity |
 | --------------------------------------------------------------------------------- | ------ | ------------------------------------ | ----------- |
-| [0.1](phase-0.md#step-01--record-baseline-test-counts)                            | ⬜     | Record baseline test counts          | —           |
-| [0.2](phase-0.md#step-02--confirm-clippy-is-clean)                                | ⬜     | Confirm clippy is clean              | —           |
+| [0.1](phase-0.md#step-01--record-baseline-test-counts)                            | ✅     | Record baseline test counts          | —           |
+| [0.2](phase-0.md#step-02--confirm-clippy-is-clean)                                | ✅     | Confirm clippy is clean              | —           |
 | [1.1](phase-1.md#step-11--packedchildrenv--childrenv-enum)                        | ⬜     | `PackedChildren` → `Children` enum   | #6          |
 | [1.2](phase-1.md#step-12--split-plateaus-into-a-separate-capability-trait)        | ⬜     | Split `PlateauRead` trait            | #9          |
 | [1.3](phase-1.md#step-13--tighten-visibility-of-internal-spatial-types)           | ⬜     | Tighten visibility of internal types | #8          |
