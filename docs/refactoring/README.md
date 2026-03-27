@@ -50,16 +50,16 @@ cargo clippy --all-features -- -D warnings
 | [2.2](phase-2.md#step-22--re-export-and-clean-up)                                 | ✅     | Re-export and clean up               | #4          |
 | [3.1](phase-3.md#step-31--encapsulate-gnodev-fields)                              | ✅     | Encapsulate `GNode` fields           | #10         |
 | [3.2](phase-3.md#step-32--encapsulate-vnodev-fields)                              | ✅     | Encapsulate `VNode` fields           | #10         |
-| [4.1](phase-4.md#step-41--define-gtree-as-a-struct-wrapper-no-logic-yet)          | ⬜     | Introduce `GTree` struct             | #1, #2      |
-| [4.2](phase-4.md#step-42--move-treegtreers-free-functions--gtree-methods)         | ⬜     | Move gtree free fns → methods        | #1, #2      |
-| [4.3](phase-4.md#step-43--move-splitev-tree-logic-into-gtree)                     | ⬜     | Move G-tree mutation into `GTree`    | #1, #2      |
-| [5.1](phase-5.md#step-51--define-vtreev-as-a-struct-wrapper)                      | ⬜     | Introduce `VTree` struct             | #2, #3      |
-| [5.2](phase-5.md#step-52--move-treevtreers-free-functions--vtree-methods)         | ⬜     | Move vtree free fns → methods        | #2, #3      |
-| [5.3](phase-5.md#step-53--move-violations-queue-ownership-into-vtree)             | ⬜     | Move violations queue into `VTree`   | #3          |
-| [5.4](phase-5.md#step-54--move-rebalance-entry-point-into-vtree)                  | ⬜     | Move rebalance into `VTree`          | #3          |
-| [6.1](phase-6.md#step-61--measure-the-cost-of-uncached-depth-computation)         | ⬜     | Benchmark depth computation          | #7          |
-| [6.2](phase-6.md#step-62--replace-cacheddepth-with-a-parallel-vecu32-in-vtree)    | ⬜     | Move depth cache to `VTree`          | #7          |
-| [6.3](phase-6.md#step-63--make-vnodev-copy-if-v-copy)                             | ⬜     | Make `VNode<V>` `Copy`               | #7          |
+| [4.1](phase-4.md#step-41--define-gtree-as-a-struct-wrapper-no-logic-yet)          | ✅     | Introduce `GTree` struct             | #1, #2      |
+| [4.2](phase-4.md#step-42--move-treegtreers-free-functions--gtree-methods)         | ✅     | Move gtree free fns → methods        | #1, #2      |
+| [4.3](phase-4.md#step-43--move-splitev-tree-logic-into-gtree)                     | ✅     | Move G-tree mutation into `GTree`    | #1, #2      |
+| [5.1](phase-5.md#step-51--define-vtreev-as-a-struct-wrapper)                      | ✅     | Introduce `VTree` struct             | #2, #3      |
+| [5.2](phase-5.md#step-52--move-treevtreers-free-functions--vtree-methods)         | ✅     | Move vtree free fns → methods        | #2, #3      |
+| [5.3](phase-5.md#step-53--move-violations-queue-ownership-into-vtree)             | ✅     | Move violations queue into `VTree`   | #3          |
+| [5.4](phase-5.md#step-54--move-rebalance-entry-point-into-vtree)                  | ✅     | Move rebalance into `VTree`          | #3          |
+| [6.1](phase-6.md#step-61--measure-the-cost-of-uncached-depth-computation)         | ✅     | Benchmark depth computation          | #7          |
+| [6.2](phase-6.md#step-62--replace-cacheddepth-with-a-parallel-vecu32-in-vtree)    | ✅     | Move depth cache to `VTree`          | #7          |
+| [6.3](phase-6.md#step-63--make-vnodev-copy-if-v-copy)                             | ✅     | Make `VNode<V>` `Copy`               | #7          |
 | [7.1](phase-7.md#step-71--define-a-plateautracking-trait)                         | ⬜     | Define `PlateauTracking` trait       | #5          |
 | [7.2](phase-7.md#step-72--implement-dynamicplateautracker-and-noopplateautracker) | ⬜     | Implement tracker types              | #5          |
 | [7.3](phase-7.md#step-73--thread-the-tracker-through-gvgraph)                     | ⬜     | Thread tracker through `GvGraph`     | #5          |
