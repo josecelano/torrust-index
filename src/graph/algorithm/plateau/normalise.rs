@@ -153,6 +153,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             build.values().map(|p| p.sum.to_f64_approx()).sum()
         };
 
+        // ── Phase 1: Collect and expand basis elements (DFS per basis node) ───────
         let mut elems: Vec<(GNodeId, BasisEdge<C>, u32, C, C, V)> = Vec::new();
         let mut seen = std::collections::HashSet::new();
         let basis_ids: Vec<GNodeId> = self.plateau_basis.back_map().keys().copied().collect();
@@ -194,6 +195,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 }
             }
         }
+        // ── Phase 2: Sort by basis-edge key ─────────────────────────────────────
         elems.sort_by_key(|e| e.1);
 
         #[cfg(debug_assertions)]
@@ -209,6 +211,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 3: Sweep-merge adjacent same-depth tiles ───────────────────────
         let mut new_plateaus: std::collections::BTreeMap<BasisEdge<C>, Plateau<C, V>> =
             std::collections::BTreeMap::new();
         let mut assignments: Vec<(BasisEdge<C>, GNodeId)> = Vec::with_capacity(elems.len());
@@ -263,6 +266,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 4: Install new plateau map, rebuild basis, and consolidate ──────
         self.plateaus = new_plateaus;
         self.plateau_basis.rebuild(assignments);
 

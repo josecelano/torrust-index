@@ -342,6 +342,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         match (left_key, right_key) {
             (Some(lk), Some(rk)) => {
+                // ── Arm: merge-both ───────────────────────────────────────────────
+                // gnode bridges two adjacent same-depth plateaus; merge them
+                // into the left plateau and re-key all right members.
                 self.plateau_basis.insert(lk, gnode);
                 let rights: Vec<_> = self
                     .plateau_basis
@@ -363,6 +366,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 );
             }
             (Some(lk), None) => {
+                // ── Arm: insert-left ─────────────────────────────────────────────
+                // gnode extends the left plateau rightward; add it and widen.
                 self.plateau_basis.insert(lk, gnode);
                 self.recompute_plateau(&lk);
                 tracing::trace!(
@@ -372,6 +377,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 );
             }
             (None, Some(rk)) => {
+                // ── Arm: rekey-right ────────────────────────────────────────────
+                // gnode starts a new plateau that the right plateau should merge
+                // into; move all right members to the new key and remove the old
+                // right entry.
                 let rights: Vec<_> = self
                     .plateau_basis
                     .basis_elements(&rk)
@@ -402,6 +411,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 );
             }
             (None, None) => {
+                // ── Arm: new-plateau ─────────────────────────────────────────────
+                // No adjacent same-depth plateau exists; create a fresh entry.
                 self.plateau_basis.insert(key, gnode);
                 if let std::collections::btree_map::Entry::Vacant(e) = self.plateaus.entry(key) {
                     e.insert(Plateau {
@@ -856,6 +867,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             N,
         );
 
+        // ── Phase 1: Locate the covering basis element for g_id ─────────────────
+        // Either g_id is in the basis directly, or an ancestor is found by
+        // walking the parent chain; path siblings become displaced.
         let (old_key, displaced) = if let Some(key) = self.plateau_basis.remove(g_id) {
             let co_members: Vec<GNodeId> = self
                 .plateau_basis
@@ -912,8 +926,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             result.expect("catalytic_split: no basis element covers g_id")
         };
 
+        // ── Phase 2: Fixup the vacated plateau key ───────────────────────────
         self.fixup_plateau(old_key);
 
+        // ── Phase 3: Collect displaced elements and re-place ───────────────────
         let mut to_place = Vec::new();
         for &sib_id in &displaced {
             self.collect_subtree_basis_elements(sib_id, &mut to_place);
@@ -1027,6 +1043,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         )
         .entered();
 
+        // ── Phase 1: Remove evicted node and parent from plateau basis ────────────
+        // Walk the ancestor chain if the parent is not directly in the basis.
         let evicted_key = self.plateau_basis.remove(gnode_id);
 
         let mut displaced: Vec<GNodeId> = Vec::new();
@@ -1113,6 +1131,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             found
         };
 
+        // ── Phase 2: Fixup displaced plateau keys ────────────────────────────────
         if let Some(ek) = evicted_key {
             self.fixup_plateau(ek);
         }
@@ -1122,6 +1141,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 3: Compute parent depth after eviction ─────────────────────────
         let parent_depth = match parent_state_after {
             GState::Terminal | GState::SemiInternal => {
                 crate::tree::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
@@ -1134,6 +1154,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let parent_be = BasisEdge(parent_lo);
 
         {
+            // ── Phase 4: Evacuate right-adjacent same-depth plateaus ─────────────
             let right_keys: Vec<BasisEdge<C>> = self
                 .plateaus
                 .range(BasisEdge(parent_hi)..)
@@ -1165,6 +1186,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 }
             }
 
+            // ── Phase 5: Evacuate left-adjacent same-depth plateaus ──────────────
             let left_keys: Vec<BasisEdge<C>> = self
                 .plateaus
                 .range(..parent_be)
@@ -1198,6 +1220,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 6: Collect displaced nodes and re-place ────────────────────────
         let mut to_place = Vec::new();
         to_place.push((parent_id, parent_depth));
         for &sib_id in &displaced {

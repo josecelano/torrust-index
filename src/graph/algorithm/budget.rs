@@ -81,6 +81,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             tracing::debug_span!("evict_batch", candidate_count = candidates.len(),).entered();
         let mut evicted: u32 = 0;
 
+        // ── Phase 1: Per-candidate filtering and eviction loop ────────────────────
         for v_id in candidates {
             if let Some(limit) = stop_at {
                 if evicted as usize >= limit {
@@ -131,6 +132,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
         }
 
+        // ── Phase 2: Post-batch rebalance, plateau repair, and normalisation ───
         if evicted > 0 {
             let new_gnodes = rebalance::rebalance(
                 &mut self.vnodes,

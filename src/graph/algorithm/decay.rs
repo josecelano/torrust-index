@@ -26,6 +26,7 @@ use crate::tree::{gtree, vtree};
 /// Special cases for `att == 0.0` and `att == ∞` are handled explicitly to
 /// avoid `NaN` arising from `0.0.ln()` and `∞.ln()`.
 fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
+    // ── Special case: zero attenuation (0^exponent) ────────────────────────
     if att == 0.0 {
         (0..=depth_range)
             .map(|d_local| {
@@ -38,6 +39,7 @@ fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
                 if exponent == 0.0 { 1.0 } else { 0.0 }
             })
             .collect()
+    // ── Special case: infinite attenuation (∞^exponent) ────────────────────
     } else if att.is_infinite() {
         (0..=depth_range)
             .map(|d_local| {
@@ -56,6 +58,7 @@ fn depth_attenuation_factors(att: f64, q: f64, depth_range: u32) -> Vec<f64> {
                 }
             })
             .collect()
+    // ── Normal case: finite positive attenuation (ln/exp path) ─────────────
     } else {
         let ln_att = att.ln();
         (0..=depth_range)

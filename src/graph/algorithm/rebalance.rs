@@ -158,6 +158,7 @@ fn escalate_after_promote<V: Accumulator>(
     p: VNodeId,
     violations: &mut Vec<VNodeId>,
 ) {
+    // ── Phase 1: Identify heaviest child; early-return if no violation ──────
     let heaviest = match &vnodes.get(p.index()).kind {
         VKind::Structural { children, .. } if children.len() == 3 => {
             children.get(children.heaviest_child_index()).0
@@ -181,6 +182,7 @@ fn escalate_after_promote<V: Accumulator>(
     )
     .entered();
 
+    // ── Phase 2: Contract 3-child parent `p` and propagate violations ───────
     let merged = contract(vnodes, p);
     push_side_effect_violations(vnodes, p, violations);
     push_side_effect_violations(vnodes, merged, violations);
@@ -196,6 +198,7 @@ fn escalate_after_promote<V: Accumulator>(
         return;
     }
 
+    // ── Phase 3: Optionally contract grandparent `g` if it has 3 children ──
     let g_merged = if structural_child_count(vnodes, g) == 3 {
         let g_merged = contract(vnodes, g);
         push_side_effect_violations(vnodes, g, violations);
@@ -211,6 +214,7 @@ fn escalate_after_promote<V: Accumulator>(
         None
     };
 
+    // ── Phase 4: Skip-promote fallback ────────────────────────────────────
     if let Some(g_id) = vnodes.get(p.index()).parent {
         skip_promote(vnodes, heaviest);
         push_side_effect_violations(vnodes, g_id, violations);

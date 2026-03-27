@@ -450,6 +450,16 @@ fn check_parent_link_consistency<C: Coordinate, V: Accumulator + Inspectable, co
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
+    check_g_parent_links(graph, errors);
+    check_v_parent_links(graph, errors);
+}
+
+/// Verifies that every G-node's left and right children point back to it as
+/// their parent.
+fn check_g_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
     for (idx, g) in graph.gnodes().iter_occupied() {
         let g_id = GNodeId::from_index(idx);
         if let Some(left) = g.left {
@@ -477,7 +487,14 @@ fn check_parent_link_consistency<C: Coordinate, V: Accumulator + Inspectable, co
             }
         }
     }
+}
 
+/// Verifies V-tree parent–child consistency: every structural child points back
+/// to its parent, and every node's claimed parent lists it as a child.
+fn check_v_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
+    graph: &GvGraph<C, V, N>,
+    errors: &mut Vec<String>,
+) {
     for (idx, v) in graph.vnodes().iter_occupied() {
         let v_id = VNodeId::from_index(idx);
         if let VKind::Structural { children, .. } = &v.kind {
