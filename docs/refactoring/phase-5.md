@@ -113,14 +113,56 @@ reads any G-tree data:
 
 ## Review checkpoint
 
-> _Fill in after completing all four steps._
->
-> - After Phase 4 and 5, `GvGraph` should hold: `gtree: GTree`, `vtree: VTree`,
->   `config: Config<V>`, and the plateau state (to be tackled in Phase 7). Does it
->   feel like a clean orchestrator?
-> - Did any V-tree method need to reach into the G-tree? List those cross-tree
->   calls here — they are the seams that would need a test double for unit testing
->   either tree in isolation.
-> - Is the violations queue lifetime now obvious? (Born when `GvGraph` is created,
->   drained at the end of every `observe()` call, empty between mutations.)
-> - Are there remaining fields in `GvGraph` that belong in neither tree?
+**`GvGraph` is a clean orchestrator.** Its fields are now exactly:
+
+```rust
+pub struct GvGraph<C, V, const N> {
+    pub(crate) gtree: GTree<C, V, N>,
+    pub(crate) vtree: VTree<V>,
+    pub(crate) config: Config<V>,
+
+    // Phase 7 — dynamic-contour-tracking feature gate
+    #[cfg(feature = "dynamic-contour-tracking")]
+    pub(crate) plateaus: BTreeMap<BasisEdge<C>, Plateau<C, V>>,
+    #[cfg(feature = "dynamic-contour-tracking")]
+    pub(crate) pending_p_i4: Vec<(GNodeId, BasisEdge<C>)>,
+    #[cfg(feature = "dynamic-contour-tracking")]
+    pub(crate) plateau_basis: PlateauBasis<C>,
+    #[cfg(feature = "dynamic-contour-tracking")]
+    pub(crate) plateaus_dirty: bool,
+}
+```
+
+Algorithm modules call `self.vtree.*` and `self.gtree.*` methods directly; `GvGraph`
+itself exposes public accessors but does not orchestrate in a procedural sense.
+
+**Cross-tree seams in `VTree` methods:**
+
+Two VTree methods accept G-tree data as parameters — these are seams that would need
+a test double to unit-test either tree in isolation:
+
+| Method                                                 | G-tree argument           | Reason                                                              |
+| ------------------------------------------------------ | ------------------------- | ------------------------------------------------------------------- |
+| `VTree::remove_leaf(gnodes, v_id)`                     | `&mut Arena<GNode<C, V>>` | Removing a V-leaf also updates the mirrored back-pointers in GNodes |
+| `VTree::scan_for_candidates(live_depth_evict, g_root)` | `GNodeId`                 | Candidates belonging to the G-root pseudo-node must be excluded     |
+
+`rebalance::rebalance(vtree, gnodes, depth_evict)` stays as a free function because
+it also needs G-tree writes; it takes `&mut VTree<V>` so the call site is clean, but
+the cross-tree dependency remains explicit.
+
+**Violations queue lifetime is obvious.** `VTree::violations` is:
+
+- **Born** empty in `GvGraph::new()`.
+- **Populated** by `push_violation(id)` inside `observe`, `evict`, and
+  `violation_push::push_*` helpers (the latter receive `&mut self.vtree.violations`).
+- **Drained** by `rebalance::rebalance` at the end of every `observe()`, `decay()`,
+  and budget eviction pass.
+- **Empty** between mutations (the `has_pending_violations()` guard on observe
+  enforces this invariant at debug time).
+
+**Remaining fields that belong in neither tree:**
+
+The four `#[cfg(feature = "dynamic-contour-tracking")]` fields (`plateaus`,
+`pending_p_i4`, `plateau_basis`, `plateaus_dirty`) are domain state that belongs to
+neither the G-tree nor the V-tree. They track the geometric contour derived from the
+G-tree and will be addressed in Phase 7.
