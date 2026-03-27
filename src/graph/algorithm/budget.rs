@@ -36,7 +36,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let floor = self.gtree.depth_buffer + 1;
             if self.gtree.live_depth_evict > floor {
                 self.gtree.live_depth_evict -= 1;
-                self.gtree.live_depth_create = self.gtree.live_depth_evict - self.gtree.depth_buffer;
+                self.gtree.live_depth_create =
+                    self.gtree.live_depth_evict - self.gtree.depth_buffer;
                 tracing::debug!(
                     new_d_evict = self.gtree.live_depth_evict,
                     new_d_create = self.gtree.live_depth_create,
@@ -52,7 +53,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let count_f = count as f64;
             if count_f < threshold {
                 self.gtree.live_depth_evict += 1;
-                self.gtree.live_depth_create = self.gtree.live_depth_evict - self.gtree.depth_buffer;
+                self.gtree.live_depth_create =
+                    self.gtree.live_depth_evict - self.gtree.depth_buffer;
                 tracing::debug!(
                     new_d_evict = self.gtree.live_depth_evict,
                     new_d_create = self.gtree.live_depth_create,
@@ -65,8 +67,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     }
 
     pub fn check_evictions(&mut self) -> u32 {
-        let _span =
-            tracing::debug_span!("check_evictions", d_evict = self.gtree.live_depth_evict).entered();
+        let _span = tracing::debug_span!("check_evictions", d_evict = self.gtree.live_depth_evict)
+            .entered();
         self.evict_candidates(None)
     }
 
@@ -113,7 +115,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 crate::nodes::vnode::VKind::Structural { .. } => continue,
             }
 
-            evict::evict_tip(self, v_id);
+            self.evict_tip(v_id);
             evicted += 1;
 
             if tracing::enabled!(tracing::Level::DEBUG) {

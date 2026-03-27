@@ -10,55 +10,54 @@ use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 
-pub fn attempt_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
-    graph: &mut GvGraph<C, V, N>,
-    g_id: GNodeId,
-) {
-    let g = graph.gtree.nodes.get(g_id.index());
+impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+    pub(crate) fn attempt_split(&mut self, g_id: GNodeId) {
+        let g = self.gtree.nodes.get(g_id.index());
 
-    if g.left().is_some() || g.right().is_some() {
-        return;
-    }
-
-    let mid = C::midpoint(g.lo(), g.hi());
-    if mid.partial_cmp(&g.lo()) != Some(std::cmp::Ordering::Greater) {
-        return;
-    }
-
-    if g.sum().partial_cmp(&graph.config.split_threshold) != Some(std::cmp::Ordering::Greater) {
-        return;
-    }
-
-    let Some(entry_id) = g.entry() else {
-        return;
-    };
-
-    if graph.vnodes.get(entry_id.index()).parent().is_none() {
-        bootstrap_split(graph, g_id);
-        return;
-    }
-
-    let p_id = graph.vnodes.get(entry_id.index()).parent().unwrap();
-    if let VKind::Structural { children, .. } = &graph.vnodes.get(p_id.index()).kind() {
-        if children.len() == 3 {
-            let _span = tracing::debug_span!(
-                "split_preprocess",
-                p = %Nd(&graph.vnodes, p_id),
-            )
-            .entered();
-            let merged = contract(&mut graph.vnodes, p_id);
-            push_side_effect_violations(&graph.vnodes, p_id, &mut graph.violations);
-            push_side_effect_violations(&graph.vnodes, merged, &mut graph.violations);
-            push_promoted_violations(&graph.vnodes, p_id, &mut graph.violations);
+        if g.left().is_some() || g.right().is_some() {
+            return;
         }
-    }
 
-    let entry_id = graph.gtree.nodes.get(g_id.index()).entry().unwrap();
-    if v_depth(&graph.vnodes, entry_id) > graph.gtree.live_depth_create {
-        return;
-    }
+        let mid = C::midpoint(g.lo(), g.hi());
+        if mid.partial_cmp(&g.lo()) != Some(std::cmp::Ordering::Greater) {
+            return;
+        }
 
-    catalytic_split(graph, g_id);
+        if g.sum().partial_cmp(&self.config.split_threshold) != Some(std::cmp::Ordering::Greater) {
+            return;
+        }
+
+        let Some(entry_id) = g.entry() else {
+            return;
+        };
+
+        if self.vnodes.get(entry_id.index()).parent().is_none() {
+            bootstrap_split(self, g_id);
+            return;
+        }
+
+        let p_id = self.vnodes.get(entry_id.index()).parent().unwrap();
+        if let VKind::Structural { children, .. } = &self.vnodes.get(p_id.index()).kind() {
+            if children.len() == 3 {
+                let _span = tracing::debug_span!(
+                    "split_preprocess",
+                    p = %Nd(&self.vnodes, p_id),
+                )
+                .entered();
+                let merged = contract(&mut self.vnodes, p_id);
+                push_side_effect_violations(&self.vnodes, p_id, &mut self.violations);
+                push_side_effect_violations(&self.vnodes, merged, &mut self.violations);
+                push_promoted_violations(&self.vnodes, p_id, &mut self.violations);
+            }
+        }
+
+        let entry_id = self.gtree.nodes.get(g_id.index()).entry().unwrap();
+        if v_depth(&self.vnodes, entry_id) > self.gtree.live_depth_create {
+            return;
+        }
+
+        catalytic_split(self, g_id);
+    }
 }
 
 fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
@@ -73,13 +72,9 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             g.entry().expect("bootstrap_split: g must have an entry"),
         )
     };
-    let mid = C::midpoint(lo, hi);
     let _span = tracing::debug_span!("bootstrap_split", g_id = g_id.index(), ?lo, ?hi,).entered();
 
-    let left_id = alloc_g_child(&mut graph.gtree.nodes, lo, mid, g_id);
-    let right_id = alloc_g_child(&mut graph.gtree.nodes, mid, hi, g_id);
-    graph.gtree.nodes.get_mut(g_id.index()).link_left(left_id);
-    graph.gtree.nodes.get_mut(g_id.index()).link_right(right_id);
+    let (left_id, right_id) = graph.gtree.allocate_children(g_id);
 
     let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, left_id);
     let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, right_id);
@@ -114,9 +109,6 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     }
 
     graph.v_root = Some(root_s_id);
-    graph.gtree.node_count += 2;
-
-    graph.gtree.terminal_count += 1;
 
     graph.plateau_after_bootstrap_split(g_id, left_id);
 
@@ -160,10 +152,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         .expect("catalytic_split: entry must have a parent");
 
     // ── Phase 1: Allocate G-children and V-entry nodes ───────────────────
-    let left_id = alloc_g_child(&mut graph.gtree.nodes, lo, mid, g_id);
-    let right_id = alloc_g_child(&mut graph.gtree.nodes, mid, hi, g_id);
-    graph.gtree.nodes.get_mut(g_id.index()).link_left(left_id);
-    graph.gtree.nodes.get_mut(g_id.index()).link_right(right_id);
+    let (left_id, right_id) = graph.gtree.allocate_children(g_id);
 
     let le_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, left_id);
     let re_id = alloc_v_entry(&mut graph.vnodes, &mut graph.gtree.nodes, right_id);
@@ -206,11 +195,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     // ── Phase 5: Propagate evictable flags ────────────────────────────────
     propagate_evictable_flags(&mut graph.vnodes, p_id);
 
-    // ── Phase 6: Update node/terminal counts and plateau state ─────────────
-    graph.gtree.node_count += 2;
-
-    graph.gtree.terminal_count += 1;
-
+    // ── Phase 6: Plateau state update ─────────────────────────────────────
     graph.plateau_after_catalytic_split(g_id, left_id);
 
     #[cfg(feature = "dynamic-contour-tracking")]
@@ -221,16 +206,6 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             None,
         );
     }
-}
-
-fn alloc_g_child<C: Coordinate, V: Accumulator>(
-    gnodes: &mut Arena<GNode<C, V>>,
-    lo: C,
-    hi: C,
-    parent: GNodeId,
-) -> GNodeId {
-    let g = GNode::new_leaf(lo, hi, V::zero(), Some(parent));
-    GNodeId::from_index(gnodes.alloc(g))
 }
 
 fn alloc_v_entry<C: Coordinate, V: Accumulator>(
@@ -297,7 +272,10 @@ mod tests {
             let mut g = fresh_graph();
             let n0 = g.gtree.node_count;
             g.observe(64u8, 2u32);
-            assert_eq!(g.gtree.node_count, n0, "must not split at exactly threshold");
+            assert_eq!(
+                g.gtree.node_count, n0,
+                "must not split at exactly threshold"
+            );
         }
 
         #[test]
@@ -359,7 +337,7 @@ mod tests {
             g.observe(64u8, 3u32); // bootstrap — g_root becomes Internal
             let root = g.gtree.root;
             let n_before = g.gtree.node_count;
-            crate::graph::algorithm::split::attempt_split(&mut g, root);
+            g.attempt_split(root);
             assert_eq!(g.gtree.node_count, n_before);
         }
     }

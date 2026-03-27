@@ -63,8 +63,12 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GTree<C, V, N> {
         while let Some(id) = current {
             let (left_sum, right_sum) = {
                 let g = self.nodes.get(id.index());
-                let l = g.left().map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
-                let r = g.right().map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
+                let l = g
+                    .left()
+                    .map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
+                let r = g
+                    .right()
+                    .map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
                 (l, r)
             };
             let g = self.nodes.get_mut(id.index());
@@ -79,8 +83,12 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GTree<C, V, N> {
         for &gid in preorder.iter().rev() {
             let (left_sum, right_sum) = {
                 let g = self.nodes.get(gid.index());
-                let l = g.left().map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
-                let r = g.right().map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
+                let l = g
+                    .left()
+                    .map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
+                let r = g
+                    .right()
+                    .map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
                 (l, r)
             };
             let g = self.nodes.get_mut(gid.index());
@@ -104,6 +112,75 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GTree<C, V, N> {
     #[must_use]
     pub(crate) fn uniform_contour_depth(&self, gid: GNodeId) -> Option<u32> {
         uniform_contour_depth_of(&self.nodes, gid, N)
+    }
+
+    // ── G-node allocation / eviction helpers ─────────────────────────────
+
+    /// Allocates two new leaf G-nodes that split `parent_id` at its midpoint,
+    /// links them as left and right children of `parent_id`, and updates the
+    /// node / terminal counts (`node_count += 2`, `terminal_count += 1`).
+    /// Returns `(left_id, right_id)`.
+    pub(crate) fn allocate_children(&mut self, parent_id: GNodeId) -> (GNodeId, GNodeId) {
+        let (lo, hi) = {
+            let g = self.nodes.get(parent_id.index());
+            (g.lo(), g.hi())
+        };
+        let mid = C::midpoint(lo, hi);
+        let left_id = GNodeId::from_index(self.nodes.alloc(GNode::new_leaf(
+            lo,
+            mid,
+            V::zero(),
+            Some(parent_id),
+        )));
+        let right_id = GNodeId::from_index(self.nodes.alloc(GNode::new_leaf(
+            mid,
+            hi,
+            V::zero(),
+            Some(parent_id),
+        )));
+        self.nodes.get_mut(parent_id.index()).link_left(left_id);
+        self.nodes.get_mut(parent_id.index()).link_right(right_id);
+        self.node_count += 2;
+        // The parent was a terminal; it is now internal. Two new terminals are
+        // added, the parent terminal is lost: net change = +2 − 1 = +1.
+        self.terminal_count += 1;
+        (left_id, right_id)
+    }
+
+    /// Absorbs `child_id`'s accumulated sum into its parent's own weight,
+    /// clears the child link from the parent, and recomputes the parent's sum
+    /// invariant.  Returns the parent `GNodeId`.
+    ///
+    /// **Note:** this method does *not* deallocate `child_id` — the caller is
+    /// responsible for deallocation after any remaining cross-tree work that
+    /// may still read the child slot (e.g. `vtree_remove_leaf`).
+    pub(crate) fn merge_into_parent(&mut self, child_id: GNodeId) -> GNodeId {
+        let parent_id = self
+            .nodes
+            .get(child_id.index())
+            .parent()
+            .expect("merge_into_parent: child must have a parent");
+
+        let child_sum = self.nodes.get(child_id.index()).sum();
+        let parent_own_before = self.nodes.get(parent_id.index()).own();
+        self.nodes
+            .get_mut(parent_id.index())
+            .set_own(V::add(parent_own_before, child_sum));
+        self.nodes.get_mut(parent_id.index()).clear_child(child_id);
+
+        let new_sum = {
+            let p = self.nodes.get(parent_id.index());
+            let left_sum = p
+                .left()
+                .map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
+            let right_sum = p
+                .right()
+                .map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
+            V::add(p.own(), V::add(left_sum, right_sum))
+        };
+        self.nodes.get_mut(parent_id.index()).set_sum(new_sum);
+
+        parent_id
     }
 }
 

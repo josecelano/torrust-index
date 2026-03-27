@@ -104,194 +104,188 @@ struct ParentSnapshot<C> {
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
-    graph: &mut GvGraph<C, V, N>,
-    v_id: VNodeId,
-) {
-    let span = tracing::debug_span!(
-        "evict_tip",
-        v_id = v_id.index(),
-        gnode = tracing::field::Empty,
-        parent = tracing::field::Empty,
-    )
-    .entered();
+impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
+    pub(crate) fn evict_tip(&mut self, v_id: VNodeId) {
+        let span = tracing::debug_span!(
+            "evict_tip",
+            v_id = v_id.index(),
+            gnode = tracing::field::Empty,
+            parent = tracing::field::Empty,
+        )
+        .entered();
 
-    let gnode_id = match &graph.vnodes.get(v_id.index()).kind() {
-        VKind::Entry {
-            gnode,
-            is_evictable,
-            ..
-        } => {
-            debug_assert!(
-                *is_evictable,
-                "evict_tip: V-entry {} is not evictable",
+        let gnode_id = match &self.vnodes.get(v_id.index()).kind() {
+            VKind::Entry {
+                gnode,
+                is_evictable,
+                ..
+            } => {
+                debug_assert!(
+                    *is_evictable,
+                    "evict_tip: V-entry {} is not evictable",
+                    v_id.index()
+                );
+                *gnode
+            }
+            VKind::Structural { .. } => panic!(
+                "evict_tip: V-node {} is structural, not an entry",
                 v_id.index()
-            );
-            *gnode
-        }
-        VKind::Structural { .. } => panic!(
-            "evict_tip: V-node {} is structural, not an entry",
-            v_id.index()
-        ),
-    };
-    span.record("gnode", gnode_id.index());
+            ),
+        };
+        span.record("gnode", gnode_id.index());
 
-    assert_ne!(gnode_id, graph.gtree.root, "evict_tip: cannot evict the G-root");
+        assert_ne!(
+            gnode_id, self.gtree.root,
+            "evict_tip: cannot evict the G-root"
+        );
 
-    let parent_id = graph
-        .gtree.nodes
-        .get(gnode_id.index())
-        .parent()
-        .expect("evict_tip: terminal G-node must have a parent");
-    span.record("parent", parent_id.index());
+        let parent_id = self
+            .gtree
+            .nodes
+            .get(gnode_id.index())
+            .parent()
+            .expect("evict_tip: terminal G-node must have a parent");
+        span.record("parent", parent_id.index());
 
-    // ── Phase 1: G-tree restructuring ───────────────────────────────────────
-    // Absorb the evicted child's sum into the parent's own weight, detach
-    // the child slot, and recompute the parent sum invariant.
-    let child_sum = graph.gtree.nodes.get(gnode_id.index()).sum();
-    let parent_sum_before = graph.gtree.nodes.get(parent_id.index()).sum();
-
-    let parent_own_before = graph.gtree.nodes.get(parent_id.index()).own();
-    graph
-        .gtree.nodes
-        .get_mut(parent_id.index())
-        .set_own(V::add(parent_own_before, child_sum));
-
-    graph
-        .gtree.nodes
-        .get_mut(parent_id.index())
-        .clear_child(gnode_id);
-
-    {
-        let p = graph.gtree.nodes.get(parent_id.index());
-        let left_sum = p
-            .left()
-            .map_or_else(V::zero, |l| graph.gtree.nodes.get(l.index()).sum());
-        let right_sum = p
-            .right()
-            .map_or_else(V::zero, |r| graph.gtree.nodes.get(r.index()).sum());
-        let recomputed = V::add(p.own(), V::add(left_sum, right_sum));
+        // ── Phase 1: G-tree restructuring ───────────────────────────────────────
+        // Absorb the evicted child's sum into the parent's own weight, detach
+        // the child slot, and recompute the parent sum invariant.
+        let parent_sum_before = self.gtree.nodes.get(parent_id.index()).sum();
+        self.gtree.merge_into_parent(gnode_id);
         debug_assert!(
-            (recomputed.to_f64_approx() - parent_sum_before.to_f64_approx()).abs() < 1e-9,
+            (self
+                .gtree
+                .nodes
+                .get(parent_id.index())
+                .sum()
+                .to_f64_approx()
+                - parent_sum_before.to_f64_approx())
+            .abs()
+                < 1e-9,
             "evict_tip: G-sum invariant violation after absorption: \
-             recomputed={}, expected={}",
-            recomputed.to_f64_approx(),
+         recomputed={}, expected={}",
+            self.gtree
+                .nodes
+                .get(parent_id.index())
+                .sum()
+                .to_f64_approx(),
             parent_sum_before.to_f64_approx()
         );
 
-        graph.gtree.nodes.get_mut(parent_id.index()).set_sum(recomputed);
-    }
-
-    // ── Phase 2: V-intensity propagation ────────────────────────────────────
-    // The parent's `own` changed; push its new intensity up the V-tree and
-    // requeue any nodes that are now violated.
-    let p_entry_id = graph
-        .gtree.nodes
-        .get(parent_id.index())
-        .entry()
-        .expect("evict_tip: parent must have V-entry (has dependents)");
-    {
-        let p_own = graph.gtree.nodes.get(parent_id.index()).own();
-        graph
-            .vnodes
-            .get_mut(p_entry_id.index())
-            .set_intensity(p_own);
-        vtree::sync_intensity_in_parent(&mut graph.vnodes, p_entry_id, p_own);
-        vtree::propagate_v_sums(&mut graph.vnodes, p_entry_id);
-
-        let mut check_id = Some(p_entry_id);
-        while let Some(id) = check_id {
-            if rebalance::is_violated(&graph.vnodes, id) {
-                graph.violations.push(id);
+        // Capture the parent's post-eviction state here: G-tree structure will
+        // not change further through the V-tree phases below.
+        let parent_snapshot = {
+            let pg = self.gtree.nodes.get(parent_id.index());
+            ParentSnapshot {
+                state: pg.state(),
+                lo: pg.lo(),
+                hi: pg.hi(),
             }
-            check_id = graph.vnodes.get(id.index()).parent();
-        }
-    }
+        };
 
-    // ── Phase 3: Evictable / exposed flag propagation ────────────────────────
-    {
-        let p = graph.gtree.nodes.get(parent_id.index());
-        let parent_is_exposed = p.uncovered_range().is_some();
-        let parent_is_evictable = p.is_terminal();
-        let p_entry_id = p
+        // ── Phase 2: V-intensity propagation ────────────────────────────────────
+        // The parent's `own` changed; push its new intensity up the V-tree and
+        // requeue any nodes that are now violated.
+        let p_entry_id = self
+            .gtree
+            .nodes
+            .get(parent_id.index())
             .entry()
             .expect("evict_tip: parent must have V-entry (has dependents)");
-        if let VKind::Entry {
-            is_exposed,
-            is_evictable,
-            ..
-        } = graph.vnodes.get_mut(p_entry_id.index()).kind_mut()
         {
-            *is_exposed = parent_is_exposed;
-            *is_evictable = parent_is_evictable;
-        }
-        vtree::propagate_evictable_flags(&mut graph.vnodes, p_entry_id);
-    }
+            let p_own = self.gtree.nodes.get(parent_id.index()).own();
+            self.vnodes.get_mut(p_entry_id.index()).set_intensity(p_own);
+            vtree::sync_intensity_in_parent(&mut self.vnodes, p_entry_id, p_own);
+            vtree::propagate_v_sums(&mut self.vnodes, p_entry_id);
 
-    // ── Phase 4–6: Capture V-topology, remove leaf, push violations ─────
-    // Topology must be captured before removal; violations are pushed after.
-    let removal_ctx = classify_leaf_removal(&graph.vnodes, v_id);
-
-    graph.v_root =
-        vtree::vtree_remove_leaf(&mut graph.vnodes, &mut graph.gtree.nodes, v_id, graph.v_root);
-
-    push_eviction_violations(&graph.vnodes, v_id, &removal_ctx, &mut graph.violations);
-
-    // ── Phase 7: Debug audit for missed violations ───────────────────────
-    if tracing::enabled!(tracing::Level::ERROR) {
-        let ctx = crate::diagnostics::diagnostic::MissedViolationContext {
-            evicted_parent: removal_ctx.v_parent,
-            evicted_parent_child_count: removal_ctx.child_count,
-            collapse_sibling: removal_ctx.collapse_sibling,
-        };
-        let all_violated = rebalance::find_violated_nodes(&graph.vnodes);
-        let queued: std::collections::HashSet<usize> =
-            graph.violations.iter().map(|v| v.index()).collect();
-        for v in all_violated {
-            if !queued.contains(&v.index()) {
-                crate::diagnostics::diagnostic::diagnose_missed_violation(&graph.vnodes, v, &ctx);
+            let mut check_id = Some(p_entry_id);
+            while let Some(id) = check_id {
+                if rebalance::is_violated(&self.vnodes, id) {
+                    self.violations.push(id);
+                }
+                check_id = self.vnodes.get(id.index()).parent();
             }
         }
-    }
 
-    // ── Phase 8: Plateau snapshot, dealloc, terminal-count update ────────
-    let parent_snapshot = {
-        let pg = graph.gtree.nodes.get(parent_id.index());
-        ParentSnapshot {
-            state: pg.state(),
-            lo: pg.lo(),
-            hi: pg.hi(),
+        // ── Phase 3: Evictable / exposed flag propagation ────────────────────────
+        {
+            let p = self.gtree.nodes.get(parent_id.index());
+            let parent_is_exposed = p.uncovered_range().is_some();
+            let parent_is_evictable = p.is_terminal();
+            let p_entry_id = p
+                .entry()
+                .expect("evict_tip: parent must have V-entry (has dependents)");
+            if let VKind::Entry {
+                is_exposed,
+                is_evictable,
+                ..
+            } = self.vnodes.get_mut(p_entry_id.index()).kind_mut()
+            {
+                *is_exposed = parent_is_exposed;
+                *is_evictable = parent_is_evictable;
+            }
+            vtree::propagate_evictable_flags(&mut self.vnodes, p_entry_id);
         }
-    };
 
-    graph.gtree.nodes.dealloc(gnode_id.index());
-    graph.gtree.node_count -= 1;
+        // ── Phase 4–6: Capture V-topology, remove leaf, push violations ─────
+        // Topology must be captured before removal; violations are pushed after.
+        let removal_ctx = classify_leaf_removal(&self.vnodes, v_id);
 
-    graph.gtree.terminal_count -= 1;
-    if graph.gtree.nodes.get(parent_id.index()).is_terminal() {
-        graph.gtree.terminal_count += 1;
-    }
+        self.v_root =
+            vtree::vtree_remove_leaf(&mut self.vnodes, &mut self.gtree.nodes, v_id, self.v_root);
 
-    // ── Phase 9: Plateau mirror update ───────────────────────────────────────
-    // plateau_after_evict is a no-op when the feature is disabled.
-    let parent_state_after = parent_snapshot.state;
-    graph.plateau_after_evict(
-        gnode_id,
-        parent_id,
-        parent_state_after,
-        parent_snapshot.lo,
-        parent_snapshot.hi,
-    );
-    #[cfg(feature = "dynamic-contour-tracking")]
-    if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostics::diagnostic::audit_plateau_consistency(
-            graph,
-            "POST-EVICT",
-            Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
-                parent_id,
-                parent_state: parent_state_after,
-            }),
+        push_eviction_violations(&self.vnodes, v_id, &removal_ctx, &mut self.violations);
+
+        // ── Phase 7: Debug audit for missed violations ───────────────────────
+        if tracing::enabled!(tracing::Level::ERROR) {
+            let ctx = crate::diagnostics::diagnostic::MissedViolationContext {
+                evicted_parent: removal_ctx.v_parent,
+                evicted_parent_child_count: removal_ctx.child_count,
+                collapse_sibling: removal_ctx.collapse_sibling,
+            };
+            let all_violated = rebalance::find_violated_nodes(&self.vnodes);
+            let queued: std::collections::HashSet<usize> =
+                self.violations.iter().map(|v| v.index()).collect();
+            for v in all_violated {
+                if !queued.contains(&v.index()) {
+                    crate::diagnostics::diagnostic::diagnose_missed_violation(
+                        &self.vnodes,
+                        v,
+                        &ctx,
+                    );
+                }
+            }
+        }
+
+        // ── Phase 8: Dealloc evicted node and update counts ──────────────────────
+        self.gtree.nodes.dealloc(gnode_id.index());
+        self.gtree.node_count -= 1;
+        self.gtree.terminal_count -= 1;
+        if self.gtree.nodes.get(parent_id.index()).is_terminal() {
+            self.gtree.terminal_count += 1;
+        }
+
+        // ── Phase 9: Plateau mirror update ───────────────────────────────────────
+        // plateau_after_evict is a no-op when the feature is disabled.
+        let parent_state_after = parent_snapshot.state;
+        self.plateau_after_evict(
+            gnode_id,
+            parent_id,
+            parent_state_after,
+            parent_snapshot.lo,
+            parent_snapshot.hi,
         );
+        #[cfg(feature = "dynamic-contour-tracking")]
+        if tracing::enabled!(tracing::Level::DEBUG) {
+            crate::diagnostics::diagnostic::audit_plateau_consistency(
+                self,
+                "POST-EVICT",
+                Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
+                    parent_id,
+                    parent_state: parent_state_after,
+                }),
+            );
+        }
     }
 }
 

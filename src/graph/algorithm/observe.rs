@@ -1,5 +1,5 @@
 use crate::graph::GvGraph;
-use crate::graph::algorithm::{rebalance, split};
+use crate::graph::algorithm::rebalance;
 use crate::traits::{Accumulator, Coordinate, Inspectable, Observation};
 use crate::tree::vtree;
 
@@ -49,7 +49,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.plateau_after_observe::<O>(g_id, delta);
 
         // ── Phase 5: Split and rebalance ─────────────────────────────────
-        split::attempt_split(self, g_id);
+        self.attempt_split(g_id);
 
         if tracing::enabled!(tracing::Level::DEBUG) {
             crate::diagnostics::diagnostic::audit_violations(

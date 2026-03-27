@@ -72,7 +72,7 @@ pub(crate) struct GTree<C: Coordinate, V: Accumulator, const N: u32> {
 
 ---
 
-## [ ] Step 4.3 — Convert `attempt_split` / `evict_tip` to `GvGraph` methods; extract G-tree-only helpers into `GTree`
+## [x] Step 4.3 — Convert `attempt_split` / `evict_tip` to `GvGraph` methods; extract G-tree-only helpers into `GTree`
 
 **Files touched:** `src/graph/algorithm/split.rs`, `src/graph/algorithm/evict.rs`,
 `src/tree/gtree.rs` (as new methods), `src/graph/gv_graph.rs`.
