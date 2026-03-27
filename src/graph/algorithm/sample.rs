@@ -39,24 +39,23 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
     }
 
     fn sample_child(
-        children: &crate::nodes::vnode::PackedChildren<V>,
+        children: &crate::nodes::vnode::Children<V>,
         rng: &mut impl crate::traits::Rng,
     ) -> VNodeId {
-        let total: f64 = children.intensities[..children.len()]
-            .iter()
-            .map(|v| v.weight())
+        let total: f64 = (0..children.len())
+            .map(|i| children.get(i).1.weight())
             .sum();
         debug_assert!(total > 0.0, "sample_child: zero-total children");
 
         let threshold = rng.next_f64() * total;
         let mut cumulative = 0.0_f64;
         for i in 0..children.len() {
-            cumulative += children.intensities[i].weight();
+            cumulative += children.get(i).1.weight();
             if threshold < cumulative {
-                return children.ids[i].expect("child ID within len");
+                return children.get(i).0;
             }
         }
 
-        children.ids[children.len() - 1].expect("last child ID")
+        children.get(children.len() - 1).0
     }
 }

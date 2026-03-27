@@ -8,7 +8,7 @@ use crate::graph::algorithm::violation_push::{
 };
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{propagate_evictable_flags, v_depth};
 
@@ -94,7 +94,7 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         parent: None,
         cached_depth: AtomicU32::new(0),
         kind: VKind::Structural {
-            children: PackedChildren::new_2((entry_id, entry_int), (cs_id, V::zero())),
+            children: Children::new_2((entry_id, entry_int), (cs_id, V::zero())),
             has_evictable: true,
         },
     };
@@ -202,7 +202,7 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         parent: Some(p_id),
         cached_depth: AtomicU32::new(s_depth),
         kind: VKind::Structural {
-            children: PackedChildren::new_2((le_id, V::zero()), (re_id, V::zero())),
+            children: Children::new_2((le_id, V::zero()), (re_id, V::zero())),
             has_evictable: true,
         },
     };
@@ -308,7 +308,7 @@ fn alloc_v_structural_2<V: Accumulator>(
         parent: None,
         cached_depth: AtomicU32::new(DEPTH_STALE),
         kind: VKind::Structural {
-            children: PackedChildren::new_2((a, a_int), (b, b_int)),
+            children: Children::new_2((a, a_int), (b, b_int)),
             has_evictable: true,
         },
     };

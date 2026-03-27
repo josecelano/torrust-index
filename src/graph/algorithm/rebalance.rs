@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::vtree::{invalidate_depth_subtree, propagate_evictable_flags, v_depth};
 
@@ -91,7 +91,7 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
         parent: Some(p),
         cached_depth: AtomicU32::new(m_depth),
         kind: VKind::Structural {
-            children: PackedChildren::new_2((a_id, a_int), (b_id, b_int)),
+            children: Children::new_2((a_id, a_int), (b_id, b_int)),
             has_evictable: a_terminal || b_terminal,
         },
     };
@@ -113,7 +113,7 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
         has_evictable,
     } = &mut p_node.kind
     {
-        *children = PackedChildren::new_2(isolate, (m_id, merged_int));
+        *children = Children::new_2(isolate, (m_id, merged_int));
         *has_evictable = iso_terminal || m_terminal;
     }
 

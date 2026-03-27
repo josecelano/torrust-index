@@ -39,117 +39,189 @@ pub enum VKind<V> {
     },
 
     Structural {
-        children: PackedChildren<V>,
+        children: Children<V>,
 
         has_evictable: bool,
     },
 }
 
+/// The children of a structural V-node.
+///
+/// The V-tree is a 2-3 tree: a structural node always has exactly 2 or 3
+/// children. Using an enum instead of a runtime `len` field makes the
+/// constraint a type-system invariant rather than a runtime assertion.
 #[derive(Debug, Clone)]
-pub struct PackedChildren<V> {
-    pub intensities: [V; 3],
-
-    pub ids: [Option<VNodeId>; 3],
-
-    pub len: u8,
+pub enum Children<V> {
+    /// A structural node with exactly 2 children.
+    Pair { ids: [VNodeId; 2], intensities: [V; 2] },
+    /// A structural node with exactly 3 children.
+    Triple { ids: [VNodeId; 3], intensities: [V; 3] },
 }
 
-impl<V: Copy + Default + PartialOrd> PackedChildren<V> {
+impl<V> Children<V> {
+    /// Constructs a 2-child node from two `(id, intensity)` pairs.
     #[must_use]
     pub fn new_2(a: (VNodeId, V), b: (VNodeId, V)) -> Self {
-        Self {
-            intensities: [a.1, b.1, V::default()],
-            ids: [Some(a.0), Some(b.0), None],
-            len: 2,
+        Self::Pair {
+            ids: [a.0, b.0],
+            intensities: [a.1, b.1],
         }
     }
 
+    /// Constructs a 3-child node from three `(id, intensity)` pairs.
     #[must_use]
-    pub const fn new_3(a: (VNodeId, V), b: (VNodeId, V), c: (VNodeId, V)) -> Self {
-        Self {
+    pub fn new_3(a: (VNodeId, V), b: (VNodeId, V), c: (VNodeId, V)) -> Self {
+        Self::Triple {
+            ids: [a.0, b.0, c.0],
             intensities: [a.1, b.1, c.1],
-            ids: [Some(a.0), Some(b.0), Some(c.0)],
-            len: 3,
         }
     }
 
+    /// Returns 2 for `Pair` and 3 for `Triple`.
     #[must_use]
     #[inline]
     pub const fn len(&self) -> usize {
-        self.len as usize
+        match self {
+            Self::Pair { .. } => 2,
+            Self::Triple { .. } => 3,
+        }
     }
 
+    /// Always `false`; a `Children` value always has at least 2 children.
     #[must_use]
     #[inline]
     #[allow(dead_code)]
+    #[allow(clippy::unused_self)]
     pub const fn is_empty(&self) -> bool {
-        self.len == 0
+        false
     }
 
+    /// Returns the slot index of the child with `id`, or `None` if absent.
+    #[must_use]
+    pub fn find_index(&self, id: VNodeId) -> Option<usize> {
+        match self {
+            Self::Pair { ids, .. } => ids.iter().position(|&i| i == id),
+            Self::Triple { ids, .. } => ids.iter().position(|&i| i == id),
+        }
+    }
+
+    /// Sets the intensity at slot `index`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of range for the variant.
+    #[inline]
+    pub fn update_intensity(&mut self, index: usize, new: V) {
+        match self {
+            Self::Pair { intensities, .. } => intensities[index] = new,
+            Self::Triple { intensities, .. } => intensities[index] = new,
+        }
+    }
+}
+
+impl<V: Copy + PartialOrd> Children<V> {
+    /// Returns `(id, intensity)` at slot `index`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of range for the variant (`>= 2` for `Pair`,
+    /// `>= 3` for `Triple`).
     #[must_use]
     #[inline]
-    pub fn get(&self, index: usize) -> (VNodeId, V) {
-        assert!(index < self.len(), "PackedChildren::get out of bounds");
-        (
-            self.ids[index].expect("child ID should be Some within len"),
-            self.intensities[index],
-        )
+    pub const fn get(&self, index: usize) -> (VNodeId, V) {
+        match self {
+            Self::Pair { ids, intensities } => (ids[index], intensities[index]),
+            Self::Triple { ids, intensities } => (ids[index], intensities[index]),
+        }
     }
 
+    /// Iterates over all `(id, intensity)` pairs in slot order.
     pub fn iter(&self) -> impl Iterator<Item = (VNodeId, V)> + '_ {
         (0..self.len()).map(|i| self.get(i))
     }
 
+    /// Returns the slot index of the child with the highest intensity.
+    /// Ties are broken in favour of the lowest index.
     #[must_use]
     pub fn heaviest_child_index(&self) -> usize {
         let mut max_idx = 0;
         for i in 1..self.len() {
-            if self.intensities[i] > self.intensities[max_idx] {
+            if self.get(i).1 > self.get(max_idx).1 {
                 max_idx = i;
             }
         }
         max_idx
     }
 
-    #[must_use]
-    pub fn find_index(&self, id: VNodeId) -> Option<usize> {
-        (0..self.len()).find(|&i| self.ids[i] == Some(id))
-    }
-
+    /// Replaces the slot containing `old` with `new` and `new_intensity`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `old` is not present.
     pub fn replace_child(&mut self, old: VNodeId, new: VNodeId, new_intensity: V) {
         let idx = self
             .find_index(old)
             .expect("replace_child: old id not found");
-        self.ids[idx] = Some(new);
-        self.intensities[idx] = new_intensity;
-    }
-
-    pub fn add_child(&mut self, id: VNodeId, intensity: V) {
-        assert!(self.len == 2, "add_child: already a 3-node");
-        self.ids[2] = Some(id);
-        self.intensities[2] = intensity;
-        self.len = 3;
-    }
-
-    pub fn remove_child(&mut self, id: VNodeId) -> (VNodeId, V) {
-        assert!(self.len == 3, "remove_child: not a 3-node");
-        let idx = self.find_index(id).expect("remove_child: id not found");
-        let removed = self.get(idx);
-
-        if idx < 2 {
-            self.ids[idx] = self.ids[2];
-            self.intensities[idx] = self.intensities[2];
+        match self {
+            Self::Pair { ids, intensities } => {
+                ids[idx] = new;
+                intensities[idx] = new_intensity;
+            }
+            Self::Triple { ids, intensities } => {
+                ids[idx] = new;
+                intensities[idx] = new_intensity;
+            }
         }
-        self.ids[2] = None;
-        self.intensities[2] = V::default();
-        self.len = 2;
-        removed
     }
 
-    #[inline]
-    pub fn update_intensity(&mut self, index: usize, new: V) {
-        debug_assert!(index < self.len());
-        self.intensities[index] = new;
+    /// Transitions a `Pair` into a `Triple` by appending a new child.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called on a `Triple`.
+    pub fn add_child(&mut self, id: VNodeId, intensity: V) {
+        let (old_ids, old_intensities) = match self {
+            Self::Pair { ids, intensities } => (*ids, *intensities),
+            Self::Triple { .. } => panic!("add_child: already a 3-node"),
+        };
+        *self = Self::Triple {
+            ids: [old_ids[0], old_ids[1], id],
+            intensities: [old_intensities[0], old_intensities[1], intensity],
+        };
+    }
+
+    /// Removes the child with `id` and transitions from `Triple` to `Pair`.
+    ///
+    /// The vacated slot is filled by the last slot (index 2) when `idx < 2`,
+    /// preserving the same compaction order as the former `PackedChildren`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called on a `Pair` or if `id` is not present.
+    pub fn remove_child(&mut self, id: VNodeId) -> (VNodeId, V) {
+        let (ids, intensities) = match self {
+            Self::Triple { ids, intensities } => (*ids, *intensities),
+            Self::Pair { .. } => panic!("remove_child: not a 3-node"),
+        };
+        let idx = ids
+            .iter()
+            .position(|&i| i == id)
+            .expect("remove_child: id not found");
+        let removed = (ids[idx], intensities[idx]);
+        let (new_ids, new_intensities) = if idx < 2 {
+            let mut ids = ids;
+            let mut intensities = intensities;
+            ids[idx] = ids[2];
+            intensities[idx] = intensities[2];
+            ([ids[0], ids[1]], [intensities[0], intensities[1]])
+        } else {
+            ([ids[0], ids[1]], [intensities[0], intensities[1]])
+        };
+        *self = Self::Pair {
+            ids: new_ids,
+            intensities: new_intensities,
+        };
+        removed
     }
 }
 
@@ -168,19 +240,9 @@ impl<V: Default> Default for VNode<V> {
     }
 }
 
-impl<V: Default + Copy> Default for PackedChildren<V> {
-    fn default() -> Self {
-        Self {
-            intensities: [V::default(); 3],
-            ids: [None; 3],
-            len: 0,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::PackedChildren;
+    use super::Children;
     use crate::handle::VNodeId;
     use rstest::rstest;
 
@@ -188,56 +250,56 @@ mod tests {
         VNodeId::from_index(i)
     }
 
-    // ── PackedChildren::new_2 ─────────────────────────────────────────────
+    // ── Children::new_2 ───────────────────────────────────────────────────
     mod new_2 {
         use super::*;
 
         #[test]
         fn creates_a_two_child_node() {
-            let p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             assert_eq!(p.len(), 2);
         }
 
         #[test]
         fn stores_correct_ids_and_intensities() {
-            let p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             assert_eq!(p.get(0), (id(0), 10));
             assert_eq!(p.get(1), (id(1), 20));
         }
     }
 
-    // ── PackedChildren::new_3 ─────────────────────────────────────────────
+    // ── Children::new_3 ───────────────────────────────────────────────────
     mod new_3 {
         use super::*;
 
         #[test]
         fn creates_a_three_child_node() {
-            let p = PackedChildren::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
+            let p = Children::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
             assert_eq!(p.len(), 3);
         }
 
         #[test]
         fn stores_all_ids_and_intensities() {
-            let p = PackedChildren::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
+            let p = Children::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
             assert_eq!(p.get(0), (id(0), 1));
             assert_eq!(p.get(1), (id(1), 2));
             assert_eq!(p.get(2), (id(2), 3));
         }
     }
 
-    // ── PackedChildren::iter ───────────────────────────────────────────────
+    // ── Children::iter ────────────────────────────────────────────────────
     mod iter {
         use super::*;
 
         #[test]
         fn yields_all_children_in_order() {
-            let p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             let v: Vec<_> = p.iter().collect();
             assert_eq!(v, vec![(id(0), 10u32), (id(1), 20u32)]);
         }
     }
 
-    // ── PackedChildren::heaviest_child_index ─────────────────────────────
+    // ── Children::heaviest_child_index ────────────────────────────────────
     mod heaviest_child_index {
         use super::*;
 
@@ -250,54 +312,54 @@ mod tests {
             #[case] b: u32,
             #[case] expected: usize,
         ) {
-            let p = PackedChildren::<u32>::new_2((id(0), a), (id(1), b));
+            let p = Children::<u32>::new_2((id(0), a), (id(1), b));
             assert_eq!(p.heaviest_child_index(), expected);
         }
 
         #[test]
         fn returns_index_of_heaviest_child_among_three() {
-            let p = PackedChildren::<u32>::new_3((id(0), 5), (id(1), 50), (id(2), 20));
+            let p = Children::<u32>::new_3((id(0), 5), (id(1), 50), (id(2), 20));
             assert_eq!(p.heaviest_child_index(), 1);
         }
     }
 
-    // ── PackedChildren::find_index ──────────────────────────────────────────
+    // ── Children::find_index ──────────────────────────────────────────────
     mod find_index {
         use super::*;
 
         #[test]
         fn returns_some_for_a_present_id() {
-            let p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             assert_eq!(p.find_index(id(1)), Some(1));
         }
 
         #[test]
         fn returns_none_for_an_absent_id() {
-            let p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             assert_eq!(p.find_index(id(5)), None);
         }
     }
 
-    // ── PackedChildren::add_child ──────────────────────────────────────────
+    // ── Children::add_child ───────────────────────────────────────────────
     mod add_child {
         use super::*;
 
         #[test]
         fn promotes_two_node_to_three_node() {
-            let mut p = PackedChildren::<u32>::new_2((id(0), 1), (id(1), 2));
+            let mut p = Children::<u32>::new_2((id(0), 1), (id(1), 2));
             p.add_child(id(2), 3);
             assert_eq!(p.len(), 3);
             assert_eq!(p.get(2), (id(2), 3));
         }
     }
 
-    // ── PackedChildren::remove_child ──────────────────────────────────────
+    // ── Children::remove_child ────────────────────────────────────────────
     mod remove_child {
         use super::*;
 
         #[test]
         fn demotes_three_node_to_two_node_and_returns_removed_entry() {
-            let mut p = PackedChildren::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
+            let mut p = Children::<u32>::new_3((id(0), 1), (id(1), 2), (id(2), 3));
             let removed = p.remove_child(id(2));
             assert_eq!(p.len(), 2);
             assert_eq!(removed, (id(2), 3));
@@ -305,20 +367,20 @@ mod tests {
 
         #[test]
         fn can_remove_from_middle_position() {
-            let mut p = PackedChildren::<u32>::new_3((id(0), 10), (id(1), 20), (id(2), 30));
+            let mut p = Children::<u32>::new_3((id(0), 10), (id(1), 20), (id(2), 30));
             let removed = p.remove_child(id(1));
             assert_eq!(p.len(), 2);
             assert_eq!(removed, (id(1), 20));
         }
     }
 
-    // ── PackedChildren::replace_child ────────────────────────────────────
+    // ── Children::replace_child ───────────────────────────────────────────
     mod replace_child {
         use super::*;
 
         #[test]
         fn updates_id_and_intensity_at_the_matching_slot() {
-            let mut p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let mut p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             p.replace_child(id(1), id(9), 99);
             assert_eq!(p.find_index(id(1)), None);
             assert_eq!(p.find_index(id(9)), Some(1));
@@ -326,42 +388,26 @@ mod tests {
         }
     }
 
-    // ── PackedChildren::update_intensity ───────────────────────────────
+    // ── Children::update_intensity ────────────────────────────────────────
     mod update_intensity {
         use super::*;
 
         #[test]
         fn changes_intensity_at_the_given_index() {
-            let mut p = PackedChildren::<u32>::new_2((id(0), 10), (id(1), 20));
+            let mut p = Children::<u32>::new_2((id(0), 10), (id(1), 20));
             p.update_intensity(0, 77);
             assert_eq!(p.get(0), (id(0), 77));
         }
     }
-    // ── PackedChildren::is_empty ───────────────────────────────────────────
+
+    // ── Children::is_empty ────────────────────────────────────────────────
     mod is_empty {
         use super::*;
 
         #[test]
         fn returns_false_for_a_two_child_node() {
-            let p = PackedChildren::<u32>::new_2((id(0), 1), (id(1), 2));
+            let p = Children::<u32>::new_2((id(0), 1), (id(1), 2));
             assert!(!p.is_empty());
-        }
-
-        #[test]
-        fn returns_true_for_default_children() {
-            let p: PackedChildren<u32> = PackedChildren::default();
-            assert!(p.is_empty());
-        }
-    }
-
-    // ── PackedChildren::default ────────────────────────────────────────────
-    mod default_packed_children {
-        use super::*;
-
-        #[test]
-        fn starts_with_len_zero() {
-            let p: PackedChildren<u32> = PackedChildren::default();
-            assert_eq!(p.len(), 0);
         }
     }
 

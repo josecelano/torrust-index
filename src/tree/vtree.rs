@@ -44,7 +44,7 @@ use std::sync::atomic::Ordering;
 use crate::arena::Arena;
 use crate::handle::VNodeId;
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 
 pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
@@ -150,7 +150,7 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
         let child_int = vnodes.get(child.index()).intensity;
         let node = vnodes.get_mut(id.index());
         if let VKind::Structural { children, .. } = &mut node.kind {
-            children.intensities[i] = child_int;
+            children.update_intensity(i, child_int);
         }
     }
 
@@ -163,7 +163,7 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
         };
         let mut t = V::zero();
         for i in 0..children.len() {
-            t = V::add(t, children.intensities[i]);
+            t = V::add(t, children.get(i).1);
         }
         t
     };
@@ -302,7 +302,7 @@ pub fn recompute_structural_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V
     if let VKind::Structural { children, .. } = &node.kind {
         let mut total = V::zero();
         for i in 0..children.len() {
-            total = V::add(total, children.intensities[i]);
+            total = V::add(total, children.get(i).1);
         }
 
         let _ = node;
@@ -317,10 +317,7 @@ fn recompute_and_propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, 
     propagate_v_sums(vnodes, start);
 }
 
-fn compute_has_evictable<V: Accumulator>(
-    vnodes: &Arena<VNode<V>>,
-    children: &PackedChildren<V>,
-) -> bool {
+fn compute_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, children: &Children<V>) -> bool {
     for i in 0..children.len() {
         let (child_id, _) = children.get(i);
         let child = vnodes.get(child_id.index());
@@ -365,7 +362,7 @@ mod tests {
     use super::{invalidate_depth_subtree, propagate_v_sums, v_depth, vtree_remove_leaf};
     use crate::arena::Arena;
     use crate::handle::{GNodeId, VNodeId};
-    use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+    use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 
     fn entry_vnode(intensity: u32, parent: Option<VNodeId>) -> VNode<u32> {
         VNode {
@@ -466,7 +463,7 @@ mod tests {
                 parent: None,
                 cached_depth: AtomicU32::new(DEPTH_STALE),
                 kind: VKind::Structural {
-                    children: PackedChildren::new_2((child_a_id, 5u32), (child_b_id, 7u32)),
+                    children: Children::new_2((child_a_id, 5u32), (child_b_id, 7u32)),
                     has_evictable: false,
                 },
             };
@@ -484,7 +481,7 @@ mod tests {
             // Parent intensity should now reflect sum of cached child intensities
             // (The structural node caches 5 and 7; propagate_v_sums recomputes from them)
             let parent_intensity = vnodes.get(parent_id.index()).intensity;
-            assert_eq!(parent_intensity, 5 + 7); // cached intensities in PackedChildren
+            assert_eq!(parent_intensity, 5 + 7); // cached intensities in Children
         }
     }
 
@@ -537,11 +534,7 @@ mod tests {
                 parent: None,
                 cached_depth: AtomicU32::new(DEPTH_STALE),
                 kind: VKind::Structural {
-                    children: PackedChildren::new_3(
-                        (child_a, 5u32),
-                        (child_b, 5u32),
-                        (child_c, 5u32),
-                    ),
+                    children: Children::new_3((child_a, 5u32), (child_b, 5u32), (child_c, 5u32)),
                     has_evictable: true,
                 },
             }));
@@ -573,7 +566,7 @@ mod tests {
                 parent: None, // root — no grandparent
                 cached_depth: AtomicU32::new(DEPTH_STALE),
                 kind: VKind::Structural {
-                    children: PackedChildren::new_2((target, 5u32), (sibling, 5u32)),
+                    children: Children::new_2((target, 5u32), (sibling, 5u32)),
                     has_evictable: true,
                 },
             }));

@@ -17,7 +17,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
-use crate::nodes::vnode::{DEPTH_STALE, PackedChildren, VKind, VNode};
+use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 use crate::traits::{Accumulator, Coordinate};
 use crate::tree::vtree::{
     invalidate_depth_subtree, propagate_evictable_flags, recompute_structural_intensity,
@@ -79,7 +79,7 @@ pub fn standard_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId
         has_evictable,
     } = &mut p_node.kind
     {
-        *children = PackedChildren::new_3((c1_id, c1_int), (c2_id, c2_int), sibling_id);
+        *children = Children::new_3((c1_id, c1_int), (c2_id, c2_int), sibling_id);
         *has_evictable = c1_terminal || c2_terminal || sib_terminal;
     }
 
@@ -161,7 +161,7 @@ pub fn skip_promote<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, c: VNodeId) ->
         has_evictable,
     } = &mut g_node.kind
     {
-        *children = PackedChildren::new_3((c, c_int), (s_id, s_int), (u_id, u_int));
+        *children = Children::new_3((c, c_int), (s_id, s_int), (u_id, u_int));
         *has_evictable = c_terminal || s_terminal || u_terminal;
     }
 
@@ -273,7 +273,7 @@ pub fn legacy_promote<C: Coordinate, V: Accumulator>(
         has_evictable,
     } = &mut g_node.kind
     {
-        *children = PackedChildren::new_3((c, c_int), (p, p_int), (u_id, u_int));
+        *children = Children::new_3((c, c_int), (p, p_int), (u_id, u_int));
         *has_evictable = c_evictable || p_evictable || u_evictable;
     }
 
