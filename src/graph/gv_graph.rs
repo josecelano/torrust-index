@@ -1,7 +1,3 @@
-#[cfg(feature = "dynamic-contour-tracking")]
-use std::collections::BTreeMap;
-use std::sync::atomic::AtomicU32;
-
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::{GNode, GNodeChildren};
@@ -12,6 +8,8 @@ use crate::spatial::plateau::{BasisEdge, Plateau};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate};
+#[cfg(feature = "dynamic-contour-tracking")]
+use std::collections::BTreeMap;
 
 use super::config::Config;
 
@@ -32,14 +30,14 @@ pub fn uniform_contour_depth_of<C: Coordinate, V: Accumulator>(
     use crate::tree::gtree::gnode_depth_from_interval;
     let g = gnodes.get(gid.index());
     match g.state() {
-        GState::Terminal => Some(gnode_depth_from_interval(g.lo, g.hi, n)),
+        GState::Terminal => Some(gnode_depth_from_interval(g.lo(), g.hi(), n)),
         GState::SemiInternal => None,
         GState::Internal => {
             let ld = g
-                .left
+                .left()
                 .and_then(|l| uniform_contour_depth_of(gnodes, l, n))?;
             let rd = g
-                .right
+                .right()
                 .and_then(|r| uniform_contour_depth_of(gnodes, r, n))?;
             if ld == rd { Some(ld) } else { None }
         }
@@ -140,30 +138,12 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         let mut gnodes = Arena::new();
         let mut vnodes = Arena::new();
 
-        let root_gnode = GNode {
-            lo: C::zero(),
-            hi: C::domain_max(N),
-            sum: V::zero(),
-            own: V::zero(),
-            left: None,
-            right: None,
-            parent: None,
-            entry: None,
-        };
+        let root_gnode = GNode::new_leaf(C::zero(), C::domain_max(N), V::zero(), None);
         let g_root = GNodeId::from_index(gnodes.alloc(root_gnode));
 
-        let root_entry = VNode {
-            intensity: V::zero(),
-            parent: None,
-            cached_depth: AtomicU32::new(0),
-            kind: crate::nodes::vnode::VKind::Entry {
-                gnode: g_root,
-                is_exposed: true,
-                is_evictable: true,
-            },
-        };
+        let root_entry = VNode::new_entry(V::zero(), None, 0, g_root, true, true);
         let v_root_id = VNodeId::from_index(vnodes.alloc(root_entry));
-        gnodes.get_mut(g_root.index()).entry = Some(v_root_id);
+        gnodes.get_mut(g_root.index()).assign_entry(v_root_id);
 
         let live_depth_evict = config.structural.depth_evict;
         let live_depth_create = config.structural.depth_create;
@@ -259,7 +239,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[must_use]
     #[inline]
     pub fn total_sum(&self) -> V {
-        self.gnodes.get(self.g_root.index()).sum
+        self.gnodes.get(self.g_root.index()).sum()
     }
 
     #[must_use]
@@ -317,7 +297,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[allow(dead_code)]
     pub(crate) fn gnode_depth(&self, gid: GNodeId) -> u32 {
         let g = self.gnodes.get(gid.index());
-        crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N)
+        crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
     }
 
     // ── Queries ────────────────────────────────────────────────────────
@@ -328,14 +308,14 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         }
         let g = self.gnodes.get(id.index());
         Some(Node {
-            start: g.lo,
-            end: g.hi,
-            own: g.own,
-            sum: g.sum,
-            depth: crate::tree::gtree::gnode_depth_from_interval(g.lo, g.hi, N),
+            start: g.lo(),
+            end: g.hi(),
+            own: g.own(),
+            sum: g.sum(),
+            depth: crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N),
             state: g.state(),
             gnode_id: id,
-            parent: g.parent,
+            parent: g.parent(),
         })
     }
 
@@ -347,8 +327,8 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         }
         let g = self.gnodes.get(id.index());
         Some(GNodeChildren {
-            left: g.left,
-            right: g.right,
+            left: g.left(),
+            right: g.right(),
         })
     }
 
@@ -361,7 +341,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         }
         let a = self.gnodes.get(ancestor.index());
         let d = self.gnodes.get(descendant.index());
-        a.lo <= d.lo && a.hi >= d.hi && (a.lo != d.lo || a.hi != d.hi)
+        a.lo() <= d.lo() && a.hi() >= d.hi() && (a.lo() != d.lo() || a.hi() != d.hi())
     }
 }
 
@@ -543,16 +523,7 @@ mod tests {
         use crate::nodes::gnode::GNode;
 
         fn make_terminal(lo: u8, hi: u8) -> GNode<u8, u32> {
-            GNode {
-                lo,
-                hi,
-                sum: 0,
-                own: 0,
-                left: None,
-                right: None,
-                parent: None,
-                entry: None,
-            }
+            GNode::new_leaf(lo, hi, 0u32, None)
         }
 
         #[test]
@@ -568,11 +539,11 @@ mod tests {
             let mut g = GvGraph::<u8, u32, 8>::new(make_config());
             // Manually give the root a single (fake) left child → SemiInternal
             let fake_child = GNodeId::from_index(999);
-            g.gnodes.get_mut(g.g_root.index()).left = Some(fake_child);
+            g.gnodes.get_mut(g.g_root.index()).link_left(fake_child);
             let result = uniform_contour_depth_of(&g.gnodes, g.g_root, 8);
             assert_eq!(result, None);
             // Restore so subsequent arena operations are not corrupted
-            g.gnodes.get_mut(g.g_root.index()).left = None;
+            g.gnodes.get_mut(g.g_root.index()).clear_child(fake_child);
         }
 
         #[test]
@@ -583,16 +554,10 @@ mod tests {
             let mut gnodes: Arena<GNode<u8, u32>> = Arena::new();
             let left_id = GNodeId::from_index(gnodes.alloc(make_terminal(0, 64)));
             let right_id = GNodeId::from_index(gnodes.alloc(make_terminal(64, 128)));
-            let root_id = GNodeId::from_index(gnodes.alloc(GNode {
-                lo: 0,
-                hi: 128,
-                sum: 0,
-                own: 0,
-                left: Some(left_id),
-                right: Some(right_id),
-                parent: None,
-                entry: None,
-            }));
+            let mut root = GNode::new_leaf(0u8, 128u8, 0u32, None);
+            root.link_left(left_id);
+            root.link_right(right_id);
+            let root_id = GNodeId::from_index(gnodes.alloc(root));
             let result = uniform_contour_depth_of(&gnodes, root_id, 8);
             assert_eq!(result, Some(2));
         }

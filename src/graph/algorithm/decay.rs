@@ -124,23 +124,23 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             order.push(gid);
 
             let g = self.gnodes.get_mut(gid.index());
-            g.own = g.own.attenuate(att);
+            g.set_own(g.own().attenuate(att));
 
-            // NOTE: V-entry intensity is written inline here, alongside g.own,
+            // NOTE: V-entry intensity is written inline here, alongside g.own(),
             // because the same factor applies to every depth.  The subsequent
             // `recompute_all_v_intensities` call derives all parent V-sums from
             // these leaf intensities, so inline updates are safe and avoid a
             // second tree traversal.
-            if let Some(v_id) = g.entry {
-                let own = g.own;
-                self.vnodes.get_mut(v_id.index()).intensity = own;
+            if let Some(v_id) = g.entry() {
+                let own = g.own();
+                self.vnodes.get_mut(v_id.index()).set_intensity(own);
             }
 
             let g = self.gnodes.get(gid.index());
-            if let Some(left) = g.left {
+            if let Some(left) = g.left() {
                 stack.push(left);
             }
-            if let Some(right) = g.right {
+            if let Some(right) = g.right() {
                 stack.push(right);
             }
         }
@@ -148,7 +148,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
         gtree::recompute_g_sums_subtree(&mut self.gnodes, &order);
 
         if !is_global {
-            if let Some(parent) = self.gnodes.get(root.index()).parent {
+            if let Some(parent) = self.gnodes.get(root.index()).parent() {
                 gtree::recompute_g_sums(&mut self.gnodes, parent);
             }
         }
@@ -178,10 +178,10 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
                     max_depth = depth;
                 }
                 let g = self.gnodes.get(gid.index());
-                if let Some(left) = g.left {
+                if let Some(left) = g.left() {
                     stack.push(left);
                 }
-                if let Some(right) = g.right {
+                if let Some(right) = g.right() {
                     stack.push(right);
                 }
             }
@@ -194,14 +194,14 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             let d_local = self.gnode_depth(gid) - d_root;
             let factor = factors[d_local as usize];
 
-            let new_own = self.gnodes.get(gid.index()).own.attenuate(factor);
-            self.gnodes.get_mut(gid.index()).own = new_own;
+            let new_own = self.gnodes.get(gid.index()).own().attenuate(factor);
+            self.gnodes.get_mut(gid.index()).set_own(new_own);
         }
 
         gtree::recompute_g_sums_subtree(&mut self.gnodes, &order);
 
         if !is_global {
-            if let Some(parent) = self.gnodes.get(root.index()).parent {
+            if let Some(parent) = self.gnodes.get(root.index()).parent() {
                 gtree::recompute_g_sums(&mut self.gnodes, parent);
             }
         }
@@ -209,15 +209,15 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
         // NOTE: V-entry intensities are written in a *separate second pass*,
         // after all G-node own-values have been updated and G-sums recomputed.
         // This is required because the per-depth factors differ: if we wrote
-        // v.intensity inline (as decay_uniform does), a node at depth d would
-        // receive a factor derived from the not-yet-final g.own of a sibling at
-        // a different depth.  Delaying until all g.own are stable avoids that
+        // v.intensity() inline (as decay_uniform does), a node at depth d would
+        // receive a factor derived from the not-yet-final g.own() of a sibling at
+        // a different depth.  Delaying until all g.own() are stable avoids that
         // ordering hazard.
         for &gid in &order {
             let g = self.gnodes.get(gid.index());
-            if let Some(v_id) = g.entry {
-                let own = g.own;
-                self.vnodes.get_mut(v_id.index()).intensity = own;
+            if let Some(v_id) = g.entry() {
+                let own = g.own();
+                self.vnodes.get_mut(v_id.index()).set_intensity(own);
             }
         }
 
@@ -425,7 +425,7 @@ mod tests {
             let mut g = split_graph();
             let children = g.gnode_children(g.g_root()).unwrap();
             // Decay a child subtree (non-global) to exercise the is_global=false path
-            if let Some(sub_root) = children.left.or(children.right) {
+            if let Some(sub_root) = children.left.or_else(|| children.right) {
                 g.decay(sub_root, 0.5, 0.0);
             }
         }
@@ -434,7 +434,7 @@ mod tests {
         fn sub_root_selective_decay_does_not_panic() {
             let mut g = split_graph();
             let children = g.gnode_children(g.g_root()).unwrap();
-            if let Some(sub_root) = children.left.or(children.right) {
+            if let Some(sub_root) = children.left.or_else(|| children.right) {
                 g.decay(sub_root, 0.5, 0.5);
             }
         }

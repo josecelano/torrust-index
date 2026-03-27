@@ -30,7 +30,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         while let Some((vid, bfs_depth)) = queue.pop_front() {
             let vnode = self.vnodes.get(vid.index());
 
-            match &vnode.kind {
+            match &vnode.kind() {
                 VKind::Entry { gnode, .. } => {
                     let g = self.gnodes.get(gnode.index());
                     let g_depth = self.gnode_depth(*gnode);
@@ -46,20 +46,20 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     match g.state() {
                         GState::Terminal => {
                             layer.terminals.push(Terminal {
-                                start: g.lo,
-                                end: g.hi,
-                                intensity: g.own,
+                                start: g.lo(),
+                                end: g.hi(),
+                                intensity: g.own(),
                                 depth: g_depth,
                                 v_depth: bfs_depth,
                             });
                         }
                         GState::SemiInternal | GState::Internal => {
                             layer.transitions.push(Transition {
-                                start: g.lo,
-                                end: g.hi,
-                                baseline: g.own,
-                                total: g.sum,
-                                refinement: V::sub(g.sum, g.own),
+                                start: g.lo(),
+                                end: g.hi(),
+                                baseline: g.own(),
+                                total: g.sum(),
+                                refinement: V::sub(g.sum(), g.own()),
                                 depth: g_depth,
                                 v_depth: bfs_depth,
                             });
@@ -130,7 +130,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
             let (vid, bfs_depth) = self.queue.pop_front()?;
             let vnode = self.graph.vnodes.get(vid.index());
 
-            match &vnode.kind {
+            match &vnode.kind() {
                 VKind::Structural { children, .. } => {
                     for i in 0..children.len() {
                         let (child_id, _) = children.get(i);
@@ -141,14 +141,14 @@ impl<C: Coordinate, V: Accumulator, const N: u32> Iterator for Layers<'_, C, V, 
                     let g = self.graph.gnodes.get(gnode.index());
                     let g_depth = self.graph.gnode_depth(*gnode);
                     let node = crate::spatial::node::Node {
-                        start: g.lo,
-                        end: g.hi,
-                        own: g.own,
-                        sum: g.sum,
+                        start: g.lo(),
+                        end: g.hi(),
+                        own: g.own(),
+                        sum: g.sum(),
                         depth: g_depth,
                         state: g.state(),
                         gnode_id: *gnode,
-                        parent: g.parent,
+                        parent: g.parent(),
                     };
                     return Some((bfs_depth, node));
                 }

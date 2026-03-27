@@ -10,20 +10,20 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let _span = tracing::debug_span!("observe", g = g_id.index()).entered();
 
         let g = self.gnodes.get_mut(g_id.index());
-        g.own = O::accumulate(g.own, delta);
+        g.set_own(O::accumulate(g.own(), delta));
 
         debug_assert!(
-            g.own >= V::zero(),
+            g.own() >= V::zero(),
             "observe: P2 violation — accumulated own value {:?} < zero after delta; \
              negative accumulations are not supported (ADR-M-033)",
-            g.own,
+            g.own(),
         );
 
         // ── Phase 2: V-tree propagation and violation detection ──────────
-        if let Some(entry_id) = self.gnodes.get(g_id.index()).entry {
+        if let Some(entry_id) = self.gnodes.get(g_id.index()).entry() {
             let v = self.vnodes.get_mut(entry_id.index());
-            v.intensity = O::accumulate(v.intensity, delta);
-            let new_intensity = v.intensity;
+            v.set_intensity(O::accumulate(v.intensity(), delta));
+            let new_intensity = v.intensity();
 
             vtree::sync_intensity_in_parent(&mut self.vnodes, entry_id, new_intensity);
             vtree::propagate_v_sums(&mut self.vnodes, entry_id);
@@ -38,7 +38,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     );
                     self.violations.push(id);
                 }
-                check_id = self.vnodes.get(id.index()).parent;
+                check_id = self.vnodes.get(id.index()).parent();
             }
         }
 

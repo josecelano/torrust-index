@@ -72,7 +72,7 @@ pub fn push_contraction_child_violations<V: Accumulator>(
     skip: VNodeId,
     violations: &mut Vec<VNodeId>,
 ) {
-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind() {
         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
         VKind::Entry { .. } => return,
     };
@@ -177,7 +177,7 @@ pub fn push_promoted_violations_with_config<V: Accumulator>(
     if !config.source_4_promotion_children {
         return;
     }
-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind() {
         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
         VKind::Entry { .. } => return,
     };
@@ -200,8 +200,8 @@ pub fn push_leaf_removal_violations_with_config<V: Accumulator>(
         return;
     }
     let mut ancestor = start;
-    while let Some(parent) = vnodes.get(ancestor.index()).parent {
-        let sibling_ids: Vec<VNodeId> = match &vnodes.get(parent.index()).kind {
+    while let Some(parent) = vnodes.get(ancestor.index()).parent() {
+        let sibling_ids: Vec<VNodeId> = match &vnodes.get(parent.index()).kind() {
             VKind::Structural { children, .. } => children
                 .iter()
                 .map(|(id, _)| id)
@@ -211,7 +211,7 @@ pub fn push_leaf_removal_violations_with_config<V: Accumulator>(
         };
 
         for sib_id in sibling_ids {
-            if let VKind::Structural { children, .. } = &vnodes.get(sib_id.index()).kind {
+            if let VKind::Structural { children, .. } = &vnodes.get(sib_id.index()).kind() {
                 for i in 0..children.len() {
                     let (child_id, _) = children.get(i);
                     if is_violated(vnodes, child_id) {
@@ -259,7 +259,7 @@ pub fn push_remaining_sibling_violations_with_config<V: Accumulator>(
         return;
     }
 
-    let remaining: Vec<VNodeId> = match &vnodes.get(p.index()).kind {
+    let remaining: Vec<VNodeId> = match &vnodes.get(p.index()).kind() {
         VKind::Structural { children, .. } => children
             .iter()
             .map(|(id, _)| id)
@@ -285,7 +285,7 @@ pub fn push_cousin_violations_with_config<V: Accumulator>(
         return;
     }
 
-    let cousins: Vec<VNodeId> = match &vnodes.get(grandparent.index()).kind {
+    let cousins: Vec<VNodeId> = match &vnodes.get(grandparent.index()).kind() {
         VKind::Structural { children, .. } => children
             .iter()
             .map(|(id, _)| id)
@@ -313,12 +313,12 @@ fn push_grandchild_violations<V: Accumulator>(
     node: VNodeId,
     violations: &mut Vec<VNodeId>,
 ) {
-    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+    let child_ids: Vec<VNodeId> = match &vnodes.get(node.index()).kind() {
         VKind::Structural { children, .. } => children.iter().map(|(id, _)| id).collect(),
         VKind::Entry { .. } => return,
     };
     for child_id in child_ids {
-        if let VKind::Structural { children, .. } = &vnodes.get(child_id.index()).kind {
+        if let VKind::Structural { children, .. } = &vnodes.get(child_id.index()).kind() {
             for i in 0..children.len() {
                 let (gc_id, _) = children.get(i);
                 if is_violated(vnodes, gc_id) {
@@ -336,7 +336,7 @@ fn push_children_violations<V: Accumulator>(
     source: &str,
     violations: &mut Vec<VNodeId>,
 ) {
-    let children: Vec<VNodeId> = match &vnodes.get(node.index()).kind {
+    let children: Vec<VNodeId> = match &vnodes.get(node.index()).kind() {
         VKind::Structural { children, .. } => {
             (0..children.len()).map(|i| children.get(i).0).collect()
         }

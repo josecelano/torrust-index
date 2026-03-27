@@ -1,5 +1,3 @@
-use std::sync::atomic::{AtomicU32, Ordering};
-
 use crate::arena::Arena;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::GNode;
@@ -18,11 +16,11 @@ pub use super::fmt::{Ctx, Nd};
 
 #[must_use]
 pub fn max_uncle_intensity<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> Option<V> {
-    let parent = vnodes.get(c.index()).parent?;
-    let grandparent = vnodes.get(parent.index()).parent?;
+    let parent = vnodes.get(c.index()).parent()?;
+    let grandparent = vnodes.get(parent.index()).parent()?;
 
     let g = vnodes.get(grandparent.index());
-    if let VKind::Structural { children, .. } = &g.kind {
+    if let VKind::Structural { children, .. } = &g.kind() {
         let mut max_int = None;
         for i in 0..children.len() {
             let (id, intensity) = children.get(i);
@@ -42,7 +40,7 @@ pub fn max_uncle_intensity<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId)
 
 #[must_use]
 pub fn is_violated<V: Accumulator>(vnodes: &Arena<VNode<V>>, c: VNodeId) -> bool {
-    let c_int = vnodes.get(c.index()).intensity;
+    let c_int = vnodes.get(c.index()).intensity();
     max_uncle_intensity(vnodes, c).is_some_and(|max_uncle| c_int > max_uncle)
 }
 
@@ -56,7 +54,7 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
 
     let (heaviest_idx, children_data) = {
         let node = vnodes.get(p.index());
-        let children = match &node.kind {
+        let children = match &node.kind() {
             VKind::Structural { children, .. } => children,
             VKind::Entry { .. } => panic!("contract: p must be structural"),
         };
@@ -79,26 +77,24 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
     let a_terminal = node_has_evictable(vnodes, a_id);
     let b_terminal = node_has_evictable(vnodes, b_id);
 
-    let p_depth = vnodes.get(p.index()).cached_depth.load(Ordering::Relaxed);
+    let p_depth = vnodes.get(p.index()).cached_depth_raw();
     let m_depth = if p_depth == DEPTH_STALE {
         DEPTH_STALE
     } else {
         p_depth + 1
     };
 
-    let merged = VNode {
-        intensity: V::add(a_int, b_int),
-        parent: Some(p),
-        cached_depth: AtomicU32::new(m_depth),
-        kind: VKind::Structural {
-            children: Children::new_2((a_id, a_int), (b_id, b_int)),
-            has_evictable: a_terminal || b_terminal,
-        },
-    };
+    let merged = VNode::new_structural(
+        V::add(a_int, b_int),
+        Some(p),
+        m_depth,
+        Children::new_2((a_id, a_int), (b_id, b_int)),
+        a_terminal || b_terminal,
+    );
     let m_id = VNodeId::from_index(vnodes.alloc(merged));
 
-    vnodes.get_mut(a_id.index()).parent = Some(m_id);
-    vnodes.get_mut(b_id.index()).parent = Some(m_id);
+    vnodes.get_mut(a_id.index()).set_parent(m_id);
+    vnodes.get_mut(b_id.index()).set_parent(m_id);
 
     invalidate_depth_subtree(vnodes, a_id);
     invalidate_depth_subtree(vnodes, b_id);
@@ -111,7 +107,7 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
     if let VKind::Structural {
         children,
         has_evictable,
-    } = &mut p_node.kind
+    } = p_node.kind_mut()
     {
         *children = Children::new_2(isolate, (m_id, merged_int));
         *has_evictable = iso_terminal || m_terminal;
@@ -128,21 +124,21 @@ pub fn contract<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, p: VNodeId) -> VNo
 }
 
 pub(super) fn node_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> bool {
-    match &vnodes.get(id.index()).kind {
+    match &vnodes.get(id.index()).kind() {
         VKind::Entry { is_evictable, .. } => *is_evictable,
         VKind::Structural { has_evictable, .. } => *has_evictable,
     }
 }
 
 fn structural_child_count<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> usize {
-    match &vnodes.get(id.index()).kind {
+    match &vnodes.get(id.index()).kind() {
         VKind::Structural { children, .. } => children.len(),
         VKind::Entry { .. } => 0,
     }
 }
 
 fn any_child_violated<V: Accumulator>(vnodes: &Arena<VNode<V>>, node: VNodeId) -> bool {
-    match &vnodes.get(node.index()).kind {
+    match &vnodes.get(node.index()).kind() {
         VKind::Structural { children, .. } => {
             for i in 0..children.len() {
                 let (child_id, _) = children.get(i);
@@ -162,7 +158,7 @@ fn escalate_after_promote<V: Accumulator>(
     violations: &mut Vec<VNodeId>,
 ) {
     // ── Phase 1: Identify heaviest child; early-return if no violation ──────
-    let heaviest = match &vnodes.get(p.index()).kind {
+    let heaviest = match &vnodes.get(p.index()).kind() {
         VKind::Structural { children, .. } if children.len() == 3 => {
             children.get(children.heaviest_child_index()).0
         }
@@ -175,7 +171,7 @@ fn escalate_after_promote<V: Accumulator>(
         return;
     }
 
-    let Some(g) = vnodes.get(p.index()).parent else {
+    let Some(g) = vnodes.get(p.index()).parent() else {
         return;
     };
     let _span = tracing::debug_span!(
@@ -218,7 +214,7 @@ fn escalate_after_promote<V: Accumulator>(
     };
 
     // ── Phase 4: Skip-promote fallback ────────────────────────────────────
-    if let Some(g_id) = vnodes.get(p.index()).parent {
+    if let Some(g_id) = vnodes.get(p.index()).parent() {
         skip_promote(vnodes, heaviest);
         push_side_effect_violations(vnodes, g_id, violations);
         push_promoted_violations(vnodes, g_id, violations);
@@ -258,7 +254,7 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
     let _span = tracing::debug_span!("resolve", node = c.index()).entered();
     tracing::debug!(ctx = %Ctx(vnodes, c), "begin");
 
-    let Some(p) = vnodes.get(c.index()).parent else {
+    let Some(p) = vnodes.get(c.index()).parent() else {
         tracing::trace!("no parent — nothing to resolve");
         return None;
     };
@@ -276,7 +272,7 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
     }
 
     let is_c_structural_2 = matches!(
-        &vnodes.get(c.index()).kind,
+        &vnodes.get(c.index()).kind(),
         VKind::Structural { children, .. } if children.len() == 2
     );
 
@@ -292,7 +288,7 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
     // ── Path B: skip / legacy promote ──────────────────────────────────────────
     } else {
         tracing::debug!("phase 2: skip promote path");
-        let Some(g) = vnodes.get(p.index()).parent else {
+        let Some(g) = vnodes.get(p.index()).parent() else {
             tracing::trace!("no grandparent — cannot skip-promote");
             return None;
         };
@@ -311,9 +307,9 @@ pub fn resolve<C: Coordinate, V: Accumulator>(
             None
         };
 
-        if let Some(g_id) = vnodes.get(p.index()).parent {
+        if let Some(g_id) = vnodes.get(p.index()).parent() {
             let is_semi = matches!(
-                &vnodes.get(c.index()).kind,
+                &vnodes.get(c.index()).kind(),
                 VKind::Entry { gnode, .. }
                     if gnodes.get(gnode.index()).is_semi_internal()
             );
@@ -664,7 +660,7 @@ mod tests {
             g.observe(64u8, 3u32); // bootstrap split
             let v_root = g.v_root.expect("v_root must exist");
             // Get a depth-1 child (first child of Structural root)
-            let child_id = match &g.vnodes().get(v_root.index()).kind {
+            let child_id = match &g.vnodes().get(v_root.index()).kind() {
                 VKind::Structural { children, .. } => children.get(0).0,
                 _ => panic!("expected Structural v_root after bootstrap"),
             };
@@ -687,7 +683,7 @@ mod tests {
             let mut depth2 = None;
             while let Some((id, d)) = stack.pop() {
                 let n = g.vnodes().get(id.index());
-                match &n.kind {
+                match &n.kind() {
                     VKind::Entry { .. } if d >= 2 => {
                         depth2 = Some(id);
                         break;

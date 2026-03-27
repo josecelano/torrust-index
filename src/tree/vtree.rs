@@ -39,8 +39,6 @@
 //! A V-node is *violated* when its intensity distribution across children
 //! breaches the configured balance threshold.  See `rebalance.rs` for the
 //! `is_violated` predicate and the `resolve` function that repairs violations.
-use std::sync::atomic::Ordering;
-
 use crate::arena::Arena;
 use crate::handle::VNodeId;
 use crate::nodes::gnode::GNode;
@@ -60,11 +58,11 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     )
     .entered();
 
-    if let VKind::Entry { gnode, .. } = vnodes.get(v_id.index()).kind {
-        gnodes.get_mut(gnode.index()).entry = None;
+    if let VKind::Entry { gnode, .. } = vnodes.get(v_id.index()).kind() {
+        gnodes.get_mut(gnode.index()).clear_entry();
     }
 
-    let parent = vnodes.get(v_id.index()).parent;
+    let parent = vnodes.get(v_id.index()).parent();
 
     let Some(p_id) = parent else {
         span.record("case", "root");
@@ -73,7 +71,7 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
     };
 
     let p = vnodes.get(p_id.index());
-    let p_child_count = match &p.kind {
+    let p_child_count = match &p.kind() {
         VKind::Structural { children, .. } => children.len(),
         VKind::Entry { .. } => unreachable!("parent of entry should be structural"),
     };
@@ -89,14 +87,14 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
 
     span.record("case", "collapse");
     let sole_id = sole_sibling(vnodes, p_id, v_id);
-    let grandparent = vnodes.get(p_id.index()).parent;
+    let grandparent = vnodes.get(p_id.index()).parent();
 
-    vnodes.get_mut(sole_id.index()).parent = grandparent;
+    vnodes.get_mut(sole_id.index()).set_parent_opt(grandparent);
 
     invalidate_depth_subtree(vnodes, sole_id);
 
     let new_root = grandparent.map_or(Some(sole_id), |g_id| {
-        let sole_int = vnodes.get(sole_id.index()).intensity;
+        let sole_int = vnodes.get(sole_id.index()).intensity();
         replace_child_in_parent(vnodes, g_id, p_id, sole_id, sole_int);
         recompute_and_propagate_v_sums(vnodes, g_id);
         propagate_evictable_flags(vnodes, g_id);
@@ -113,12 +111,12 @@ pub fn vtree_remove_leaf<C: Coordinate, V: Accumulator>(
 /// Use [`recompute_and_propagate_v_sums`] when `start` also needs recomputing.
 pub fn propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
     tracing::trace!(start = start.index(), "propagate_v_sums");
-    let mut current = vnodes.get(start.index()).parent;
+    let mut current = vnodes.get(start.index()).parent();
     while let Some(id) = current {
         recompute_structural_intensity(vnodes, id);
-        let new_int = vnodes.get(id.index()).intensity;
+        let new_int = vnodes.get(id.index()).intensity();
         sync_intensity_in_parent(vnodes, id, new_int);
-        current = vnodes.get(id.index()).parent;
+        current = vnodes.get(id.index()).parent();
     }
 }
 
@@ -134,7 +132,7 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
     // recursive calls and the subsequent mutable borrows can proceed.
     let child_ids: Vec<VNodeId> = {
         let node = vnodes.get(id.index());
-        match &node.kind {
+        match &node.kind() {
             VKind::Entry { .. } => return,
             VKind::Structural { children, .. } => {
                 (0..children.len()).map(|i| children.get(i).0).collect()
@@ -147,9 +145,9 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
     }
 
     for (i, &child) in child_ids.iter().enumerate() {
-        let child_int = vnodes.get(child.index()).intensity;
+        let child_int = vnodes.get(child.index()).intensity();
         let node = vnodes.get_mut(id.index());
-        if let VKind::Structural { children, .. } = &mut node.kind {
+        if let VKind::Structural { children, .. } = node.kind_mut() {
             children.update_intensity(i, child_int);
         }
     }
@@ -158,7 +156,7 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
     // before the mutable borrow on the next line, so total is computed first.
     let total: V = {
         let node = vnodes.get(id.index());
-        let VKind::Structural { children, .. } = &node.kind else {
+        let VKind::Structural { children, .. } = &node.kind() else {
             return;
         };
         let mut t = V::zero();
@@ -167,16 +165,16 @@ fn recompute_v_postorder<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNode
         }
         t
     };
-    vnodes.get_mut(id.index()).intensity = total;
+    vnodes.get_mut(id.index()).set_intensity(total);
 }
 
 pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
     let mut current = Some(start);
     while let Some(id) = current {
         let node = vnodes.get(id.index());
-        match &node.kind {
+        match &node.kind() {
             VKind::Entry { .. } => {
-                current = node.parent;
+                current = node.parent();
             }
             VKind::Structural {
                 children,
@@ -188,7 +186,7 @@ pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, s
                     return;
                 }
 
-                let parent = node.parent;
+                let parent = node.parent();
                 set_has_evictable(vnodes, id, new_flag);
                 current = parent;
             }
@@ -199,13 +197,13 @@ pub fn propagate_evictable_flags<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, s
 #[cfg(debug_assertions)]
 fn v_depth_uncached<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
     let node = vnodes.get(id.index());
-    node.parent.map_or(0, |p| v_depth_uncached(vnodes, p) + 1)
+    node.parent().map_or(0, |p| v_depth_uncached(vnodes, p) + 1)
 }
 
 #[must_use]
 pub fn v_depth<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
     let node = vnodes.get(id.index());
-    let cached = node.cached_depth.load(Ordering::Relaxed);
+    let cached = node.cached_depth_raw();
 
     if cached != DEPTH_STALE {
         #[cfg(debug_assertions)]
@@ -217,8 +215,8 @@ pub fn v_depth<V: Accumulator>(vnodes: &Arena<VNode<V>>, id: VNodeId) -> u32 {
         return cached;
     }
 
-    let depth = node.parent.map_or(0, |p| v_depth(vnodes, p) + 1);
-    node.cached_depth.store(depth, Ordering::Relaxed);
+    let depth = node.parent().map_or(0, |p| v_depth(vnodes, p) + 1);
+    node.store_depth(depth);
     depth
 }
 
@@ -227,13 +225,13 @@ pub fn invalidate_depth_subtree<V: Accumulator>(vnodes: &Arena<VNode<V>>, root: 
     while let Some(id) = stack.pop() {
         let node = vnodes.get(id.index());
 
-        if node.cached_depth.load(Ordering::Relaxed) == DEPTH_STALE {
+        if node.cached_depth_raw() == DEPTH_STALE {
             continue;
         }
 
-        node.cached_depth.store(DEPTH_STALE, Ordering::Relaxed);
+        node.store_depth(DEPTH_STALE);
 
-        if let VKind::Structural { children, .. } = &node.kind {
+        if let VKind::Structural { children, .. } = &node.kind() {
             for i in 0..children.len() {
                 stack.push(children.get(i).0);
             }
@@ -246,10 +244,10 @@ pub fn sync_intensity_in_parent<V: Accumulator>(
     child_id: VNodeId,
     new_intensity: V,
 ) {
-    let parent = vnodes.get(child_id.index()).parent;
+    let parent = vnodes.get(child_id.index()).parent();
     let Some(p_id) = parent else { return };
     let p = vnodes.get_mut(p_id.index());
-    if let VKind::Structural { children, .. } = &mut p.kind {
+    if let VKind::Structural { children, .. } = p.kind_mut() {
         if let Some(idx) = children.find_index(child_id) {
             children.update_intensity(idx, new_intensity);
         }
@@ -264,7 +262,7 @@ pub fn replace_child_in_parent<V: Accumulator>(
     new_intensity: V,
 ) {
     let p = vnodes.get_mut(parent.index());
-    if let VKind::Structural { children, .. } = &mut p.kind {
+    if let VKind::Structural { children, .. } = p.kind_mut() {
         children.replace_child(old_child, new_child, new_intensity);
     }
 }
@@ -275,7 +273,7 @@ fn remove_child_from_structural<V: Accumulator>(
     child: VNodeId,
 ) {
     let p = vnodes.get_mut(parent.index());
-    if let VKind::Structural { children, .. } = &mut p.kind {
+    if let VKind::Structural { children, .. } = p.kind_mut() {
         children.remove_child(child);
     }
 }
@@ -286,7 +284,7 @@ fn sole_sibling<V: Accumulator>(
     child: VNodeId,
 ) -> VNodeId {
     let p = vnodes.get(parent.index());
-    if let VKind::Structural { children, .. } = &p.kind {
+    if let VKind::Structural { children, .. } = &p.kind() {
         for i in 0..children.len() {
             let (id, _) = children.get(i);
             if id != child {
@@ -299,20 +297,20 @@ fn sole_sibling<V: Accumulator>(
 
 pub fn recompute_structural_intensity<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId) {
     let node = vnodes.get(id.index());
-    if let VKind::Structural { children, .. } = &node.kind {
+    if let VKind::Structural { children, .. } = &node.kind() {
         let mut total = V::zero();
         for i in 0..children.len() {
             total = V::add(total, children.get(i).1);
         }
 
         let _ = node;
-        vnodes.get_mut(id.index()).intensity = total;
+        vnodes.get_mut(id.index()).set_intensity(total);
     }
 }
 
 fn recompute_and_propagate_v_sums<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, start: VNodeId) {
     recompute_structural_intensity(vnodes, start);
-    let new_int = vnodes.get(start.index()).intensity;
+    let new_int = vnodes.get(start.index()).intensity();
     sync_intensity_in_parent(vnodes, start, new_int);
     propagate_v_sums(vnodes, start);
 }
@@ -321,7 +319,7 @@ fn compute_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, children: &Ch
     for i in 0..children.len() {
         let (child_id, _) = children.get(i);
         let child = vnodes.get(child_id.index());
-        let child_flag = match &child.kind {
+        let child_flag = match &child.kind() {
             VKind::Entry { is_evictable, .. } => *is_evictable,
             VKind::Structural { has_evictable, .. } => *has_evictable,
         };
@@ -334,7 +332,7 @@ fn compute_has_evictable<V: Accumulator>(vnodes: &Arena<VNode<V>>, children: &Ch
 
 fn set_has_evictable<V: Accumulator>(vnodes: &mut Arena<VNode<V>>, id: VNodeId, flag: bool) {
     let node = vnodes.get_mut(id.index());
-    if let VKind::Structural { has_evictable, .. } = &mut node.kind {
+    if let VKind::Structural { has_evictable, .. } = node.kind_mut() {
         *has_evictable = flag;
     }
 }
@@ -346,7 +344,7 @@ pub fn is_ancestor<V: Accumulator>(
     ancestor: VNodeId,
     mut descendant: VNodeId,
 ) -> bool {
-    while let Some(p) = vnodes.get(descendant.index()).parent {
+    while let Some(p) = vnodes.get(descendant.index()).parent() {
         if p == ancestor {
             return true;
         }
@@ -357,7 +355,6 @@ pub fn is_ancestor<V: Accumulator>(
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicU32, Ordering};
 
     use super::{invalidate_depth_subtree, propagate_v_sums, v_depth, vtree_remove_leaf};
     use crate::arena::Arena;
@@ -365,16 +362,14 @@ mod tests {
     use crate::nodes::vnode::{Children, DEPTH_STALE, VKind, VNode};
 
     fn entry_vnode(intensity: u32, parent: Option<VNodeId>) -> VNode<u32> {
-        VNode {
+        VNode::new_entry(
             intensity,
             parent,
-            cached_depth: AtomicU32::new(DEPTH_STALE),
-            kind: VKind::Entry {
-                gnode: GNodeId::from_index(0),
-                is_exposed: true,
-                is_evictable: true,
-            },
-        }
+            DEPTH_STALE,
+            GNodeId::from_index(0),
+            true,
+            true,
+        )
     }
 
     // ── v_depth ──────────────────────────────────────────────────────────
@@ -404,7 +399,7 @@ mod tests {
             let d2 = v_depth(&vnodes, id);
             assert_eq!(d1, d2);
             // Verify the cached value is no longer DEPTH_STALE
-            let cached = vnodes.get(id.index()).cached_depth.load(Ordering::Relaxed);
+            let cached = vnodes.get(id.index()).cached_depth_raw();
             assert_ne!(cached, DEPTH_STALE);
         }
     }
@@ -417,13 +412,13 @@ mod tests {
         fn marks_cached_depth_stale_on_root() {
             let mut vnodes: Arena<VNode<u32>> = Arena::new();
             // Pre-populate the cached_depth to a non-stale value
-            let mut node = entry_vnode(0, None);
-            node.cached_depth = AtomicU32::new(0);
+            let node = entry_vnode(0, None);
+            node.store_depth(0);
             let id = VNodeId::from_index(vnodes.alloc(node));
 
             invalidate_depth_subtree(&vnodes, id);
 
-            let cached = vnodes.get(id.index()).cached_depth.load(Ordering::Relaxed);
+            let cached = vnodes.get(id.index()).cached_depth_raw();
             assert_eq!(cached, DEPTH_STALE);
         }
 
@@ -433,7 +428,7 @@ mod tests {
             // cached_depth is already DEPTH_STALE from entry_vnode helper
             let id = VNodeId::from_index(vnodes.alloc(entry_vnode(0, None)));
             invalidate_depth_subtree(&vnodes, id); // should not panic
-            let cached = vnodes.get(id.index()).cached_depth.load(Ordering::Relaxed);
+            let cached = vnodes.get(id.index()).cached_depth_raw();
             assert_eq!(cached, DEPTH_STALE);
         }
     }
@@ -458,53 +453,40 @@ mod tests {
             let child_a_id = VNodeId::from_index(vnodes.alloc(entry_vnode(0, None)));
             let child_b_id = VNodeId::from_index(vnodes.alloc(entry_vnode(0, None)));
 
-            let parent_node: VNode<u32> = VNode {
-                intensity: 0,
-                parent: None,
-                cached_depth: AtomicU32::new(DEPTH_STALE),
-                kind: VKind::Structural {
-                    children: Children::new_2((child_a_id, 5u32), (child_b_id, 7u32)),
-                    has_evictable: false,
-                },
-            };
+            let parent_node: VNode<u32> = VNode::new_structural(
+                0,
+                None,
+                DEPTH_STALE,
+                Children::new_2((child_a_id, 5u32), (child_b_id, 7u32)),
+                false,
+            );
             let parent_id = VNodeId::from_index(vnodes.alloc(parent_node));
 
             // Wire children back to parent
-            vnodes.get_mut(child_a_id.index()).parent = Some(parent_id);
-            vnodes.get_mut(child_b_id.index()).parent = Some(parent_id);
+            vnodes.get_mut(child_a_id.index()).set_parent(parent_id);
+            vnodes.get_mut(child_b_id.index()).set_parent(parent_id);
 
             // Update child_a's own intensity
-            vnodes.get_mut(child_a_id.index()).intensity = 20;
+            vnodes.get_mut(child_a_id.index()).set_intensity(20);
 
             propagate_v_sums(&mut vnodes, child_a_id);
 
             // Parent intensity should now reflect sum of cached child intensities
             // (The structural node caches 5 and 7; propagate_v_sums recomputes from them)
-            let parent_intensity = vnodes.get(parent_id.index()).intensity;
+            let parent_intensity = vnodes.get(parent_id.index()).intensity();
             assert_eq!(parent_intensity, 5 + 7); // cached intensities in Children
         }
     }
 
     // ── vtree_remove_leaf ─────────────────────────────────────────────────
     mod vtree_remove_leaf_fn {
-        use std::sync::atomic::AtomicU32;
-
         use super::*;
         use crate::nodes::gnode::GNode;
 
         /// Minimal gnodes arena with one Terminal GNode at index 0.
         fn gnodes_with_one_node() -> Arena<GNode<u8, u32>> {
             let mut gnodes: Arena<GNode<u8, u32>> = Arena::new();
-            gnodes.alloc(GNode {
-                lo: 0u8,
-                hi: 255u8,
-                sum: 0u32,
-                own: 0u32,
-                left: None,
-                right: None,
-                parent: None,
-                entry: None,
-            });
+            gnodes.alloc(GNode::new_leaf(0u8, 255u8, 0u32, None));
             gnodes
         }
 
@@ -529,24 +511,22 @@ mod tests {
             let child_b = VNodeId::from_index(vnodes.alloc(entry_vnode(5, None)));
             let child_c = VNodeId::from_index(vnodes.alloc(entry_vnode(5, None)));
 
-            let parent_id = VNodeId::from_index(vnodes.alloc(VNode {
-                intensity: 15,
-                parent: None,
-                cached_depth: AtomicU32::new(DEPTH_STALE),
-                kind: VKind::Structural {
-                    children: Children::new_3((child_a, 5u32), (child_b, 5u32), (child_c, 5u32)),
-                    has_evictable: true,
-                },
-            }));
+            let parent_id = VNodeId::from_index(vnodes.alloc(VNode::new_structural(
+                15,
+                None,
+                DEPTH_STALE,
+                Children::new_3((child_a, 5u32), (child_b, 5u32), (child_c, 5u32)),
+                true,
+            )));
 
-            vnodes.get_mut(child_a.index()).parent = Some(parent_id);
-            vnodes.get_mut(child_b.index()).parent = Some(parent_id);
-            vnodes.get_mut(child_c.index()).parent = Some(parent_id);
+            vnodes.get_mut(child_a.index()).set_parent(parent_id);
+            vnodes.get_mut(child_b.index()).set_parent(parent_id);
+            vnodes.get_mut(child_c.index()).set_parent(parent_id);
 
             let result = vtree_remove_leaf(&mut vnodes, &mut gnodes, child_c, Some(parent_id));
             assert_eq!(result, Some(parent_id)); // parent remains root
             assert!(!vnodes.is_occupied(child_c.index())); // target removed
-            match &vnodes.get(parent_id.index()).kind {
+            match &vnodes.get(parent_id.index()).kind() {
                 VKind::Structural { children, .. } => assert_eq!(children.len(), 2),
                 _ => panic!("expected Structural"),
             }
@@ -561,24 +541,22 @@ mod tests {
             let target = VNodeId::from_index(vnodes.alloc(entry_vnode(5, None)));
             let sibling = VNodeId::from_index(vnodes.alloc(entry_vnode(5, None)));
 
-            let parent_id = VNodeId::from_index(vnodes.alloc(VNode {
-                intensity: 10,
-                parent: None, // root — no grandparent
-                cached_depth: AtomicU32::new(DEPTH_STALE),
-                kind: VKind::Structural {
-                    children: Children::new_2((target, 5u32), (sibling, 5u32)),
-                    has_evictable: true,
-                },
-            }));
+            let parent_id = VNodeId::from_index(vnodes.alloc(VNode::new_structural(
+                10,
+                None,
+                DEPTH_STALE,
+                Children::new_2((target, 5u32), (sibling, 5u32)),
+                true,
+            )));
 
-            vnodes.get_mut(target.index()).parent = Some(parent_id);
-            vnodes.get_mut(sibling.index()).parent = Some(parent_id);
+            vnodes.get_mut(target.index()).set_parent(parent_id);
+            vnodes.get_mut(sibling.index()).set_parent(parent_id);
 
             let result = vtree_remove_leaf(&mut vnodes, &mut gnodes, target, Some(parent_id));
             assert_eq!(result, Some(sibling)); // sibling is new root
             assert!(!vnodes.is_occupied(target.index()));
             assert!(!vnodes.is_occupied(parent_id.index())); // parent collapsed
-            assert!(vnodes.get(sibling.index()).parent.is_none());
+            assert!(vnodes.get(sibling.index()).parent().is_none());
         }
     }
 }

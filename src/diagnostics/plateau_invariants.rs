@@ -100,7 +100,7 @@ pub fn check_plateau_sum_consistency<
             .basis_elements(&key)
             .iter()
             .filter(|&&gid| graph.gnodes().is_occupied(gid.index()))
-            .map(|&gid| graph.gnodes().get(gid.index()).sum.to_f64_approx())
+            .map(|&gid| graph.gnodes().get(gid.index()).sum().to_f64_approx())
             .sum();
         let actual = plateau.sum.to_f64_approx();
         if expected != actual && (expected - actual).abs() > 1e-9 {
@@ -127,7 +127,7 @@ pub fn check_plateau_depth_consistency<
                 continue;
             }
             let g = graph.gnodes().get(gid.index());
-            let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+            let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
             let expected_depth = match g.state() {
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => {
@@ -157,7 +157,7 @@ pub fn check_plateau_depth_consistency<
 #[cfg(feature = "dynamic-contour-tracking")]
 fn tile_of<C: Coordinate, V: Accumulator>(g: &GNode<C, V>) -> (C, C) {
     match g.state() {
-        GState::Terminal | GState::Internal => (g.lo, g.hi),
+        GState::Terminal | GState::Internal => (g.lo(), g.hi()),
         GState::SemiInternal => g
             .uncovered_range()
             .expect("semi-internal must have uncovered range"),
@@ -174,26 +174,26 @@ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         let g = graph.gnodes().get(gid.index());
         match g.state() {
             GState::Terminal => {
-                let d = gnode_depth_from_interval(g.lo, g.hi, N);
-                cells.push((g.lo, d));
+                let d = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                cells.push((g.lo(), d));
             }
             GState::SemiInternal => {
                 let (ulo, _uhi) = g.uncovered_range().unwrap();
-                let d = gnode_depth_from_interval(g.lo, g.hi, N);
+                let d = gnode_depth_from_interval(g.lo(), g.hi(), N);
                 cells.push((ulo, d));
 
-                if let Some(l) = g.left {
+                if let Some(l) = g.left() {
                     stack.push(l);
                 }
-                if let Some(r) = g.right {
+                if let Some(r) = g.right() {
                     stack.push(r);
                 }
             }
             GState::Internal => {
-                if let Some(l) = g.left {
+                if let Some(l) = g.left() {
                     stack.push(l);
                 }
-                if let Some(r) = g.right {
+                if let Some(r) = g.right() {
                     stack.push(r);
                 }
             }
@@ -374,8 +374,8 @@ pub fn check_p_i1_iii_run_contains_tile<
                 continue;
             }
             let g = graph.gnodes().get(gid.index());
-            let lo = g.lo.to_f64();
-            let hi = g.hi.to_f64();
+            let lo = g.lo().to_f64();
+            let hi = g.hi().to_f64();
             if lo < min_lo {
                 min_lo = lo;
             }
@@ -388,12 +388,12 @@ pub fn check_p_i1_iii_run_contains_tile<
         let p_end = plateau.end.to_f64();
         if (p_start - min_lo).abs() > 1e-12 {
             errors.push(format!(
-                "P-I1(iii): plateau {key:?}: start={p_start}, expected min(basis.lo)={min_lo}"
+                "P-I1(iii): plateau {key:?}: start={p_start}, expected min(basis.lo())={min_lo}"
             ));
         }
         if (p_end - max_hi).abs() > 1e-12 {
             errors.push(format!(
-                "P-I1(iii): plateau {key:?}: end={p_end}, expected max(basis.hi)={max_hi}"
+                "P-I1(iii): plateau {key:?}: end={p_end}, expected max(basis.hi())={max_hi}"
             ));
         }
 
@@ -438,7 +438,7 @@ pub fn check_p_i2_basis_minimality<
                 continue;
             }
 
-            if let Some(parent_id) = g.parent {
+            if let Some(parent_id) = g.parent() {
                 if let Some(parent_depth) = uniform_contour_depth_of(graph.gnodes(), parent_id, N) {
                     if parent_depth == expected_depth {
                         errors.push(format!(
@@ -511,7 +511,7 @@ pub fn check_p_i4_thatch_one_hop<
                 continue;
             }
 
-            let child = g.left.or(g.right);
+            let child = g.left().or_else(|| g.right());
             let Some(child_id) = child else {
                 errors.push(format!(
                     "P-I4: semi-internal {gid:?} in plateau {key:?} has no children"
@@ -520,7 +520,7 @@ pub fn check_p_i4_thatch_one_hop<
             };
 
             let child_g = graph.gnodes().get(child_id.index());
-            let child_lo = child_g.lo;
+            let child_lo = child_g.lo();
 
             let child_plateau_key = graph
                 .plateaus
@@ -558,7 +558,7 @@ pub fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, cons
     for (_, gnodes) in pb.iter() {
         for &gid in gnodes {
             if graph.gnodes().is_occupied(gid.index()) {
-                samples.push(graph.gnodes().get(gid.index()).lo);
+                samples.push(graph.gnodes().get(gid.index()).lo());
             }
         }
     }
@@ -573,8 +573,8 @@ pub fn check_p_i5_thatch_depth<C: Coordinate, V: Accumulator + Inspectable, cons
                     return false;
                 }
                 let g = graph.gnodes().get(gid.index());
-                g.lo.total_cmp(x) != std::cmp::Ordering::Greater
-                    && x.total_cmp(&g.hi) == std::cmp::Ordering::Less
+                g.lo().total_cmp(x) != std::cmp::Ordering::Greater
+                    && x.total_cmp(&g.hi()) == std::cmp::Ordering::Less
             });
             if covers {
                 thatch_count += 1;
@@ -600,19 +600,19 @@ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     for _ in 0..=N + 1 {
         let g = graph.gnodes().get(cur.index());
         if g.is_terminal() {
-            return gnode_depth_from_interval(g.lo, g.hi, N);
+            return gnode_depth_from_interval(g.lo(), g.hi(), N);
         }
-        let mid = C::midpoint(g.lo, g.hi);
+        let mid = C::midpoint(g.lo(), g.hi());
         let next = if x.total_cmp(&mid) == std::cmp::Ordering::Less {
-            g.left
+            g.left()
         } else {
-            g.right
+            g.right()
         };
         match next {
             Some(child) => cur = child,
-            None => return gnode_depth_from_interval(g.lo, g.hi, N),
+            None => return gnode_depth_from_interval(g.lo(), g.hi(), N),
         }
     }
     let g = graph.gnodes().get(cur.index());
-    gnode_depth_from_interval(g.lo, g.hi, N)
+    gnode_depth_from_interval(g.lo(), g.hi(), N)
 }

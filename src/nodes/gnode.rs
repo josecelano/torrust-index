@@ -10,21 +10,21 @@ pub struct GNodeChildren {
 
 #[derive(Debug, Clone)]
 pub struct GNode<C, V> {
-    pub(crate) lo: C,
+    pub(super) lo: C,
 
-    pub(crate) hi: C,
+    pub(super) hi: C,
 
-    pub(crate) sum: V,
+    pub(super) sum: V,
 
-    pub(crate) own: V,
+    pub(super) own: V,
 
-    pub(crate) left: Option<GNodeId>,
+    pub(super) left: Option<GNodeId>,
 
-    pub(crate) right: Option<GNodeId>,
+    pub(super) right: Option<GNodeId>,
 
-    pub(crate) parent: Option<GNodeId>,
+    pub(super) parent: Option<GNodeId>,
 
-    pub(crate) entry: Option<VNodeId>,
+    pub(super) entry: Option<VNodeId>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,6 +35,118 @@ pub enum GState {
     SemiInternal,
 
     Internal,
+}
+
+impl<C: Copy, V: Copy> GNode<C, V> {
+    /// Constructs a new leaf G-node.
+    #[must_use]
+    pub const fn new_leaf(lo: C, hi: C, zero: V, parent: Option<GNodeId>) -> Self {
+        Self {
+            lo,
+            hi,
+            sum: zero,
+            own: zero,
+            left: None,
+            right: None,
+            parent,
+            entry: None,
+        }
+    }
+
+    // ── Read accessors ───────────────────────────────────────────────────
+
+    #[inline]
+    #[must_use]
+    pub const fn lo(&self) -> C {
+        self.lo
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn hi(&self) -> C {
+        self.hi
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn sum(&self) -> V {
+        self.sum
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn own(&self) -> V {
+        self.own
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn left(&self) -> Option<GNodeId> {
+        self.left
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn right(&self) -> Option<GNodeId> {
+        self.right
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn parent(&self) -> Option<GNodeId> {
+        self.parent
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn entry(&self) -> Option<VNodeId> {
+        self.entry
+    }
+
+    // ── Write mutators ───────────────────────────────────────────────────
+
+    #[inline]
+    pub const fn set_sum(&mut self, v: V) {
+        self.sum = v;
+    }
+
+    #[inline]
+    pub const fn set_own(&mut self, v: V) {
+        self.own = v;
+    }
+
+    #[inline]
+    pub const fn link_left(&mut self, l: GNodeId) {
+        self.left = Some(l);
+    }
+
+    #[inline]
+    pub const fn link_right(&mut self, r: GNodeId) {
+        self.right = Some(r);
+    }
+
+    /// Clears a specific child slot: if `child` matches `left`, clears `left`;
+    /// if it matches `right`, clears `right`; otherwise panics.
+    #[inline]
+    pub fn clear_child(&mut self, child: GNodeId) {
+        if self.left == Some(child) {
+            self.left = None;
+        } else if self.right == Some(child) {
+            self.right = None;
+        } else {
+            panic!("clear_child: {child:?} is not a child of this node");
+        }
+    }
+
+    #[inline]
+    pub const fn assign_entry(&mut self, vid: VNodeId) {
+        self.entry = Some(vid);
+    }
+
+    #[inline]
+    pub const fn clear_entry(&mut self) {
+        self.entry = None;
+    }
 }
 
 impl<C, V> GNode<C, V> {

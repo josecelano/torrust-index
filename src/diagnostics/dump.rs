@@ -32,18 +32,18 @@ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u
     let mut parts = Vec::new();
 
     let g = graph.gnodes().get(gnode.index());
-    if let Some(parent_id) = g.parent {
+    if let Some(parent_id) = g.parent() {
         let parent = graph.gnodes().get(parent_id.index());
         if parent.state() == GState::SemiInternal {
             parts.push(format!("SI-child (par=G({}))", parent_id.index()));
         }
     }
 
-    let mut cur = g.parent;
+    let mut cur = g.parent();
     let mut depth = 1;
     while let Some(anc_id) = cur {
         let anc = graph.gnodes().get(anc_id.index());
-        if let Some(anc_parent_id) = anc.parent {
+        if let Some(anc_parent_id) = anc.parent() {
             let anc_parent = graph.gnodes().get(anc_parent_id.index());
             if anc_parent.state() == GState::SemiInternal {
                 parts.push(format!(
@@ -54,7 +54,7 @@ fn semi_internal_lineage<C: Coordinate, V: Accumulator + Inspectable, const N: u
                 ));
             }
         }
-        cur = anc.parent;
+        cur = anc.parent();
         depth += 1;
     }
 
@@ -82,10 +82,10 @@ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     for (idx, g) in graph.gnodes().iter_occupied() {
         let gnode_id = GNodeId::from_index(idx);
         let state = state_label(g.state());
-        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
-        let parent_str = fmt_optional_gnode(g.parent, "None");
-        let left_str = fmt_optional_gnode(g.left, "_");
-        let right_str = fmt_optional_gnode(g.right, "_");
+        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+        let parent_str = fmt_optional_gnode(g.parent(), "None");
+        let left_str = fmt_optional_gnode(g.left(), "_");
+        let right_str = fmt_optional_gnode(g.right(), "_");
         #[cfg(feature = "dynamic-contour-tracking")]
         let basis_str = graph
             .plateau_basis()
@@ -97,7 +97,7 @@ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
         writeln!(out,
             "  G({idx:>3}) {state} [{:>6.1}, {:>6.1})  d={depth}  par={parent_str}  L={left_str} R={right_str}  sum={:>8.1} own={:>8.1}  {basis_str}{lineage}",
-            g.lo.to_f64(), g.hi.to_f64(), g.sum.to_f64_approx(), g.own.to_f64_approx(),
+            g.lo().to_f64(), g.hi().to_f64(), g.sum().to_f64_approx(), g.own().to_f64_approx(),
         ).unwrap();
     }
     out
@@ -160,25 +160,25 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             }
             let g = graph.gnodes().get(gid.index());
             let state = state_label(g.state());
-            let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+            let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
             let contour_depth = match g.state() {
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => g_depth + 1,
             };
             let parent_str = g
-                .parent
+                .parent()
                 .map_or_else(|| "None".to_string(), |p| format!("G({})", p.index()));
             let left_str = g
-                .left
+                .left()
                 .map_or_else(|| "_".to_string(), |l| format!("G({})", l.index()));
             let right_str = g
-                .right
+                .right()
                 .map_or_else(|| "_".to_string(), |r| format!("G({})", r.index()));
             let lineage = semi_internal_lineage(graph, gid);
 
             writeln!(out,
                 "    G({:>3}) {state} [{:>6.1}, {:>6.1})  d={g_depth} contour_d={contour_depth}  par={parent_str} L={left_str} R={right_str}  sum={:.1}{lineage}",
-                gid.index(), g.lo.to_f64(), g.hi.to_f64(), g.sum.to_f64_approx(),
+                gid.index(), g.lo().to_f64(), g.hi().to_f64(), g.sum().to_f64_approx(),
             ).unwrap();
         }
     }

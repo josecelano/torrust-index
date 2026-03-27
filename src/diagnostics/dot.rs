@@ -55,9 +55,9 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
     while let Some(gid) = queue.pop_front() {
         let g = graph.gnodes().get(gid.index());
         let idx = gid.index();
-        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
+        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
         let state = state_label(g.state());
-        let has_entry = g.entry.is_some();
+        let has_entry = g.entry().is_some();
 
         let fillcolor = match g.state() {
             GState::Terminal if has_entry => "#c8e6c9", // green
@@ -67,7 +67,7 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
         };
 
         let entry_note = if has_entry {
-            format!("VEntry({})", g.entry.unwrap().index())
+            format!("VEntry({})", g.entry().unwrap().index())
         } else {
             "no VEntry".to_string()
         };
@@ -76,17 +76,17 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
             out,
             "  G{idx} [label=\"G{idx}  [{:.0}, {:.0})\\nd={depth}  {state}  {entry_note}\\nown={:.0}  sum={:.0}\", \
              style=filled, fillcolor=\"{fillcolor}\"];",
-            g.lo.to_f64(),
-            g.hi.to_f64(),
-            g.own.to_f64_approx(),
-            g.sum.to_f64_approx(),
+            g.lo().to_f64(),
+            g.hi().to_f64(),
+            g.own().to_f64_approx(),
+            g.sum().to_f64_approx(),
         )
         .unwrap();
 
-        if let Some(left) = g.left {
+        if let Some(left) = g.left() {
             queue.push_back(left);
         }
-        if let Some(right) = g.right {
+        if let Some(right) = g.right() {
             queue.push_back(right);
         }
     }
@@ -99,11 +99,11 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
     while let Some(gid) = queue.pop_front() {
         let g = graph.gnodes().get(gid.index());
         let idx = gid.index();
-        if let Some(left) = g.left {
+        if let Some(left) = g.left() {
             writeln!(out, "  G{idx} -> G{} [label=\"L\"];", left.index()).unwrap();
             queue.push_back(left);
         }
-        if let Some(right) = g.right {
+        if let Some(right) = g.right() {
             writeln!(out, "  G{idx} -> G{} [label=\"R\"];", right.index()).unwrap();
             queue.push_back(right);
         }
@@ -156,14 +156,14 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
         let vnode = graph.vnodes().get(vid.index());
         let idx = vid.index();
 
-        match &vnode.kind {
+        match &vnode.kind() {
             VKind::Entry {
                 gnode,
                 is_exposed,
                 is_evictable,
             } => {
                 let g = graph.gnodes().get(gnode.index());
-                let g_depth = gnode_depth_from_interval(g.lo, g.hi, N);
+                let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
                 let g_state = state_label(g.state());
                 writeln!(
                     out,
@@ -171,9 +171,9 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
                      label=\"V{idx} Entry\\nG{}  [{:.0},{:.0}) d={g_depth} {g_state}\\n\
                      intensity={:.0}  exposed={is_exposed}  evict={is_evictable}\"];",
                     gnode.index(),
-                    g.lo.to_f64(),
-                    g.hi.to_f64(),
-                    vnode.intensity.to_f64_approx(),
+                    g.lo().to_f64(),
+                    g.hi().to_f64(),
+                    vnode.intensity().to_f64_approx(),
                 )
                 .unwrap();
             }
@@ -185,7 +185,7 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
                     out,
                     "  V{idx} [shape=ellipse, style=filled, fillcolor=\"#e1bee7\", \
                      label=\"V{idx} Struct\\nintensity={:.0}  has_evict={has_evictable}\"];",
-                    vnode.intensity.to_f64_approx(),
+                    vnode.intensity().to_f64_approx(),
                 )
                 .unwrap();
                 for i in 0..children.len() {
@@ -206,7 +206,7 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
         let vnode = graph.vnodes().get(vid.index());
         let idx = vid.index();
 
-        if let VKind::Structural { children, .. } = &vnode.kind {
+        if let VKind::Structural { children, .. } = &vnode.kind() {
             for i in 0..children.len() {
                 let (child_id, child_intensity) = children.get(i);
                 writeln!(

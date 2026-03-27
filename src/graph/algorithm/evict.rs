@@ -25,16 +25,16 @@ fn classify_leaf_removal<V: Accumulator>(
     vnodes: &Arena<VNode<V>>,
     v_id: VNodeId,
 ) -> LeafRemovalContext {
-    let v_parent = vnodes.get(v_id.index()).parent;
+    let v_parent = vnodes.get(v_id.index()).parent();
     let (child_count, change_point, collapse_sibling) = v_parent.map_or((0, None, None), |p| {
-        let count = match &vnodes.get(p.index()).kind {
+        let count = match &vnodes.get(p.index()).kind() {
             VKind::Structural { children, .. } => children.len(),
             VKind::Entry { .. } => 0,
         };
         match count {
             3 => (3, Some(p), None),
             2 => {
-                let sibling = match &vnodes.get(p.index()).kind {
+                let sibling = match &vnodes.get(p.index()).kind() {
                     VKind::Structural { children, .. } => {
                         let (c0, _) = children.get(0);
                         let (c1, _) = children.get(1);
@@ -42,7 +42,7 @@ fn classify_leaf_removal<V: Accumulator>(
                     }
                     VKind::Entry { .. } => None,
                 };
-                (2, vnodes.get(p.index()).parent, sibling)
+                (2, vnodes.get(p.index()).parent(), sibling)
             }
             _ => (count, None, None),
         }
@@ -116,7 +116,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     )
     .entered();
 
-    let gnode_id = match &graph.vnodes.get(v_id.index()).kind {
+    let gnode_id = match &graph.vnodes.get(v_id.index()).kind() {
         VKind::Entry {
             gnode,
             is_evictable,
@@ -141,43 +141,33 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let parent_id = graph
         .gnodes
         .get(gnode_id.index())
-        .parent
+        .parent()
         .expect("evict_tip: terminal G-node must have a parent");
     span.record("parent", parent_id.index());
 
     // ── Phase 1: G-tree restructuring ───────────────────────────────────────
     // Absorb the evicted child's sum into the parent's own weight, detach
     // the child slot, and recompute the parent sum invariant.
-    let child_sum = graph.gnodes.get(gnode_id.index()).sum;
-    let parent_sum_before = graph.gnodes.get(parent_id.index()).sum;
+    let child_sum = graph.gnodes.get(gnode_id.index()).sum();
+    let parent_sum_before = graph.gnodes.get(parent_id.index()).sum();
 
-    graph.gnodes.get_mut(parent_id.index()).own =
-        V::add(graph.gnodes.get(parent_id.index()).own, child_sum);
+    let parent_own_before = graph.gnodes.get(parent_id.index()).own();
+    graph
+        .gnodes
+        .get_mut(parent_id.index())
+        .set_own(V::add(parent_own_before, child_sum));
 
-    {
-        let p = graph.gnodes.get_mut(parent_id.index());
-        if p.left == Some(gnode_id) {
-            p.left = None;
-        } else if p.right == Some(gnode_id) {
-            p.right = None;
-        } else {
-            panic!(
-                "evict_tip: G-node {} is not a child of parent {}",
-                gnode_id.index(),
-                parent_id.index()
-            );
-        }
-    }
+    graph.gnodes.get_mut(parent_id.index()).clear_child(gnode_id);
 
     {
         let p = graph.gnodes.get(parent_id.index());
         let left_sum = p
-            .left
-            .map_or_else(V::zero, |l| graph.gnodes.get(l.index()).sum);
+            .left()
+            .map_or_else(V::zero, |l| graph.gnodes.get(l.index()).sum());
         let right_sum = p
-            .right
-            .map_or_else(V::zero, |r| graph.gnodes.get(r.index()).sum);
-        let recomputed = V::add(p.own, V::add(left_sum, right_sum));
+            .right()
+            .map_or_else(V::zero, |r| graph.gnodes.get(r.index()).sum());
+        let recomputed = V::add(p.own(), V::add(left_sum, right_sum));
         debug_assert!(
             (recomputed.to_f64_approx() - parent_sum_before.to_f64_approx()).abs() < 1e-9,
             "evict_tip: G-sum invariant violation after absorption: \
@@ -186,7 +176,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             parent_sum_before.to_f64_approx()
         );
 
-        graph.gnodes.get_mut(parent_id.index()).sum = recomputed;
+        graph.gnodes.get_mut(parent_id.index()).set_sum(recomputed);
     }
 
     // ── Phase 2: V-intensity propagation ────────────────────────────────────
@@ -195,11 +185,14 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let p_entry_id = graph
         .gnodes
         .get(parent_id.index())
-        .entry
+        .entry()
         .expect("evict_tip: parent must have V-entry (has dependents)");
     {
-        let p_own = graph.gnodes.get(parent_id.index()).own;
-        graph.vnodes.get_mut(p_entry_id.index()).intensity = p_own;
+        let p_own = graph.gnodes.get(parent_id.index()).own();
+        graph
+            .vnodes
+            .get_mut(p_entry_id.index())
+            .set_intensity(p_own);
         vtree::sync_intensity_in_parent(&mut graph.vnodes, p_entry_id, p_own);
         vtree::propagate_v_sums(&mut graph.vnodes, p_entry_id);
 
@@ -208,7 +201,7 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             if rebalance::is_violated(&graph.vnodes, id) {
                 graph.violations.push(id);
             }
-            check_id = graph.vnodes.get(id.index()).parent;
+            check_id = graph.vnodes.get(id.index()).parent();
         }
     }
 
@@ -218,13 +211,13 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         let parent_is_exposed = p.uncovered_range().is_some();
         let parent_is_evictable = p.is_terminal();
         let p_entry_id = p
-            .entry
+            .entry()
             .expect("evict_tip: parent must have V-entry (has dependents)");
         if let VKind::Entry {
             is_exposed,
             is_evictable,
             ..
-        } = &mut graph.vnodes.get_mut(p_entry_id.index()).kind
+        } = graph.vnodes.get_mut(p_entry_id.index()).kind_mut()
         {
             *is_exposed = parent_is_exposed;
             *is_evictable = parent_is_evictable;
@@ -263,8 +256,8 @@ pub fn evict_tip<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         let pg = graph.gnodes.get(parent_id.index());
         ParentSnapshot {
             state: pg.state(),
-            lo: pg.lo,
-            hi: pg.hi,
+            lo: pg.lo(),
+            hi: pg.hi(),
         }
     };
 
@@ -318,7 +311,7 @@ fn scan_dfs<C: Coordinate, V: Accumulator, const N: u32>(
     candidates: &mut Vec<VNodeId>,
 ) {
     let node = graph.vnodes.get(v_id.index());
-    match &node.kind {
+    match &node.kind() {
         VKind::Entry {
             gnode,
             is_evictable,

@@ -13,21 +13,21 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
 
         let v_root = self.v_root?;
         let root_node = self.vnodes.get(v_root.index());
-        if root_node.intensity == V::zero() {
+        if root_node.intensity() == V::zero() {
             return None;
         }
 
         let mut current = v_root;
         loop {
             let vnode = self.vnodes.get(current.index());
-            match &vnode.kind {
+            match &vnode.kind() {
                 VKind::Entry { gnode, .. } => {
                     let g = self.gnodes.get(gnode.index());
                     let (start, end) = Self::uncovered_interval(g);
                     return Some(crate::spatial::view::Cell {
                         start,
                         end,
-                        intensity: g.own,
+                        intensity: g.own(),
                         depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
                     });
                 }

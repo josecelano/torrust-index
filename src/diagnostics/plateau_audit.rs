@@ -48,7 +48,7 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
     if let Some(ctx) = context {
         if ctx.parent_state == GState::SemiInternal {
             let g = graph.gnodes.get(ctx.parent_id.index());
-            let surviving = g.left.or(g.right);
+            let surviving = g.left().or_else(|| g.right());
             if let Some(surviving_id) = surviving {
                 let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);
                 if let Some(pk) = parent_plateau {
@@ -114,7 +114,7 @@ mod tests {
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32);
             // Use a leaf gnode (Terminal) as context parent with SemiInternal state.
-            // surviving = leaf.left.or(leaf.right) = None → inner block skipped.
+            // surviving = leaf.left().or_else(|| leaf.right()) = None → inner block skipped.
             let ctx = PlateauAuditContext {
                 parent_id: GNodeId::from_index(1), // leaf gnode
                 parent_state: GState::SemiInternal,
@@ -127,7 +127,7 @@ mod tests {
             let mut g: G = GvGraph::new(make_config());
             g.observe(64u8, 3u32);
             // Use the Internal root (gnode 0) as context parent with SemiInternal.
-            // surviving = root.left.or(root.right) = Some(left_child).
+            // surviving = root.left().or_else(|| root.right()) = Some(left_child).
             let ctx = PlateauAuditContext {
                 parent_id: GNodeId::from_index(0), // internal root gnode
                 parent_state: GState::SemiInternal,

@@ -29,9 +29,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable> fmt::Display for Gn<'_, C, V> 
         write!(
             f,
             "G{idx}({state},[{},{}),sum={})",
-            g.lo.to_f64(),
-            g.hi.to_f64(),
-            g.sum.to_f64_approx()
+            g.lo().to_f64(),
+            g.hi().to_f64(),
+            g.sum().to_f64_approx()
         )
     }
 }

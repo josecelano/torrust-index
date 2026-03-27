@@ -12,14 +12,14 @@ pub fn route_to_receiver<C: Coordinate, V: Accumulator>(
     let mut current = root;
     loop {
         let g = gnodes.get(current.index());
-        let mid = C::midpoint(g.lo, g.hi);
+        let mid = C::midpoint(g.lo(), g.hi());
         if x < mid {
-            if let Some(left) = g.left {
+            if let Some(left) = g.left() {
                 current = left;
             } else {
                 return current;
             }
-        } else if let Some(right) = g.right {
+        } else if let Some(right) = g.right() {
             current = right;
         } else {
             return current;
@@ -51,13 +51,13 @@ pub fn recompute_g_sums<C: Coordinate, V: Accumulator>(
     while let Some(id) = current {
         let (left_sum, right_sum) = {
             let g = gnodes.get(id.index());
-            let l = g.left.map_or_else(V::zero, |l| gnodes.get(l.index()).sum);
-            let r = g.right.map_or_else(V::zero, |r| gnodes.get(r.index()).sum);
+            let l = g.left().map_or_else(V::zero, |l| gnodes.get(l.index()).sum());
+            let r = g.right().map_or_else(V::zero, |r| gnodes.get(r.index()).sum());
             (l, r)
         };
         let g = gnodes.get_mut(id.index());
-        g.sum = V::add(g.own, V::add(left_sum, right_sum));
-        current = g.parent;
+        g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
+        current = g.parent();
     }
 }
 
@@ -68,11 +68,11 @@ pub fn recompute_g_sums_subtree<C: Coordinate, V: Accumulator>(
     for &gid in preorder.iter().rev() {
         let (left_sum, right_sum) = {
             let g = gnodes.get(gid.index());
-            let l = g.left.map_or_else(V::zero, |l| gnodes.get(l.index()).sum);
-            let r = g.right.map_or_else(V::zero, |r| gnodes.get(r.index()).sum);
+            let l = g.left().map_or_else(V::zero, |l| gnodes.get(l.index()).sum());
+            let r = g.right().map_or_else(V::zero, |r| gnodes.get(r.index()).sum());
             (l, r)
         };
         let g = gnodes.get_mut(gid.index());
-        g.sum = V::add(g.own, V::add(left_sum, right_sum));
+        g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
     }
 }

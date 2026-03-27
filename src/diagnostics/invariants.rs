@@ -124,18 +124,18 @@ fn check_g_i1_summation<C: Coordinate, V: Accumulator + Inspectable, const N: u3
 ) {
     for (idx, g) in graph.gnodes().iter_occupied() {
         let left_sum = g
-            .left
-            .map_or(0.0, |l| graph.gnodes().get(l.index()).sum.to_f64_approx());
+            .left()
+            .map_or(0.0, |l| graph.gnodes().get(l.index()).sum().to_f64_approx());
         let right_sum = g
-            .right
-            .map_or(0.0, |r| graph.gnodes().get(r.index()).sum.to_f64_approx());
-        let expected = g.own.to_f64_approx() + left_sum + right_sum;
-        let actual = g.sum.to_f64_approx();
+            .right()
+            .map_or(0.0, |r| graph.gnodes().get(r.index()).sum().to_f64_approx());
+        let expected = g.own().to_f64_approx() + left_sum + right_sum;
+        let actual = g.sum().to_f64_approx();
         if expected != actual && (expected - actual).abs() > 1e-9 {
             errors.push(format!(
                 "G-I1 violated at G-node {idx}: expected sum={expected}, actual sum={actual} \
                  (own={}, left_sum={left_sum}, right_sum={right_sum})",
-                g.own.to_f64_approx()
+                g.own().to_f64_approx()
             ));
         }
     }
@@ -146,7 +146,7 @@ fn check_g_i2_variable_fanout<C: Coordinate, V: Accumulator + Inspectable, const
     errors: &mut Vec<String>,
 ) {
     for (idx, g) in graph.gnodes().iter_occupied() {
-        let count = usize::from(g.left.is_some()) + usize::from(g.right.is_some());
+        let count = usize::from(g.left().is_some()) + usize::from(g.right().is_some());
         if count > 2 {
             errors.push(format!(
                 "G-I2 violated at G-node {idx}: {count} children (max 2)"
@@ -160,7 +160,7 @@ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, con
     errors: &mut Vec<String>,
 ) {
     for (idx, g) in graph.gnodes().iter_occupied() {
-        if let Some(v_id) = g.entry {
+        if let Some(v_id) = g.entry() {
             if !graph.vnodes().is_occupied(v_id.index()) {
                 errors.push(format!(
                     "G-I4 violated at G-node {idx}: entry V-node {} is not occupied",
@@ -170,8 +170,8 @@ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, con
             }
             let v = graph.vnodes().get(v_id.index());
 
-            let g_own = g.own.to_f64_approx();
-            let v_int = v.intensity.to_f64_approx();
+            let g_own = g.own().to_f64_approx();
+            let v_int = v.intensity().to_f64_approx();
             #[allow(clippy::float_cmp)]
             if g_own != v_int && (g_own - v_int).abs() > 1e-9 {
                 errors.push(format!(
@@ -179,7 +179,7 @@ fn check_g_i4_entry_consistency<C: Coordinate, V: Accumulator + Inspectable, con
                 ));
             }
 
-            match &v.kind {
+            match &v.kind() {
                 VKind::Entry { gnode, .. } => {
                     let g_id = GNodeId::from_index(idx);
                     if *gnode != g_id {
@@ -210,7 +210,7 @@ fn check_g_i5_entry_bijection<C: Coordinate, V: Accumulator + Inspectable, const
     let mut g_count = 0usize;
     for (idx, g) in graph.gnodes().iter_occupied() {
         g_count += 1;
-        if g.entry.is_none() {
+        if g.entry().is_none() {
             g_without_entry.push(idx);
         }
     }
@@ -224,7 +224,7 @@ fn check_g_i5_entry_bijection<C: Coordinate, V: Accumulator + Inspectable, const
     let v_entry_count = graph
         .vnodes()
         .iter_occupied()
-        .filter(|(_, v)| matches!(v.kind, VKind::Entry { .. }))
+        .filter(|(_, v)| matches!(v.kind(), VKind::Entry { .. }))
         .count();
 
     if g_count != v_entry_count {
@@ -239,7 +239,7 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
     errors: &mut Vec<String>,
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
-        if let VKind::Structural { children, .. } = &v.kind {
+        if let VKind::Structural { children, .. } = &v.kind() {
             let mut sum = 0.0_f64;
             for i in 0..children.len() {
                 let (child_id, cached_int) = children.get(i);
@@ -251,7 +251,7 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
                     ));
                     continue;
                 }
-                let actual_int = graph.vnodes().get(child_id.index()).intensity;
+                let actual_int = graph.vnodes().get(child_id.index()).intensity();
                 if (cached_int.to_f64_approx() - actual_int.to_f64_approx()).abs() > 1e-9 {
                     errors.push(format!(
                         "V-I1 cached intensity mismatch at V-node {idx}, child {}: \
@@ -264,7 +264,7 @@ fn check_v_i1_structural_sum<C: Coordinate, V: Accumulator + Inspectable, const 
                 sum += cached_int.to_f64_approx();
             }
 
-            let node_int = v.intensity.to_f64_approx();
+            let node_int = v.intensity().to_f64_approx();
             if (node_int - sum).abs() > 1e-9 {
                 errors.push(format!(
                     "V-I1 violated at V-node {idx}: intensity={node_int}, sum of children={sum}"
@@ -279,7 +279,7 @@ fn check_v_i2_branching_factor<C: Coordinate, V: Accumulator + Inspectable, cons
     errors: &mut Vec<String>,
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
-        if let VKind::Structural { children, .. } = &v.kind {
+        if let VKind::Structural { children, .. } = &v.kind() {
             let len = children.len();
             if len != 2 && len != 3 {
                 errors.push(format!(
@@ -297,7 +297,7 @@ fn check_v_i3_max_uncle<C: Coordinate, V: Accumulator + Inspectable, const N: u3
     for (idx, v) in graph.vnodes().iter_occupied() {
         let v_id = VNodeId::from_index(idx);
         if is_violated(graph.vnodes(), v_id) {
-            let int = v.intensity.to_f64_approx();
+            let int = v.intensity().to_f64_approx();
             let uncle =
                 crate::graph::algorithm::rebalance::max_uncle_intensity(graph.vnodes(), v_id)
                     .map_or(f64::NAN, Inspectable::to_f64_approx);
@@ -313,7 +313,7 @@ fn check_v_i5_entry_leaf<C: Coordinate, V: Accumulator + Inspectable, const N: u
     errors: &mut Vec<String>,
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
-        if let VKind::Structural { children, .. } = &v.kind {
+        if let VKind::Structural { children, .. } = &v.kind() {
             for i in 0..children.len() {
                 let (child_id, _) = children.get(i);
                 if !graph.vnodes().is_occupied(child_id.index()) {
@@ -334,7 +334,7 @@ fn check_v_i6_exposed_flag<C: Coordinate, V: Accumulator + Inspectable, const N:
     for (idx, v) in graph.vnodes().iter_occupied() {
         if let VKind::Entry {
             gnode, is_exposed, ..
-        } = &v.kind
+        } = &v.kind()
         {
             if !graph.gnodes().is_occupied(gnode.index()) {
                 errors.push(format!(
@@ -366,7 +366,7 @@ fn check_v_i6b_evictable_flag<C: Coordinate, V: Accumulator + Inspectable, const
             is_evictable,
             is_exposed,
             ..
-        } = &v.kind
+        } = &v.kind()
         {
             if !graph.gnodes().is_occupied(gnode.index()) {
                 continue;
@@ -398,7 +398,7 @@ fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const
         if let VKind::Structural {
             children,
             has_evictable,
-        } = &v.kind
+        } = &v.kind()
         {
             let expected = (0..children.len()).any(|i| {
                 let (child_id, _) = children.get(i);
@@ -406,7 +406,7 @@ fn check_v_i7_structural_flag<C: Coordinate, V: Accumulator + Inspectable, const
                     return false;
                 }
                 let child = graph.vnodes().get(child_id.index());
-                match &child.kind {
+                match &child.kind() {
                     VKind::Entry { is_evictable, .. } => *is_evictable,
                     VKind::Structural { has_evictable, .. } => *has_evictable,
                 }
@@ -428,14 +428,14 @@ fn check_clean_accounting<C: Coordinate, V: Accumulator + Inspectable, const N: 
 ) {
     let mut total_v = 0.0_f64;
     for (_, v) in graph.vnodes().iter_occupied() {
-        if matches!(v.kind, VKind::Entry { .. }) {
-            total_v += v.intensity.to_f64_approx();
+        if matches!(v.kind(), VKind::Entry { .. }) {
+            total_v += v.intensity().to_f64_approx();
         }
     }
     let g_root_sum = graph
         .gnodes()
         .get(graph.g_root().index())
-        .sum
+        .sum()
         .to_f64_approx();
     if total_v != g_root_sum && (total_v - g_root_sum).abs() > 1e-9 {
         errors.push(format!(
@@ -460,9 +460,9 @@ fn check_g_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
 ) {
     for (idx, g) in graph.gnodes().iter_occupied() {
         let g_id = GNodeId::from_index(idx);
-        if let Some(left) = g.left {
+        if let Some(left) = g.left() {
             if graph.gnodes().is_occupied(left.index()) {
-                let child_parent = graph.gnodes().get(left.index()).parent;
+                let child_parent = graph.gnodes().get(left.index()).parent();
                 if child_parent != Some(g_id) {
                     errors.push(format!(
                         "G-parent link: G-node {idx}'s left child {}'s parent is {:?}, expected {g_id:?}",
@@ -472,9 +472,9 @@ fn check_g_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
                 }
             }
         }
-        if let Some(right) = g.right {
+        if let Some(right) = g.right() {
             if graph.gnodes().is_occupied(right.index()) {
-                let child_parent = graph.gnodes().get(right.index()).parent;
+                let child_parent = graph.gnodes().get(right.index()).parent();
                 if child_parent != Some(g_id) {
                     errors.push(format!(
                         "G-parent link: G-node {idx}'s right child {}'s parent is {:?}, expected {g_id:?}",
@@ -495,11 +495,11 @@ fn check_v_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
 ) {
     for (idx, v) in graph.vnodes().iter_occupied() {
         let v_id = VNodeId::from_index(idx);
-        if let VKind::Structural { children, .. } = &v.kind {
+        if let VKind::Structural { children, .. } = &v.kind() {
             for i in 0..children.len() {
                 let (child_id, _) = children.get(i);
                 if graph.vnodes().is_occupied(child_id.index()) {
-                    let child_parent = graph.vnodes().get(child_id.index()).parent;
+                    let child_parent = graph.vnodes().get(child_id.index()).parent();
                     if child_parent != Some(v_id) {
                         errors.push(format!(
                             "V-parent link: V-node {idx}'s child {}'s parent is {:?}, expected {v_id:?}",
@@ -511,10 +511,10 @@ fn check_v_parent_links<C: Coordinate, V: Accumulator + Inspectable, const N: u3
             }
         }
 
-        if let Some(p_id) = v.parent {
+        if let Some(p_id) = v.parent() {
             if graph.vnodes().is_occupied(p_id.index()) {
                 let parent = graph.vnodes().get(p_id.index());
-                if let VKind::Structural { children, .. } = &parent.kind {
+                if let VKind::Structural { children, .. } = &parent.kind() {
                     if children.find_index(v_id).is_none() {
                         errors.push(format!(
                             "V-parent link: V-node {idx} has parent {}, but parent does not list it as a child",
@@ -545,11 +545,11 @@ fn check_v_root_consistency<C: Coordinate, V: Accumulator + Inspectable, const N
             return;
         }
         let root = graph.vnodes().get(root_id.index());
-        if root.parent.is_some() {
+        if root.parent().is_some() {
             errors.push(format!(
                 "V-root consistency: v_root {} has parent {:?}, expected None",
                 root_id.index(),
-                root.parent
+                root.parent()
             ));
         }
     }

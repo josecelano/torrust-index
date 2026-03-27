@@ -39,7 +39,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
         crate::spatial::view::Cell {
             start,
             end,
-            intensity: g.own,
+            intensity: g.own(),
             depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
         }
     }
@@ -61,13 +61,13 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     pub(super) fn uncovered_interval(g: &GNode<C, V>) -> (C, C) {
         use crate::nodes::gnode::GState;
         match g.state() {
-            GState::Terminal | GState::Internal => (g.lo, g.hi),
+            GState::Terminal | GState::Internal => (g.lo(), g.hi()),
             GState::SemiInternal => {
-                let mid = C::midpoint(g.lo, g.hi);
-                if g.left.is_some() {
-                    (mid, g.hi)
+                let mid = C::midpoint(g.lo(), g.hi());
+                if g.left().is_some() {
+                    (mid, g.hi())
                 } else {
-                    (g.lo, mid)
+                    (g.lo(), mid)
                 }
             }
         }
@@ -77,25 +77,25 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     fn trimmed_interval(g: &GNode<C, V>, coord: C) -> (C, C) {
         use crate::nodes::gnode::GState;
         match g.state() {
-            GState::Terminal | GState::Internal => (g.lo, g.hi),
+            GState::Terminal | GState::Internal => (g.lo(), g.hi()),
             GState::SemiInternal => {
-                let mid = C::midpoint(g.lo, g.hi);
-                if g.left.is_some() {
+                let mid = C::midpoint(g.lo(), g.hi());
+                if g.left().is_some() {
                     debug_assert!(
                         coord >= mid,
                         "get(): coord {coord:?} in covered half \
                          [lo={:?}, mid={mid:?}) of semi-internal",
-                        g.lo,
+                        g.lo(),
                     );
-                    (mid, g.hi)
+                    (mid, g.hi())
                 } else {
                     debug_assert!(
                         coord < mid,
                         "get(): coord {coord:?} in covered half \
                          [mid={mid:?}, hi={:?}) of semi-internal",
-                        g.hi,
+                        g.hi(),
                     );
-                    (g.lo, mid)
+                    (g.lo(), mid)
                 }
             }
         }
@@ -150,15 +150,15 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C
 
     fn range_sum_inner(&self, gid: crate::handle::GNodeId, query_lo: C, query_hi: C) -> V {
         let g = self.gnodes.get(gid.index());
-        let node_lo = g.lo;
-        let node_hi = g.hi;
+        let node_lo = g.lo();
+        let node_hi = g.hi();
 
         if query_lo >= node_hi || query_hi <= node_lo {
             return V::zero();
         }
 
         if query_lo <= node_lo && query_hi >= node_hi {
-            return g.sum;
+            return g.sum();
         }
 
         let overlap_lo = if query_lo > node_lo {
@@ -174,12 +174,12 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable, const N: u32> GvGraph<C
 
         let node_width = C::width(node_lo, node_hi).to_f64();
         let overlap_width = C::width(overlap_lo, overlap_hi).to_f64();
-        let own_prorated = g.own.scale_by(overlap_width / node_width);
+        let own_prorated = g.own().scale_by(overlap_width / node_width);
 
-        let left_sum = g.left.map_or_else(V::zero, |left_id| {
+        let left_sum = g.left().map_or_else(V::zero, |left_id| {
             self.range_sum_inner(left_id, query_lo, query_hi)
         });
-        let right_sum = g.right.map_or_else(V::zero, |right_id| {
+        let right_sum = g.right().map_or_else(V::zero, |right_id| {
             self.range_sum_inner(right_id, query_lo, query_hi)
         });
 
@@ -253,70 +253,70 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
     ) {
         let g = self.gnodes.get(gid.index());
 
-        if query_lo >= g.hi || query_hi <= g.lo {
+        if query_lo >= g.hi() || query_hi <= g.lo() {
             return;
         }
 
-        if query_lo <= g.lo && query_hi >= g.hi {
+        if query_lo <= g.lo() && query_hi >= g.hi() {
             basis.push(BasisElement {
                 gnode_id: gid,
-                start: g.lo,
-                end: g.hi,
-                own: g.own,
-                sum: g.sum,
-                depth: gnode_depth_from_interval(g.lo, g.hi, N),
+                start: g.lo(),
+                end: g.hi(),
+                own: g.own(),
+                sum: g.sum(),
+                depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
                 is_boundary_thatch: false,
             });
             return;
         }
 
-        let mid = C::midpoint(g.lo, g.hi);
+        let mid = C::midpoint(g.lo(), g.hi());
 
-        let left_absent = g.left.is_none();
-        let right_absent = g.right.is_none();
+        let left_absent = g.left().is_none();
+        let right_absent = g.right().is_none();
         if left_absent != right_absent {
-            let l_lo = if query_lo > g.lo { query_lo } else { g.lo };
+            let l_lo = if query_lo > g.lo() { query_lo } else { g.lo() };
             let l_hi = if query_hi < mid { query_hi } else { mid };
             let r_lo = if query_lo > mid { query_lo } else { mid };
-            let r_hi = if query_hi < g.hi { query_hi } else { g.hi };
+            let r_hi = if query_hi < g.hi() { query_hi } else { g.hi() };
             if l_lo < l_hi && r_lo < r_hi {
                 basis.push(BasisElement {
                     gnode_id: gid,
                     start: l_lo,
                     end: r_hi,
-                    own: g.own,
-                    sum: g.sum,
-                    depth: gnode_depth_from_interval(g.lo, g.hi, N),
+                    own: g.own(),
+                    sum: g.sum(),
+                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
                     is_boundary_thatch: true,
                 });
                 return;
             }
         }
 
-        if let Some(left_id) = g.left {
+        if let Some(left_id) = g.left() {
             self.decompose_basis(left_id, query_lo, query_hi, basis);
         } else {
-            let tile_lo = if query_lo > g.lo { query_lo } else { g.lo };
+            let tile_lo = if query_lo > g.lo() { query_lo } else { g.lo() };
             let tile_hi = if query_hi < mid { query_hi } else { mid };
             if tile_lo < tile_hi {
                 basis.push(BasisElement {
                     gnode_id: gid,
                     start: tile_lo,
                     end: tile_hi,
-                    own: g.own,
-                    sum: g.sum,
-                    depth: gnode_depth_from_interval(g.lo, g.hi, N),
+                    own: g.own(),
+                    sum: g.sum(),
+                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
                     is_boundary_thatch: true,
                 });
                 return;
             }
         }
 
-        if let Some(right_id) = g.right {
+        if let Some(right_id) = g.right() {
             self.decompose_basis(right_id, query_lo, query_hi, basis);
         } else {
             let tile_lo = if query_lo > mid { query_lo } else { mid };
-            let tile_hi = if query_hi < g.hi { query_hi } else { g.hi };
+            let tile_hi = if query_hi < g.hi() { query_hi } else { g.hi() };
             if tile_lo < tile_hi {
                 debug_assert!(
                     basis.last().is_none_or(|b| b.gnode_id != gid),
@@ -326,9 +326,9 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
                     gnode_id: gid,
                     start: tile_lo,
                     end: tile_hi,
-                    own: g.own,
-                    sum: g.sum,
-                    depth: gnode_depth_from_interval(g.lo, g.hi, N),
+                    own: g.own(),
+                    sum: g.sum(),
+                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
                     is_boundary_thatch: true,
                 });
             }

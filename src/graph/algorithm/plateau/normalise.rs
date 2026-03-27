@@ -27,7 +27,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         use crate::nodes::gnode::GState;
 
         loop {
-            let Some(parent_id) = self.gnodes.get(gid.index()).parent else {
+            let Some(parent_id) = self.gnodes.get(gid.index()).parent() else {
                 tracing::trace!(from = gid.index(), "consolidate_basis_up: stop — no parent");
                 break;
             };
@@ -42,7 +42,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             }
             let (left, right) = {
                 let pg = self.gnodes.get(parent_id.index());
-                match (pg.left, pg.right) {
+                match (pg.left(), pg.right()) {
                     (Some(l), Some(r)) => (l, r),
                     _ => break,
                 }
@@ -166,28 +166,28 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 let g = self.gnodes.get(nid.index());
                 match g.state() {
                     GState::Terminal => {
-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+                        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                        elems.push((nid, basis_edge_of(g), depth, g.lo(), g.hi(), g.sum()));
                     }
                     GState::SemiInternal => {
-                        let depth = gnode_depth_from_interval(g.lo, g.hi, N);
-                        elems.push((nid, basis_edge_of(g), depth, g.lo, g.hi, g.sum));
+                        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                        elems.push((nid, basis_edge_of(g), depth, g.lo(), g.hi(), g.sum()));
 
-                        if let Some(left) = g.left {
+                        if let Some(left) = g.left() {
                             stack.push(left);
                         }
-                        if let Some(right) = g.right {
+                        if let Some(right) = g.right() {
                             stack.push(right);
                         }
                     }
                     GState::Internal => {
                         if let Some(ud) = uniform_contour_depth_of(&self.gnodes, nid, N) {
-                            elems.push((nid, basis_edge_of(g), ud, g.lo, g.hi, g.sum));
+                            elems.push((nid, basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                         } else {
-                            if let Some(left) = g.left {
+                            if let Some(left) = g.left() {
                                 stack.push(left);
                             }
-                            if let Some(right) = g.right {
+                            if let Some(right) = g.right() {
                                 stack.push(right);
                             }
                         }
@@ -333,17 +333,16 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 .plateau_basis
                 .basis_elements(&key)
                 .iter()
-                .map(|&r| self.gnodes.get(r.index()).sum)
+                .map(|&r| self.gnodes.get(r.index()).sum())
                 .fold(V::zero(), V::add);
         }
-
         #[cfg(debug_assertions)]
         for (&key, plateau) in &self.plateaus {
             let expected: V = self
                 .plateau_basis
                 .basis_elements(&key)
                 .iter()
-                .map(|&r| self.gnodes.get(r.index()).sum)
+                .map(|&r| self.gnodes.get(r.index()).sum())
                 .fold(V::zero(), V::add);
             assert_eq!(
                 plateau.sum, expected,

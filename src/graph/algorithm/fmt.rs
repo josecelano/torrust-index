@@ -24,10 +24,10 @@ impl<V: Accumulator> fmt::Display for Nd<'_, V> {
             return write!(f, "v{idx}(DEAD)");
         }
         let n = self.0.get(idx);
-        match &n.kind {
-            VKind::Entry { .. } => write!(f, "v{idx}(E,{:?})", n.intensity),
+        match &n.kind() {
+            VKind::Entry { .. } => write!(f, "v{idx}(E,{:?})", n.intensity()),
             VKind::Structural { children, .. } => {
-                write!(f, "v{idx}(S{},{:?})", children.len(), n.intensity)
+                write!(f, "v{idx}(S{},{:?})", children.len(), n.intensity())
             }
         }
     }
@@ -38,7 +38,7 @@ pub(super) struct Ch<'a, V: Accumulator>(pub(super) &'a Arena<VNode<V>>, pub(sup
 
 impl<V: Accumulator> fmt::Display for Ch<'_, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.0.get(self.1.index()).kind {
+        match &self.0.get(self.1.index()).kind() {
             VKind::Entry { .. } => f.write_str("∅"),
             VKind::Structural { children, .. } => {
                 f.write_str("[")?;
@@ -64,11 +64,11 @@ impl<V: Accumulator> fmt::Display for Ctx<'_, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (vnodes, c) = (self.0, self.1);
         write!(f, "{}", Nd(vnodes, c))?;
-        let Some(p) = vnodes.get(c.index()).parent else {
+        let Some(p) = vnodes.get(c.index()).parent() else {
             return f.write_str(" (root)");
         };
         write!(f, " ← {} {}", Nd(vnodes, p), Ch(vnodes, p))?;
-        if let Some(g) = vnodes.get(p.index()).parent {
+        if let Some(g) = vnodes.get(p.index()).parent() {
             write!(f, " ← {} {}", Nd(vnodes, g), Ch(vnodes, g))?;
         }
         if let Some(u) = max_uncle_intensity(vnodes, c) {

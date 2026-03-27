@@ -1,7 +1,7 @@
-use std::cmp::Ordering;
 use crate::nodes::gnode::{GNode, GState};
 use crate::spatial::view::Span;
 use crate::traits::{Accumulator, Coordinate};
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -66,12 +66,12 @@ where
     V: Accumulator,
 {
     match g.state() {
-        GState::Terminal | GState::Internal => BasisEdge(g.lo),
+        GState::Terminal | GState::Internal => BasisEdge(g.lo()),
         GState::SemiInternal => {
-            if g.left.is_some() {
-                BasisEdge(C::midpoint(g.lo, g.hi))
+            if g.left().is_some() {
+                BasisEdge(C::midpoint(g.lo(), g.hi()))
             } else {
-                BasisEdge(g.lo)
+                BasisEdge(g.lo())
             }
         }
     }
@@ -86,16 +86,10 @@ mod tests {
     use std::cmp::Ordering;
 
     fn make_gnode(left: Option<GNodeId>, right: Option<GNodeId>) -> GNode<u8, u32> {
-        GNode {
-            lo: 0,
-            hi: 16,
-            sum: 0,
-            own: 0,
-            left,
-            right,
-            parent: None,
-            entry: None,
-        }
+        let mut g = GNode::new_leaf(0u8, 16u8, 0u32, None);
+        if let Some(l) = left { g.link_left(l); }
+        if let Some(r) = right { g.link_right(r); }
+        g
     }
 
     // ── BasisEdge ordering ───────────────────────────────────────────────
@@ -201,5 +195,4 @@ mod tests {
             assert_eq!(basis_edge_of(&g), BasisEdge(0u8));
         }
     }
-
 }

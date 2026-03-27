@@ -92,7 +92,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             if !self.vnodes.is_occupied(v_id.index()) {
                 continue;
             }
-            match &self.vnodes.get(v_id.index()).kind {
+            match &self.vnodes.get(v_id.index()).kind() {
                 crate::nodes::vnode::VKind::Entry {
                     gnode,
                     is_evictable,

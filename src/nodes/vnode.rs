@@ -6,13 +6,113 @@ pub const DEPTH_STALE: u32 = u32::MAX;
 
 #[derive(Debug)]
 pub struct VNode<V> {
-    pub intensity: V,
+    pub(super) intensity: V,
 
-    pub parent: Option<VNodeId>,
+    pub(super) parent: Option<VNodeId>,
 
-    pub cached_depth: AtomicU32,
+    pub(super) cached_depth: AtomicU32,
 
-    pub kind: VKind<V>,
+    pub(super) kind: VKind<V>,
+}
+
+impl<V: Copy> VNode<V> {
+    /// Constructs a new entry (leaf) V-node.
+    #[must_use]
+    pub const fn new_entry(
+        intensity: V,
+        parent: Option<VNodeId>,
+        depth: u32,
+        gnode: GNodeId,
+        is_exposed: bool,
+        is_evictable: bool,
+    ) -> Self {
+        Self {
+            intensity,
+            parent,
+            cached_depth: AtomicU32::new(depth),
+            kind: VKind::Entry {
+                gnode,
+                is_exposed,
+                is_evictable,
+            },
+        }
+    }
+
+    /// Constructs a new structural (internal) V-node.
+    #[must_use]
+    pub const fn new_structural(
+        intensity: V,
+        parent: Option<VNodeId>,
+        depth: u32,
+        children: Children<V>,
+        has_evictable: bool,
+    ) -> Self {
+        Self {
+            intensity,
+            parent,
+            cached_depth: AtomicU32::new(depth),
+            kind: VKind::Structural {
+                children,
+                has_evictable,
+            },
+        }
+    }
+
+    // ── Read accessors ───────────────────────────────────────────────────
+
+    #[inline]
+    #[must_use]
+    pub const fn intensity(&self) -> V {
+        self.intensity
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn parent(&self) -> Option<VNodeId> {
+        self.parent
+    }
+
+    /// Loads the raw cached depth (may be `DEPTH_STALE`).
+    #[inline]
+    #[must_use]
+    pub fn cached_depth_raw(&self) -> u32 {
+        self.cached_depth.load(Ordering::Relaxed)
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn kind(&self) -> &VKind<V> {
+        &self.kind
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn kind_mut(&mut self) -> &mut VKind<V> {
+        &mut self.kind
+    }
+
+    // ── Write mutators ───────────────────────────────────────────────────
+
+    #[inline]
+    pub const fn set_intensity(&mut self, v: V) {
+        self.intensity = v;
+    }
+
+    #[inline]
+    pub const fn set_parent(&mut self, p: VNodeId) {
+        self.parent = Some(p);
+    }
+
+    #[inline]
+    pub const fn set_parent_opt(&mut self, p: Option<VNodeId>) {
+        self.parent = p;
+    }
+
+    /// Stores a concrete depth value into the cache.
+    #[inline]
+    pub fn store_depth(&self, depth: u32) {
+        self.cached_depth.store(depth, Ordering::Relaxed);
+    }
 }
 
 impl<V: Clone> Clone for VNode<V> {
@@ -53,9 +153,15 @@ pub enum VKind<V> {
 #[derive(Debug, Clone)]
 pub enum Children<V> {
     /// A structural node with exactly 2 children.
-    Pair { ids: [VNodeId; 2], intensities: [V; 2] },
+    Pair {
+        ids: [VNodeId; 2],
+        intensities: [V; 2],
+    },
     /// A structural node with exactly 3 children.
-    Triple { ids: [VNodeId; 3], intensities: [V; 3] },
+    Triple {
+        ids: [VNodeId; 3],
+        intensities: [V; 3],
+    },
 }
 
 impl<V> Children<V> {
@@ -413,7 +519,7 @@ mod tests {
 
     // ── VNode::default ─────────────────────────────────────────────────────
     mod default_vnode {
-        use super::super::{VKind, VNode, DEPTH_STALE};
+        use super::super::{DEPTH_STALE, VKind, VNode};
         use std::sync::atomic::Ordering;
 
         #[test]
@@ -426,7 +532,7 @@ mod tests {
 
     // ── VNode::clone ───────────────────────────────────────────────────────
     mod clone_vnode {
-        use super::super::{VNode, DEPTH_STALE};
+        use super::super::{DEPTH_STALE, VNode};
         use std::sync::atomic::Ordering;
 
         #[test]
@@ -446,4 +552,5 @@ mod tests {
             cloned.cached_depth.store(99, Ordering::Relaxed);
             assert_eq!(original.cached_depth.load(Ordering::Relaxed), DEPTH_STALE);
         }
-    }}
+    }
+}

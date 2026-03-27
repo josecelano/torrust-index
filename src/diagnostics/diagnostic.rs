@@ -43,9 +43,9 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     context: &MissedViolationContext,
 ) {
     let v = vnodes.get(violated.index());
-    let v_intensity = v.intensity;
+    let v_intensity = v.intensity();
 
-    let Some(parent_id) = v.parent else {
+    let Some(parent_id) = v.parent() else {
         tracing::error!(
             node = violated.index(),
             "DIAGNOSIS: node has no parent (root?), should not be violated",
@@ -54,7 +54,7 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     };
 
     let parent = vnodes.get(parent_id.index());
-    let Some(grandparent_id) = parent.parent else {
+    let Some(grandparent_id) = parent.parent() else {
         tracing::error!(
             node = violated.index(),
             parent = parent_id.index(),
@@ -64,7 +64,7 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     };
 
     let grandparent = vnodes.get(grandparent_id.index());
-    let uncles: Vec<(VNodeId, V)> = match &grandparent.kind {
+    let uncles: Vec<(VNodeId, V)> = match &grandparent.kind() {
         VKind::Structural { children, .. } => {
             children.iter().filter(|(id, _)| *id != parent_id).collect()
         }
@@ -85,9 +85,9 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
         node = violated.index(),
         intensity = v_intensity.to_f64_approx(),
         parent = parent_id.index(),
-        parent_intensity = parent.intensity.to_f64_approx(),
+        parent_intensity = parent.intensity().to_f64_approx(),
         grandparent = grandparent_id.index(),
-        grandparent_intensity = grandparent.intensity.to_f64_approx(),
+        grandparent_intensity = grandparent.intensity().to_f64_approx(),
         ?uncle_desc,
         max_uncle = max_uncle_intensity,
         is_violation = v_intensity.to_f64_approx() > max_uncle_intensity,
@@ -109,7 +109,7 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
                 "node IS a descendant of collapse_sibling → should have been caught by source 7",
             );
 
-            let sole_children: Vec<usize> = match &vnodes.get(sole.index()).kind {
+            let sole_children: Vec<usize> = match &vnodes.get(sole.index()).kind() {
                 VKind::Structural { children, .. } => (0..children.len())
                     .map(|i| children.get(i).0.index())
                     .collect(),
@@ -152,7 +152,7 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
     let mut depth = 0_usize;
     loop {
         let n = vnodes.get(current.index());
-        let kind = match &n.kind {
+        let kind = match &n.kind() {
             VKind::Entry { .. } => "E",
             VKind::Structural { children, .. } => match children.len() {
                 2 => "S2",
@@ -164,10 +164,10 @@ pub fn diagnose_missed_violation<V: Accumulator + Inspectable>(
             depth,
             node = current.index(),
             kind,
-            intensity = n.intensity.to_f64_approx(),
+            intensity = n.intensity().to_f64_approx(),
             "ancestry",
         );
-        match n.parent {
+        match n.parent() {
             Some(p) => {
                 current = p;
                 depth += 1;
@@ -255,7 +255,7 @@ mod tests {
             g.observe(64u8, 3u32);
             let v_root = g.v_root.expect("v_root must exist after bootstrap");
             // Get a depth-1 child of v_root (parent=v_root, grandparent=None)
-            let child_id = match &g.vnodes().get(v_root.index()).kind {
+            let child_id = match &g.vnodes().get(v_root.index()).kind() {
                 VKind::Structural { children, .. } => children.get(0).0,
                 _ => panic!("expected Structural v_root after bootstrap"),
             };
@@ -281,7 +281,7 @@ mod tests {
             let mut depth2_entry = None;
             while let Some((id, depth)) = stack.pop() {
                 let n = g.vnodes().get(id.index());
-                match &n.kind {
+                match &n.kind() {
                     VKind::Entry { .. } if depth >= 2 => {
                         depth2_entry = Some(id);
                         break;
@@ -318,10 +318,10 @@ mod tests {
             let mut found: Option<(crate::handle::VNodeId, crate::handle::VNodeId)> = None;
             while let Some((id, depth)) = stack.pop() {
                 let n = g.vnodes().get(id.index());
-                match &n.kind {
+                match &n.kind() {
                     VKind::Entry { .. } if depth >= 2 => {
-                        let parent_id = n.parent.unwrap();
-                        let grandparent_id = g.vnodes().get(parent_id.index()).parent.unwrap();
+                        let parent_id = n.parent().unwrap();
+                        let grandparent_id = g.vnodes().get(parent_id.index()).parent().unwrap();
                         found = Some((id, grandparent_id));
                         break;
                     }
