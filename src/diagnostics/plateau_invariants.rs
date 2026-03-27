@@ -1,6 +1,5 @@
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::graph::GvGraph;
-use crate::tree::gtree::uniform_contour_depth_of;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::nodes::gnode::{GNode, GState};
 #[cfg(feature = "dynamic-contour-tracking")]
@@ -8,7 +7,7 @@ use crate::spatial::plateau::BasisEdge;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 #[cfg(feature = "dynamic-contour-tracking")]
-use crate::tree::gtree::gnode_depth_from_interval;
+use crate::tree::gtree::GTree;
 
 #[cfg(feature = "dynamic-contour-tracking")]
 pub fn check_plateau_btreemap_key_consistency<
@@ -128,11 +127,11 @@ pub fn check_plateau_depth_consistency<
                 continue;
             }
             let g = graph.gtree.nodes.get(gid.index());
-            let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+            let g_depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
             let expected_depth = match g.state() {
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => {
-                    let Some(d) = uniform_contour_depth_of(&graph.gtree.nodes, gid, N) else {
+                    let Some(d) = graph.gtree.uniform_contour_depth(gid) else {
                         errors.push(format!(
                             "Plateau depth: key {key:?}, basis element {gid:?} (Internal): \
                              uniform_contour_depth_of returned None — internal basis \
@@ -175,12 +174,12 @@ fn contour_steps<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         let g = graph.gtree.nodes.get(gid.index());
         match g.state() {
             GState::Terminal => {
-                let d = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                let d = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                 cells.push((g.lo(), d));
             }
             GState::SemiInternal => {
                 let (ulo, _uhi) = g.uncovered_range().unwrap();
-                let d = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                let d = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                 cells.push((ulo, d));
 
                 if let Some(l) = g.left() {
@@ -440,7 +439,7 @@ pub fn check_p_i2_basis_minimality<
             }
 
             if let Some(parent_id) = g.parent() {
-                if let Some(parent_depth) = uniform_contour_depth_of(&graph.gtree.nodes, parent_id, N) {
+                if let Some(parent_depth) = graph.gtree.uniform_contour_depth(parent_id) {
                     if parent_depth == expected_depth {
                         errors.push(format!(
                             "P-I2 minimality: basis element G({}) in plateau {key:?} \
@@ -601,7 +600,7 @@ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     for _ in 0..=N + 1 {
         let g = graph.gtree.nodes.get(cur.index());
         if g.is_terminal() {
-            return gnode_depth_from_interval(g.lo(), g.hi(), N);
+            return GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
         }
         let mid = C::midpoint(g.lo(), g.hi());
         let next = if x.total_cmp(&mid) == std::cmp::Ordering::Less {
@@ -611,9 +610,9 @@ fn route_to_depth<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
         };
         match next {
             Some(child) => cur = child,
-            None => return gnode_depth_from_interval(g.lo(), g.hi(), N),
+            None => return GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
         }
     }
     let g = graph.gtree.nodes.get(cur.index());
-    gnode_depth_from_interval(g.lo(), g.hi(), N)
+    GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi())
 }

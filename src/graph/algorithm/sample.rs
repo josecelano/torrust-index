@@ -1,6 +1,7 @@
 use crate::graph::GvGraph;
 use crate::handle::VNodeId;
 use crate::traits::{Accumulator, Coordinate, Weighable};
+use crate::tree::gtree::GTree;
 
 impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
     #[must_use]
@@ -28,7 +29,7 @@ impl<C: Coordinate, V: Accumulator + Weighable, const N: u32> GvGraph<C, V, N> {
                         start,
                         end,
                         intensity: g.own(),
-                        depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
+                        depth: GTree::<C, V, N>::depth_of_interval(start, end),
                     });
                 }
                 VKind::Structural { children, .. } => {

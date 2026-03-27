@@ -3,7 +3,7 @@ use crate::handle::VNodeId;
 use crate::nodes::gnode::GState;
 use crate::nodes::vnode::VKind;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::gtree::gnode_depth_from_interval;
+use crate::tree::gtree::GTree;
 
 const fn state_label(s: GState) -> &'static str {
     match s {
@@ -55,7 +55,7 @@ pub fn dump_gtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
     while let Some(gid) = queue.pop_front() {
         let g = graph.gtree.nodes.get(gid.index());
         let idx = gid.index();
-        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+        let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
         let state = state_label(g.state());
         let has_entry = g.entry().is_some();
 
@@ -163,7 +163,7 @@ pub fn dump_vtree_dot<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
                 is_evictable,
             } => {
                 let g = graph.gtree.nodes.get(gnode.index());
-                let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                let g_depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                 let g_state = state_label(g.state());
                 writeln!(
                     out,

@@ -2,7 +2,7 @@ use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 use crate::nodes::gnode::GState;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
-use crate::tree::gtree::gnode_depth_from_interval;
+use crate::tree::gtree::GTree;
 
 const fn state_label(s: GState) -> &'static str {
     match s {
@@ -82,7 +82,7 @@ pub fn dump_gtree<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     for (idx, g) in graph.gtree.nodes.iter_occupied() {
         let gnode_id = GNodeId::from_index(idx);
         let state = state_label(g.state());
-        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+        let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
         let parent_str = fmt_optional_gnode(g.parent(), "None");
         let left_str = fmt_optional_gnode(g.left(), "_");
         let right_str = fmt_optional_gnode(g.right(), "_");
@@ -160,7 +160,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
             }
             let g = graph.gtree.nodes.get(gid.index());
             let state = state_label(g.state());
-            let g_depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+            let g_depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
             let contour_depth = match g.state() {
                 GState::Terminal | GState::SemiInternal => g_depth,
                 GState::Internal => g_depth + 1,

@@ -2,7 +2,7 @@ use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
-use crate::tree::{gtree, vtree};
+use crate::tree::vtree;
 
 #[allow(clippy::float_cmp)]
 /// Compute per-depth attenuation factors for a decay operation over a G-tree
@@ -145,11 +145,11 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             }
         }
 
-        gtree::recompute_g_sums_subtree(&mut self.gtree.nodes, &order);
+        self.gtree.recompute_sums_subtree(&order);
 
         if !is_global {
             if let Some(parent) = self.gtree.nodes.get(root.index()).parent() {
-                gtree::recompute_g_sums(&mut self.gtree.nodes, parent);
+                self.gtree.recompute_sums(parent);
             }
         }
 
@@ -198,11 +198,11 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
             self.gtree.nodes.get_mut(gid.index()).set_own(new_own);
         }
 
-        gtree::recompute_g_sums_subtree(&mut self.gtree.nodes, &order);
+        self.gtree.recompute_sums_subtree(&order);
 
         if !is_global {
             if let Some(parent) = self.gtree.nodes.get(root.index()).parent() {
-                gtree::recompute_g_sums(&mut self.gtree.nodes, parent);
+                self.gtree.recompute_sums(parent);
             }
         }
 

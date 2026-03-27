@@ -11,9 +11,10 @@
 //!      into their parent
 //!      - `consolidate_basis_up` — the per-element upward walk
 
-use crate::graph::{GvGraph, uniform_contour_depth_of};
+use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
+use crate::tree::gtree::GTree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     /// Walks upward from `gid`, merging sibling basis-element pairs into their
@@ -88,7 +89,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 break;
             }
 
-            let Some(uniform_depth) = uniform_contour_depth_of(&self.gtree.nodes, parent_id, N) else {
+            let Some(uniform_depth) = self.gtree.uniform_contour_depth(parent_id) else {
                 tracing::trace!(
                     from = gid.index(),
                     parent = parent_id.index(),
@@ -138,7 +139,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub(crate) fn normalize_plateaus(&mut self) {
         use crate::nodes::gnode::GState;
         use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
-        use crate::tree::gtree::gnode_depth_from_interval;
 
         if !self.plateaus_dirty {
             return;
@@ -166,11 +166,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 let g = self.gtree.nodes.get(nid.index());
                 match g.state() {
                     GState::Terminal => {
-                        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                        let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                         elems.push((nid, basis_edge_of(g), depth, g.lo(), g.hi(), g.sum()));
                     }
                     GState::SemiInternal => {
-                        let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                        let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                         elems.push((nid, basis_edge_of(g), depth, g.lo(), g.hi(), g.sum()));
 
                         if let Some(left) = g.left() {
@@ -181,7 +181,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         }
                     }
                     GState::Internal => {
-                        if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, nid, N) {
+                        if let Some(ud) = self.gtree.uniform_contour_depth(nid) {
                             elems.push((nid, basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                         } else {
                             if let Some(left) = g.left() {

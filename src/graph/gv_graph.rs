@@ -82,9 +82,8 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
         #[cfg(feature = "dynamic-contour-tracking")]
         let (plateaus, plateau_basis) = {
-            use crate::tree::gtree::gnode_depth_from_interval;
             let root_key = BasisEdge(C::zero());
-            let root_depth = gnode_depth_from_interval(C::zero(), C::domain_max(N), N);
+            let root_depth = GTree::<C, V, N>::depth_of_interval(C::zero(), C::domain_max(N));
             let mut pb = PlateauBasis::new();
             pb.insert(root_key, g_root);
             let mut map = BTreeMap::new();
@@ -210,7 +209,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     #[allow(dead_code)]
     pub(crate) fn gnode_depth(&self, gid: GNodeId) -> u32 {
         let g = self.gtree.nodes.get(gid.index());
-        crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
+        GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi())
     }
 
     // ── Queries ────────────────────────────────────────────────────────
@@ -225,7 +224,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             end: g.hi(),
             own: g.own(),
             sum: g.sum(),
-            depth: crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N),
+            depth: GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
             state: g.state(),
             gnode_id: id,
             parent: g.parent(),

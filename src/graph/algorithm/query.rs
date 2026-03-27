@@ -8,7 +8,7 @@ use crate::spatial::contour_range::{
 };
 use crate::spatial::plateau::BasisEdge;
 use crate::traits::{Accumulator, Coordinate, DiscreteCoordinate, Inspectable, Proratable};
-use crate::tree::gtree::gnode_depth_from_interval;
+use crate::tree::gtree::GTree;
 
 impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
     /// Return the cell that covers `coord`.
@@ -22,7 +22,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
 
         let clamped = Self::clamp_to_domain(coord);
 
-        let g_id = crate::tree::gtree::route_to_receiver(&self.gtree.nodes, self.gtree.root, clamped);
+        let g_id = self.gtree.route_to(clamped);
         let g = self.gtree.nodes.get(g_id.index());
 
         let (start, end) = Self::trimmed_interval(g, clamped);
@@ -40,7 +40,7 @@ impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
             start,
             end,
             intensity: g.own(),
-            depth: crate::tree::gtree::gnode_depth_from_interval(start, end, N),
+            depth: GTree::<C, V, N>::depth_of_interval(start, end),
         }
     }
 
@@ -264,7 +264,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
                 end: g.hi(),
                 own: g.own(),
                 sum: g.sum(),
-                depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
+                depth: GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
                 is_boundary_thatch: false,
             });
             return;
@@ -286,7 +286,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
                     end: r_hi,
                     own: g.own(),
                     sum: g.sum(),
-                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
+                    depth: GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
                     is_boundary_thatch: true,
                 });
                 return;
@@ -305,7 +305,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
                     end: tile_hi,
                     own: g.own(),
                     sum: g.sum(),
-                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
+                    depth: GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
                     is_boundary_thatch: true,
                 });
                 return;
@@ -328,7 +328,7 @@ impl<C: DiscreteCoordinate, V: Accumulator + Proratable + Inspectable, const N: 
                     end: tile_hi,
                     own: g.own(),
                     sum: g.sum(),
-                    depth: gnode_depth_from_interval(g.lo(), g.hi(), N),
+                    depth: GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()),
                     is_boundary_thatch: true,
                 });
             }

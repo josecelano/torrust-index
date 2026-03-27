@@ -10,7 +10,7 @@ counters, and expose tree operations as methods rather than free functions.
 
 ---
 
-## [ ] Step 4.1 — Define `GTree` as a struct wrapper (no logic yet)
+## [x] Step 4.1 — Define `GTree` as a struct wrapper (no logic yet)
 
 **Files touched:** `src/tree/mod.rs` (or new `src/tree/gtree_type.rs`),
 `src/graph/gv_graph.rs`.
@@ -47,7 +47,7 @@ pub(crate) struct GTree<C: Coordinate, V: Accumulator, const N: u32> {
 
 ---
 
-## [ ] Step 4.2 — Move `tree/gtree.rs` free functions → `GTree` methods
+## [x] Step 4.2 — Move `tree/gtree.rs` free functions → `GTree` methods
 
 **Files touched:** `src/tree/gtree.rs`, `src/graph/algorithm/*.rs`.
 

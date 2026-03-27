@@ -1,12 +1,12 @@
 use crate::graph::GvGraph;
 use crate::graph::algorithm::{rebalance, split};
 use crate::traits::{Accumulator, Coordinate, Inspectable, Observation};
-use crate::tree::{gtree, vtree};
+use crate::tree::vtree;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub fn observe<O: Observation<V>>(&mut self, coord: C, delta: O) {
         // ── Phase 1: Route observation to G-node and accumulate own value ────
-        let g_id = gtree::route_to_receiver(&self.gtree.nodes, self.gtree.root, coord);
+        let g_id = self.gtree.route_to(coord);
         let _span = tracing::debug_span!("observe", g = g_id.index()).entered();
 
         let g = self.gtree.nodes.get_mut(g_id.index());
@@ -43,7 +43,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         }
 
         // ── Phase 3: G-tree sum recompute ────────────────────────────────
-        gtree::recompute_g_sums(&mut self.gtree.nodes, g_id);
+        self.gtree.recompute_sums(g_id);
 
         // ── Phase 4: Plateau mirror update ───────────────────────────────
         self.plateau_after_observe::<O>(g_id, delta);

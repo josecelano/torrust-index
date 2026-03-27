@@ -30,32 +30,84 @@ pub struct GTree<C: Coordinate, V: Accumulator, const N: u32> {
     pub(crate) soft_limit: Option<usize>,
 }
 
-// ── Free functions (kept for callers that have not been migrated) ─────────────
+impl<C: Coordinate, V: Accumulator, const N: u32> GTree<C, V, N> {
+    // ── Traversal ────────────────────────────────────────────────────────
 
-/// Walks down the G-tree and returns the receiving terminal/semi-internal node.
-#[must_use]
-pub fn route_to_receiver<C: Coordinate, V: Accumulator>(
-    gnodes: &Arena<GNode<C, V>>,
-    root: GNodeId,
-    x: C,
-) -> GNodeId {
-    let mut current = root;
-    loop {
-        let g = gnodes.get(current.index());
-        let mid = C::midpoint(g.lo(), g.hi());
-        if x < mid {
-            if let Some(left) = g.left() {
-                current = left;
+    /// Walks down the G-tree from the root and returns the terminal (or
+    /// semi-internal) G-node that *receives* coordinate `x`.
+    #[must_use]
+    pub(crate) fn route_to(&self, x: C) -> GNodeId {
+        let mut current = self.root;
+        loop {
+            let g = self.nodes.get(current.index());
+            let mid = C::midpoint(g.lo(), g.hi());
+            if x < mid {
+                if let Some(left) = g.left() {
+                    current = left;
+                } else {
+                    return current;
+                }
+            } else if let Some(right) = g.right() {
+                current = right;
             } else {
                 return current;
             }
-        } else if let Some(right) = g.right() {
-            current = right;
-        } else {
-            return current;
         }
     }
+
+    // ── Sum recomputation ────────────────────────────────────────────────
+
+    /// Walks from `start` toward the root, recomputing `sum` at each node.
+    pub(crate) fn recompute_sums(&mut self, start: GNodeId) {
+        let mut current = Some(start);
+        while let Some(id) = current {
+            let (left_sum, right_sum) = {
+                let g = self.nodes.get(id.index());
+                let l = g.left().map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
+                let r = g.right().map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
+                (l, r)
+            };
+            let g = self.nodes.get_mut(id.index());
+            g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
+            current = g.parent();
+        }
+    }
+
+    /// Recomputes `sum` for each node in `preorder` (processed in reverse,
+    /// i.e. leaves-first).
+    pub(crate) fn recompute_sums_subtree(&mut self, preorder: &[GNodeId]) {
+        for &gid in preorder.iter().rev() {
+            let (left_sum, right_sum) = {
+                let g = self.nodes.get(gid.index());
+                let l = g.left().map_or_else(V::zero, |l| self.nodes.get(l.index()).sum());
+                let r = g.right().map_or_else(V::zero, |r| self.nodes.get(r.index()).sum());
+                (l, r)
+            };
+            let g = self.nodes.get_mut(gid.index());
+            g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
+        }
+    }
+
+    // ── Depth helpers ────────────────────────────────────────────────────
+
+    /// Returns the depth of a G-node whose interval is `[lo, hi)` in an
+    /// `N`-bit domain.
+    #[must_use]
+    #[inline]
+    pub(crate) fn depth_of_interval(lo: C, hi: C) -> u32 {
+        gnode_depth_from_interval(lo, hi, N)
+    }
+
+    /// Returns the uniform contour depth of the subtree rooted at `gid`, or
+    /// `None` if the leaf G-nodes in the subtree do not all share the same depth.
+    #[cfg(feature = "dynamic-contour-tracking")]
+    #[must_use]
+    pub(crate) fn uniform_contour_depth(&self, gid: GNodeId) -> Option<u32> {
+        uniform_contour_depth_of(&self.nodes, gid, N)
+    }
 }
+
+// ── Free functions ────────────────────────────────────────────────────────────
 
 #[must_use]
 #[inline]
@@ -71,40 +123,6 @@ pub fn gnode_depth_from_interval<C: Coordinate>(lo: C, hi: C, n: u32) -> u32 {
     #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
     let depth = (n as i32 - log2_width) as u32;
     depth
-}
-
-pub fn recompute_g_sums<C: Coordinate, V: Accumulator>(
-    gnodes: &mut Arena<GNode<C, V>>,
-    start: GNodeId,
-) {
-    let mut current = Some(start);
-    while let Some(id) = current {
-        let (left_sum, right_sum) = {
-            let g = gnodes.get(id.index());
-            let l = g.left().map_or_else(V::zero, |l| gnodes.get(l.index()).sum());
-            let r = g.right().map_or_else(V::zero, |r| gnodes.get(r.index()).sum());
-            (l, r)
-        };
-        let g = gnodes.get_mut(id.index());
-        g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
-        current = g.parent();
-    }
-}
-
-pub fn recompute_g_sums_subtree<C: Coordinate, V: Accumulator>(
-    gnodes: &mut Arena<GNode<C, V>>,
-    preorder: &[GNodeId],
-) {
-    for &gid in preorder.iter().rev() {
-        let (left_sum, right_sum) = {
-            let g = gnodes.get(gid.index());
-            let l = g.left().map_or_else(V::zero, |l| gnodes.get(l.index()).sum());
-            let r = g.right().map_or_else(V::zero, |r| gnodes.get(r.index()).sum());
-            (l, r)
-        };
-        let g = gnodes.get_mut(gid.index());
-        g.set_sum(V::add(g.own(), V::add(left_sum, right_sum)));
-    }
 }
 
 /// Returns the uniform contour depth of the subtree rooted at `gid`, or `None`

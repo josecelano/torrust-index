@@ -1,13 +1,14 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
-use crate::graph::{GvGraph, uniform_contour_depth_of};
+use crate::graph::GvGraph;
 use crate::handle::GNodeId;
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau::{BasisEdge, Plateau};
 #[cfg(feature = "dynamic-contour-tracking")]
 use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
+use crate::tree::gtree::GTree;
 
 mod noop;
 mod normalise;
@@ -112,7 +113,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 for &gid in basis {
                     if self.gtree.nodes.is_occupied(gid.index()) {
                         let g = self.gtree.nodes.get(gid.index());
-                        let ud = uniform_contour_depth_of(&self.gtree.nodes, gid, N);
+                        let ud = self.gtree.uniform_contour_depth(gid);
                         tracing::error!(
                             gid = gid.index(),
                             state = ?g.state(),
@@ -142,7 +143,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
     pub fn build_plateaus(&self) -> BTreeMap<BasisEdge<C>, Plateau<C, V>> {
         use crate::nodes::gnode::GState;
         use crate::spatial::plateau::basis_edge_of;
-        use crate::tree::gtree::gnode_depth_from_interval;
 
         let mut basis: Vec<(BasisEdge<C>, u32, C, C, V)> = Vec::new();
         let mut stack = vec![self.gtree.root];
@@ -150,11 +150,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let g = self.gtree.nodes.get(gid.index());
             match g.state() {
                 GState::Terminal => {
-                    let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                    let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                     basis.push((BasisEdge(g.lo()), depth, g.lo(), g.hi(), g.sum()));
                 }
                 GState::SemiInternal => {
-                    let depth = gnode_depth_from_interval(g.lo(), g.hi(), N);
+                    let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                     basis.push((basis_edge_of(g), depth, g.lo(), g.hi(), g.sum()));
 
                     if let Some(left) = g.left() {
@@ -165,7 +165,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     }
                 }
                 GState::Internal => {
-                    if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, gid, N) {
+                    if let Some(ud) = self.gtree.uniform_contour_depth(gid) {
                         basis.push((basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                     } else {
                         if let Some(left) = g.left() {
@@ -242,7 +242,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         crate::nodes::gnode::GState::Internal => "Internal",
                         crate::nodes::gnode::GState::SemiInternal => "SemiInternal",
                     };
-                    let g_depth = crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N);
+                    let g_depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                     (gid.index(), g.lo(), g.hi(), state_str, g_depth)
                 })
                 .collect();
@@ -277,13 +277,12 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             let d = match g.state() {
                 crate::nodes::gnode::GState::Terminal
                 | crate::nodes::gnode::GState::SemiInternal => {
-                    crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
+                    GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi())
                 }
-                crate::nodes::gnode::GState::Internal => {
-                    uniform_contour_depth_of(&self.gtree.nodes, gid, N).unwrap_or_else(|| {
-                        crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N) + 1
-                    })
-                }
+                crate::nodes::gnode::GState::Internal => self
+                    .gtree
+                    .uniform_contour_depth(gid)
+                    .unwrap_or_else(|| GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()) + 1),
             };
             depth = depth.max(d);
         }
@@ -432,7 +431,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         self.consolidate_basis_up(gnode);
 
-        if self.gtree.nodes.get(gnode.index()).state() == crate::nodes::gnode::GState::SemiInternal {
+        if self.gtree.nodes.get(gnode.index()).state() == crate::nodes::gnode::GState::SemiInternal
+        {
             let final_key = self.plateau_basis.plateau_key(gnode).expect("just placed");
             self.pending_p_i4.push((gnode, final_key));
         }
@@ -448,11 +448,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let g = self.gtree.nodes.get(gid.index());
         match g.state() {
             GState::Terminal | GState::SemiInternal => {
-                let depth = crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N);
+                let depth = GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi());
                 out.push((gid, depth));
             }
             GState::Internal => {
-                if let Some(ud) = uniform_contour_depth_of(&self.gtree.nodes, gid, N) {
+                if let Some(ud) = self.gtree.uniform_contour_depth(gid) {
                     out.push((gid, ud));
                 } else {
                     if let Some(l) = g.left() {
@@ -554,13 +554,12 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     let d = match g.state() {
                         crate::nodes::gnode::GState::Terminal
                         | crate::nodes::gnode::GState::SemiInternal => {
-                            crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N)
+                            GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi())
                         }
                         crate::nodes::gnode::GState::Internal => {
-                            crate::graph::uniform_contour_depth_of(&self.gtree.nodes, gid, N)
-                                .unwrap_or_else(|| {
-                                    crate::tree::gtree::gnode_depth_from_interval(g.lo(), g.hi(), N) + 1
-                                })
+                            self.gtree.uniform_contour_depth(gid).unwrap_or_else(|| {
+                                GTree::<C, V, N>::depth_of_interval(g.lo(), g.hi()) + 1
+                            })
                         }
                     };
                     displaced.push((gid, d));
@@ -685,9 +684,9 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         let boundary_key = basis_edge_of(bg);
         let boundary_depth = match bg.state() {
             GState::Terminal | GState::SemiInternal => {
-                crate::tree::gtree::gnode_depth_from_interval(bg.lo(), bg.hi(), N)
+                GTree::<C, V, N>::depth_of_interval(bg.lo(), bg.hi())
             }
-            GState::Internal => crate::tree::gtree::gnode_depth_from_interval(bg.lo(), bg.hi(), N) + 1,
+            GState::Internal => GTree::<C, V, N>::depth_of_interval(bg.lo(), bg.hi()) + 1,
         };
         let b_lo = bg.lo();
         let b_hi = bg.hi();
@@ -765,7 +764,11 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                         .iter()
                         .map(|&r| {
                             let g = self.gtree.nodes.get(r.index());
-                            (r.index(), g.sum().to_f64_approx(), format!("{:?}", g.state()))
+                            (
+                                r.index(),
+                                g.sum().to_f64_approx(),
+                                format!("{:?}", g.state()),
+                            )
                         })
                         .collect();
                     let expected: V = self
@@ -808,20 +811,19 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.fixup_plateau(old_key);
 
         let right_id = self
-            .gtree.nodes
+            .gtree
+            .nodes
             .get(g_id.index())
             .right()
             .expect("bootstrap_split: g_id must have a right child");
 
-        let left_depth = crate::tree::gtree::gnode_depth_from_interval(
+        let left_depth = GTree::<C, V, N>::depth_of_interval(
             self.gtree.nodes.get(left_id.index()).lo(),
             self.gtree.nodes.get(left_id.index()).hi(),
-            N,
         );
-        let right_depth = crate::tree::gtree::gnode_depth_from_interval(
+        let right_depth = GTree::<C, V, N>::depth_of_interval(
             self.gtree.nodes.get(right_id.index()).lo(),
             self.gtree.nodes.get(right_id.index()).hi(),
-            N,
         );
 
         if left_depth == right_depth {
@@ -852,20 +854,19 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         self.plateaus_dirty = true;
 
         let right_id = self
-            .gtree.nodes
+            .gtree
+            .nodes
             .get(g_id.index())
             .right()
             .expect("catalytic_split: g_id must have a right child");
 
-        let left_depth = crate::tree::gtree::gnode_depth_from_interval(
+        let left_depth = GTree::<C, V, N>::depth_of_interval(
             self.gtree.nodes.get(left_id.index()).lo(),
             self.gtree.nodes.get(left_id.index()).hi(),
-            N,
         );
-        let right_depth = crate::tree::gtree::gnode_depth_from_interval(
+        let right_depth = GTree::<C, V, N>::depth_of_interval(
             self.gtree.nodes.get(right_id.index()).lo(),
             self.gtree.nodes.get(right_id.index()).hi(),
-            N,
         );
 
         // ── Phase 1: Locate the covering basis element for g_id ─────────────────
@@ -892,7 +893,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                     let mut displaced: Vec<GNodeId> = Vec::new();
                     for &path_node in &path {
                         let par = self
-                            .gtree.nodes
+                            .gtree
+                            .nodes
                             .get(path_node.index())
                             .parent()
                             .expect("path node must have a parent");
@@ -950,8 +952,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         use crate::nodes::gnode::GState;
 
         let ng = self.gtree.nodes.get(new_gid.index());
-        let parent_id = ng.parent().expect("legacy_promote child must have a parent");
-        let child_depth = crate::tree::gtree::gnode_depth_from_interval(ng.lo(), ng.hi(), N);
+        let parent_id = ng
+            .parent()
+            .expect("legacy_promote child must have a parent");
+        let child_depth = GTree::<C, V, N>::depth_of_interval(ng.lo(), ng.hi());
 
         let pg = self.gtree.nodes.get(parent_id.index());
         let existing_child_id = if pg.left() == Some(new_gid) {
@@ -968,7 +972,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         if let Some(ec_id) = existing_child_id {
             let ec = self.gtree.nodes.get(ec_id.index());
             if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none() {
-                let existing_depth = crate::tree::gtree::gnode_depth_from_interval(ec.lo(), ec.hi(), N);
+                let existing_depth = GTree::<C, V, N>::depth_of_interval(ec.lo(), ec.hi());
                 to_place.push((ec_id, existing_depth));
             }
         }
@@ -996,8 +1000,10 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
         for &new_gid in new_gnodes {
             let ng = self.gtree.nodes.get(new_gid.index());
-            let parent_id = ng.parent().expect("legacy_promote child must have a parent");
-            let child_depth = crate::tree::gtree::gnode_depth_from_interval(ng.lo(), ng.hi(), N);
+            let parent_id = ng
+                .parent()
+                .expect("legacy_promote child must have a parent");
+            let child_depth = GTree::<C, V, N>::depth_of_interval(ng.lo(), ng.hi());
 
             let pg = self.gtree.nodes.get(parent_id.index());
             let existing_child_id = if pg.left() == Some(new_gid) {
@@ -1014,8 +1020,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 let ec = self.gtree.nodes.get(ec_id.index());
                 if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none()
                 {
-                    let existing_depth =
-                        crate::tree::gtree::gnode_depth_from_interval(ec.lo(), ec.hi(), N);
+                    let existing_depth = GTree::<C, V, N>::depth_of_interval(ec.lo(), ec.hi());
                     to_place.push((ec_id, existing_depth));
                 }
             }
@@ -1100,7 +1105,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
                         for &path_node in &path {
                             let par = self
-                                .gtree.nodes
+                                .gtree
+                                .nodes
                                 .get(path_node.index())
                                 .parent()
                                 .expect("path node must have a parent");
@@ -1145,7 +1151,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
         // ── Phase 3: Compute parent depth after eviction ─────────────────────────
         let parent_depth = match parent_state_after {
             GState::Terminal | GState::SemiInternal => {
-                crate::tree::gtree::gnode_depth_from_interval(parent_lo, parent_hi, N)
+                GTree::<C, V, N>::depth_of_interval(parent_lo, parent_hi)
             }
             GState::Internal => {
                 unreachable!("evict_tip: parent cannot remain Internal after eviction")
