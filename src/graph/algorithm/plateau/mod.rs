@@ -10,8 +10,16 @@ use crate::spatial::plateau_basis::PlateauBasis;
 use crate::traits::{Accumulator, Coordinate, Inspectable};
 use crate::tree::gtree::GTree;
 
+pub(crate) mod dynamic_tracker;
 mod noop;
+pub(crate) mod noop_tracker;
 mod normalise;
+
+#[cfg(feature = "dynamic-contour-tracking")]
+#[allow(unused_imports)]
+pub(crate) use dynamic_tracker::DynamicPlateauTracker;
+#[allow(unused_imports)]
+pub(crate) use noop_tracker::NoopPlateauTracker;
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     #[must_use]

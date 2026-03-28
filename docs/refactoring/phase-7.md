@@ -39,7 +39,7 @@ pub(crate) trait PlateauTracking<C: Coordinate, V: Accumulator> {
 
 ---
 
-## [ ] Step 7.2 — Implement `DynamicPlateauTracker<C,V>` and `NoopPlateauTracker`
+## [x] Step 7.2 — Implement `DynamicPlateauTracker<C,V>` and `NoopPlateauTracker`
 
 **Files touched:** `src/graph/` or a new `src/plateau/` module (your call).
 

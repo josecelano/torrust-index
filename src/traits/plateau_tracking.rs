@@ -1,6 +1,9 @@
+use std::borrow::Cow;
+use std::collections::BTreeMap;
+
 use super::{Accumulator, Coordinate};
 use crate::handle::GNodeId;
-use crate::spatial::plateau::Plateau;
+use crate::spatial::plateau::{BasisEdge, Plateau};
 
 /// Strategy trait that encapsulates all plateau-state updates.
 ///
@@ -26,6 +29,10 @@ pub(crate) trait PlateauTracking<C: Coordinate, V: Accumulator> {
     /// Called after a G-node has been evicted from the tree.
     fn on_evict(&mut self, id: GNodeId);
 
-    /// Read-only slice of all currently tracked plateaus.
-    fn plateaus(&self) -> &[Plateau<C, V>];
+    /// Read access to all currently tracked plateaus, keyed by basis edge.
+    ///
+    /// Returns `Cow::Owned(BTreeMap::new())` for no-op trackers, and
+    /// `Cow::Borrowed(&self.plateaus)` for the dynamic tracker.  This
+    /// matches the return type of the existing `GvGraph::plateaus()` method.
+    fn plateaus(&self) -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>>;
 }
