@@ -2,6 +2,7 @@
 
 use crate::arena::Arena;
 #[cfg(feature = "dynamic-contour-tracking")]
+#[allow(unused_imports)]
 pub use crate::diagnostics::plateau_audit::{PlateauAuditContext, audit_plateau_consistency};
 use crate::graph::algorithm::rebalance::{self, Ctx};
 use crate::handle::VNodeId;

@@ -58,7 +58,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             );
         }
 
-        #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-SPLIT");
         }
@@ -73,7 +72,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             self.repair_p_i4();
         }
 
-        #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-REBALANCE");
         }
@@ -112,10 +110,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 remaining.is_empty(),
                 "POST-OBSERVE: residual violations: {remaining:?}"
             );
-        }
-
-        #[cfg(feature = "dynamic-contour-tracking")]
-        if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-OBSERVE");
         }
     }

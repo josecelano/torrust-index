@@ -127,7 +127,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
                 );
             }
 
-            #[cfg(feature = "dynamic-contour-tracking")]
             if cfg!(debug_assertions) {
                 self.debug_assert_plateau_mirror_consistency(&format!(
                     "POST-EVICT-SINGLE-{evicted}"
@@ -154,7 +153,6 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             self.repair_p_i4();
         }
 
-        #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             self.debug_assert_plateau_mirror_consistency("POST-EVICT");
         }

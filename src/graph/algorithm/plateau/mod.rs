@@ -218,6 +218,18 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32, T: PlateauTracki
     pub(crate) fn plateau_recompute_sums(&mut self, label: &str) {
         self.tracker.recompute_sums(&self.gtree.nodes, label);
     }
+
+    /// Verifies that the plateau mirror is consistent with a fresh G-tree
+    /// rebuild.  A no-op with `NoopPlateauTracker`; panics on divergence with
+    /// `DynamicPlateauTracker`.  Called at algorithmic debug checkpoints.
+    pub(crate) fn debug_assert_plateau_mirror_consistency(&self, label: &str) {
+        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
+            return;
+        }
+        let fresh = self.build_plateaus();
+        self.tracker
+            .debug_assert_mirror_consistency(&self.gtree.nodes, &fresh, label);
+    }
 }
 
 // ── Concrete impl for DynamicPlateauTracker — debug / diagnostic API ──────────
@@ -228,120 +240,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32>
 {
     #[must_use]
     #[inline]
-    pub(crate) const fn plateau_basis(
-        &self,
-    ) -> &crate::spatial::plateau_basis::PlateauBasis<C> {
+    pub(crate) const fn plateau_basis(&self) -> &crate::spatial::plateau_basis::PlateauBasis<C> {
         &self.tracker.plateau_basis
-    }
-
-    pub(crate) fn debug_assert_plateau_mirror_consistency(&self, label: &str) {
-        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
-            return;
-        }
-
-        let dynamic = self.tracker.plateaus.clone();
-        let rebuilt = self.build_plateaus();
-        if dynamic != rebuilt {
-            let dyn_keys: std::collections::BTreeSet<_> = dynamic.keys().collect();
-            let stat_keys: std::collections::BTreeSet<_> = rebuilt.keys().collect();
-            let only_dynamic: Vec<_> = dyn_keys.difference(&stat_keys).collect();
-            let only_static: Vec<_> = stat_keys.difference(&dyn_keys).collect();
-            let both: Vec<_> = dyn_keys.intersection(&stat_keys).collect();
-            let differing: Vec<_> = both
-                .iter()
-                .filter(|&&k| dynamic.get(k) != rebuilt.get(k))
-                .collect();
-
-            tracing::error!(
-                label,
-                only_dynamic = ?only_dynamic,
-                only_static = ?only_static,
-                differing = ?differing,
-                "PLATEAU DIVERGENCE DETECTED",
-            );
-
-            for &&key in &only_dynamic {
-                let p = &dynamic[key];
-                let basis = self.tracker.plateau_basis.basis_elements(key);
-                tracing::error!(
-                    key = ?key,
-                    depth = p.depth,
-                    start = ?p.start,
-                    end = ?p.end,
-                    sum = ?p.sum,
-                    basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
-                    "DYNAMIC-ONLY plateau",
-                );
-                for &gid in basis {
-                    if self.gtree.nodes.is_occupied(gid.index()) {
-                        let g = self.gtree.nodes.get(gid.index());
-                        tracing::error!(
-                            gid = gid.index(),
-                            state = ?g.state(),
-                            lo = ?g.lo(),
-                            hi = ?g.hi(),
-                            sum = ?g.sum(),
-                            "  basis element",
-                        );
-                    }
-                }
-            }
-
-            for &&key in &only_static {
-                let p = &rebuilt[key];
-                tracing::error!(
-                    key = ?key,
-                    depth = p.depth,
-                    start = ?p.start,
-                    end = ?p.end,
-                    sum = ?p.sum,
-                    "STATIC-ONLY plateau",
-                );
-            }
-
-            for &&&key in &differing {
-                let dyn_p = &dynamic[key];
-                let stat_p = &rebuilt[key];
-                let basis = self.tracker.plateau_basis.basis_elements(key);
-                tracing::error!(
-                    key = ?key,
-                    dyn_depth = dyn_p.depth,
-                    dyn_start = ?dyn_p.start,
-                    dyn_end = ?dyn_p.end,
-                    dyn_sum = ?dyn_p.sum,
-                    stat_depth = stat_p.depth,
-                    stat_start = ?stat_p.start,
-                    stat_end = ?stat_p.end,
-                    stat_sum = ?stat_p.sum,
-                    basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
-                    "DIFFERS",
-                );
-                for &gid in basis {
-                    if self.gtree.nodes.is_occupied(gid.index()) {
-                        let g = self.gtree.nodes.get(gid.index());
-                        let ud = self.gtree.uniform_contour_depth(gid);
-                        tracing::error!(
-                            gid = gid.index(),
-                            state = ?g.state(),
-                            lo = ?g.lo(),
-                            hi = ?g.hi(),
-                            sum = ?g.sum(),
-                            uniform_depth = ?ud,
-                            "  basis element",
-                        );
-                    }
-                }
-            }
-
-            tracing::error!(dump = %crate::diagnostics::invariants::dump_gtree::<C, V, N>(self), "G-TREE DUMP");
-
-            panic!(
-                "{label}: dynamic-contour-tracking mirror diverged from static rebuild\n\
-                 left (dynamic): {:#?}\n\
-                 right (static): {:#?}",
-                dynamic, rebuilt
-            );
-        }
     }
 
     #[allow(clippy::float_cmp)]

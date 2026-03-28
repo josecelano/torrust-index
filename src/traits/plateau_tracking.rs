@@ -64,4 +64,20 @@ pub trait PlateauTracking<C: Coordinate, V: Accumulator> {
     /// `Cow::Borrowed(&self.plateaus)` for the dynamic tracker.  This
     /// matches the return type of the existing `GvGraph::plateaus()` method.
     fn plateaus(&self) -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>>;
+
+    /// Debug hook: verifies the plateau mirror against `fresh` (a map just
+    /// rebuilt by walking the G-tree).
+    ///
+    /// Called by `GvGraph::debug_assert_plateau_mirror_consistency` at key
+    /// algorithm checkpoints.  `NoopPlateauTracker` provides an empty default
+    /// implementation; `DynamicPlateauTracker` compares the maps and panics on
+    /// divergence.
+    fn debug_assert_mirror_consistency(
+        &self,
+        gnodes: &Arena<GNode<C, V>>,
+        fresh: &BTreeMap<BasisEdge<C>, Plateau<C, V>>,
+        label: &str,
+    ) {
+        let _ = (gnodes, fresh, label);
+    }
 }

@@ -281,16 +281,8 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
             parent_snapshot.lo,
             parent_snapshot.hi,
         );
-        #[cfg(feature = "dynamic-contour-tracking")]
         if tracing::enabled!(tracing::Level::DEBUG) {
-            crate::diagnostics::diagnostic::audit_plateau_consistency(
-                self,
-                "POST-EVICT",
-                Some(&crate::diagnostics::diagnostic::PlateauAuditContext {
-                    parent_id,
-                    parent_state: parent_state_after,
-                }),
-            );
+            self.debug_assert_plateau_mirror_consistency("POST-EVICT");
         }
     }
 }

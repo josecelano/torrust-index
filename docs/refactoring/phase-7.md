@@ -127,7 +127,7 @@ pub type DefaultGraph<C,V,N> = GvGraph<C,V,N,NoopPlateauTracker>;
 
 ---
 
-## [ ] Step 7.4 — Remove all remaining `#[cfg(feature = "dynamic-contour-tracking")]` guards from `GvGraph`
+## [x] Step 7.4 — Remove all remaining `#[cfg(feature = "dynamic-contour-tracking")]` guards from `GvGraph`
 
 **Files touched:** `src/graph/gv_graph.rs`, algorithm modules.
 

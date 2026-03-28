@@ -241,7 +241,6 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
 
         self.repair_p_i4();
 
-        #[cfg(feature = "dynamic-contour-tracking")]
         if cfg!(debug_assertions) || tracing::enabled!(tracing::Level::DEBUG) {
             let post_label = format!("POST-{label}");
             self.debug_assert_plateau_mirror_consistency(&post_label);

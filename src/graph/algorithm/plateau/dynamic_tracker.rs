@@ -124,12 +124,7 @@ impl<C: Coordinate, V: Accumulator> DynamicPlateauTracker<C, V> {
     }
 
     #[allow(clippy::too_many_lines)]
-    fn place_basis_element(
-        &mut self,
-        gnodes: &Arena<GNode<C, V>>,
-        gnode: GNodeId,
-        depth: u32,
-    ) {
+    fn place_basis_element(&mut self, gnodes: &Arena<GNode<C, V>>, gnode: GNodeId, depth: u32) {
         use crate::spatial::plateau::{BasisEdge, Plateau, basis_edge_of};
 
         let g = gnodes.get(gnode.index());
@@ -650,7 +645,11 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
                         .iter()
                         .map(|&r| {
                             let g = gnodes.get(r.index());
-                            (r.index(), format!("{:?}", g.sum()), format!("{:?}", g.state()))
+                            (
+                                r.index(),
+                                format!("{:?}", g.sum()),
+                                format!("{:?}", g.state()),
+                            )
                         })
                         .collect();
                     let expected: V = self
@@ -681,11 +680,8 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
         g_id: GNodeId,
         _left_id: GNodeId,
     ) {
-        let _span = tracing::debug_span!(
-            "plateau_after_bootstrap_split",
-            g_id = g_id.index(),
-        )
-        .entered();
+        let _span =
+            tracing::debug_span!("plateau_after_bootstrap_split", g_id = g_id.index(),).entered();
 
         self.plateaus_dirty = true;
 
@@ -704,10 +700,16 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
             .left()
             .expect("bootstrap_split: g_id must have a left child");
 
-        let left_depth =
-            gnode_depth_from_interval(gnodes.get(left_id.index()).lo(), gnodes.get(left_id.index()).hi(), self.n_bits);
-        let right_depth =
-            gnode_depth_from_interval(gnodes.get(right_id.index()).lo(), gnodes.get(right_id.index()).hi(), self.n_bits);
+        let left_depth = gnode_depth_from_interval(
+            gnodes.get(left_id.index()).lo(),
+            gnodes.get(left_id.index()).hi(),
+            self.n_bits,
+        );
+        let right_depth = gnode_depth_from_interval(
+            gnodes.get(right_id.index()).lo(),
+            gnodes.get(right_id.index()).hi(),
+            self.n_bits,
+        );
 
         if left_depth == right_depth {
             self.place_basis_element(gnodes, g_id, left_depth);
@@ -725,12 +727,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
         }
     }
 
-    fn on_catalytic_split(
-        &mut self,
-        gnodes: &Arena<GNode<C, V>>,
-        g_id: GNodeId,
-        left_id: GNodeId,
-    ) {
+    fn on_catalytic_split(&mut self, gnodes: &Arena<GNode<C, V>>, g_id: GNodeId, left_id: GNodeId) {
         let _span = tracing::debug_span!(
             "plateau_after_catalytic_split",
             g_id = g_id.index(),
@@ -745,10 +742,16 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
             .right()
             .expect("catalytic_split: g_id must have a right child");
 
-        let left_depth =
-            gnode_depth_from_interval(gnodes.get(left_id.index()).lo(), gnodes.get(left_id.index()).hi(), self.n_bits);
-        let right_depth =
-            gnode_depth_from_interval(gnodes.get(right_id.index()).lo(), gnodes.get(right_id.index()).hi(), self.n_bits);
+        let left_depth = gnode_depth_from_interval(
+            gnodes.get(left_id.index()).lo(),
+            gnodes.get(left_id.index()).hi(),
+            self.n_bits,
+        );
+        let right_depth = gnode_depth_from_interval(
+            gnodes.get(right_id.index()).lo(),
+            gnodes.get(right_id.index()).hi(),
+            self.n_bits,
+        );
 
         // ── Phase 1: Locate the covering basis element for g_id ─────────────────
         let (old_key, displaced) = if let Some(key) = self.plateau_basis.remove(g_id) {
@@ -953,9 +956,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
             let right_keys: Vec<BasisEdge<C>> = self
                 .plateaus
                 .range(BasisEdge(parent_hi)..)
-                .take_while(|(_, p)| {
-                    p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater
-                })
+                .take_while(|(_, p)| p.start.total_cmp(&parent_hi) != std::cmp::Ordering::Greater)
                 .filter(|(_, p)| p.depth == parent_depth)
                 .map(|(&k, _)| k)
                 .collect();
@@ -1027,11 +1028,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
         self.place_sorted(gnodes, &mut to_place);
     }
 
-    fn on_legacy_promotes_batched(
-        &mut self,
-        gnodes: &Arena<GNode<C, V>>,
-        new_gnodes: &[GNodeId],
-    ) {
+    fn on_legacy_promotes_batched(&mut self, gnodes: &Arena<GNode<C, V>>, new_gnodes: &[GNodeId]) {
         if new_gnodes.is_empty() {
             return;
         }
@@ -1066,11 +1063,9 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
 
             if let Some(ec_id) = existing_child_id {
                 let ec = gnodes.get(ec_id.index());
-                if ec.state() != GState::Internal
-                    && self.plateau_basis.plateau_key(ec_id).is_none()
+                if ec.state() != GState::Internal && self.plateau_basis.plateau_key(ec_id).is_none()
                 {
-                    let existing_depth =
-                        gnode_depth_from_interval(ec.lo(), ec.hi(), self.n_bits);
+                    let existing_depth = gnode_depth_from_interval(ec.lo(), ec.hi(), self.n_bits);
                     to_place.push((ec_id, existing_depth));
                 }
             }
@@ -1092,7 +1087,11 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
         let _span = tracing::debug_span!("normalize_plateaus").entered();
 
         #[cfg(debug_assertions)]
-        let old_total: V = self.plateaus.values().map(|p| p.sum).fold(V::zero(), V::add);
+        let old_total: V = self
+            .plateaus
+            .values()
+            .map(|p| p.sum)
+            .fold(V::zero(), V::add);
 
         // ── Phase 1: Collect and expand basis elements (DFS per basis node) ───────
         let mut elems: Vec<(GNodeId, BasisEdge<C>, u32, C, C, V)> = Vec::new();
@@ -1122,9 +1121,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
                         }
                     }
                     GState::Internal => {
-                        if let Some(ud) =
-                            uniform_contour_depth_of(gnodes, nid, self.n_bits)
-                        {
+                        if let Some(ud) = uniform_contour_depth_of(gnodes, nid, self.n_bits) {
                             elems.push((nid, basis_edge_of(g), ud, g.lo(), g.hi(), g.sum()));
                         } else {
                             if let Some(left) = g.left() {
@@ -1201,8 +1198,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
             for (key, &elem_sum) in &key_sums {
                 let sweep_sum = new_plateaus[key].sum;
                 debug_assert_eq!(
-                    sweep_sum,
-                    elem_sum,
+                    sweep_sum, elem_sum,
                     "normalize_plateaus step 2: sweep sum mismatch for plateau {key:?}",
                 );
             }
@@ -1216,10 +1212,13 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
 
         #[cfg(debug_assertions)]
         {
-            let new_total: V = self.plateaus.values().map(|p| p.sum).fold(V::zero(), V::add);
+            let new_total: V = self
+                .plateaus
+                .values()
+                .map(|p| p.sum)
+                .fold(V::zero(), V::add);
             debug_assert_eq!(
-                old_total,
-                new_total,
+                old_total, new_total,
                 "normalize_plateaus: total plateau energy changed after consolidation",
             );
         }
@@ -1304,5 +1303,115 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for DynamicPlateauTrac
 
     fn plateaus(&self) -> Cow<'_, BTreeMap<BasisEdge<C>, Plateau<C, V>>> {
         Cow::Borrowed(&self.plateaus)
+    }
+
+    fn debug_assert_mirror_consistency(
+        &self,
+        gnodes: &Arena<GNode<C, V>>,
+        fresh: &BTreeMap<BasisEdge<C>, Plateau<C, V>>,
+        label: &str,
+    ) {
+        if !cfg!(debug_assertions) && !tracing::enabled!(tracing::Level::DEBUG) {
+            return;
+        }
+        let dynamic = &self.plateaus;
+        if dynamic == fresh {
+            return;
+        }
+        let dyn_keys: std::collections::BTreeSet<_> = dynamic.keys().collect();
+        let stat_keys: std::collections::BTreeSet<_> = fresh.keys().collect();
+        let only_dynamic: Vec<_> = dyn_keys.difference(&stat_keys).collect();
+        let only_static: Vec<_> = stat_keys.difference(&dyn_keys).collect();
+        let both: Vec<_> = dyn_keys.intersection(&stat_keys).collect();
+        let differing: Vec<_> = both
+            .iter()
+            .filter(|&&k| dynamic.get(k) != fresh.get(k))
+            .collect();
+
+        tracing::error!(
+            label,
+            only_dynamic = ?only_dynamic,
+            only_static = ?only_static,
+            differing = ?differing,
+            "PLATEAU DIVERGENCE DETECTED",
+        );
+
+        for &&key in &only_dynamic {
+            let p = &dynamic[key];
+            let basis = self.plateau_basis.basis_elements(key);
+            tracing::error!(
+                key = ?key,
+                depth = p.depth,
+                start = ?p.start,
+                end = ?p.end,
+                sum = ?p.sum,
+                basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
+                "DYNAMIC-ONLY plateau",
+            );
+            for &gid in basis {
+                if gnodes.is_occupied(gid.index()) {
+                    let g = gnodes.get(gid.index());
+                    tracing::error!(
+                        gid = gid.index(),
+                        state = ?g.state(),
+                        lo = ?g.lo(),
+                        hi = ?g.hi(),
+                        sum = ?g.sum(),
+                        "  basis element",
+                    );
+                }
+            }
+        }
+
+        for &&key in &only_static {
+            let p = &fresh[key];
+            tracing::error!(
+                key = ?key,
+                depth = p.depth,
+                start = ?p.start,
+                end = ?p.end,
+                sum = ?p.sum,
+                "STATIC-ONLY plateau",
+            );
+        }
+
+        for &&&key in &differing {
+            let dyn_p = &dynamic[key];
+            let stat_p = &fresh[key];
+            let basis = self.plateau_basis.basis_elements(key);
+            tracing::error!(
+                key = ?key,
+                dyn_depth = dyn_p.depth,
+                dyn_start = ?dyn_p.start,
+                dyn_end = ?dyn_p.end,
+                dyn_sum = ?dyn_p.sum,
+                stat_depth = stat_p.depth,
+                stat_start = ?stat_p.start,
+                stat_end = ?stat_p.end,
+                stat_sum = ?stat_p.sum,
+                basis = ?basis.iter().map(|g| g.index()).collect::<Vec<_>>(),
+                "DIFFERS",
+            );
+            for &gid in basis {
+                if gnodes.is_occupied(gid.index()) {
+                    let g = gnodes.get(gid.index());
+                    tracing::error!(
+                        gid = gid.index(),
+                        state = ?g.state(),
+                        lo = ?g.lo(),
+                        hi = ?g.hi(),
+                        sum = ?g.sum(),
+                        "  basis element",
+                    );
+                }
+            }
+        }
+
+        panic!(
+            "{label}: dynamic-contour-tracking mirror diverged from static rebuild\n\
+             left (dynamic): {:#?}\n\
+             right (static): {:#?}",
+            dynamic, fresh
+        );
     }
 }

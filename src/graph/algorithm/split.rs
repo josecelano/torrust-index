@@ -113,13 +113,8 @@ fn bootstrap_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 
     graph.plateau_after_bootstrap_split(g_id, left_id);
 
-    #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostics::diagnostic::audit_plateau_consistency(
-            graph,
-            "POST-BOOTSTRAP-SPLIT",
-            None,
-        );
+        graph.debug_assert_plateau_mirror_consistency("POST-BOOTSTRAP-SPLIT");
     }
 }
 
@@ -185,13 +180,8 @@ fn catalytic_split<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     // ── Phase 6: Plateau state update ─────────────────────────────────────
     graph.plateau_after_catalytic_split(g_id, left_id);
 
-    #[cfg(feature = "dynamic-contour-tracking")]
     if tracing::enabled!(tracing::Level::DEBUG) {
-        crate::diagnostics::diagnostic::audit_plateau_consistency(
-            graph,
-            "POST-CATALYTIC-SPLIT",
-            None,
-        );
+        graph.debug_assert_plateau_mirror_consistency("POST-CATALYTIC-SPLIT");
     }
 }
 
