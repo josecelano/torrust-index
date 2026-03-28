@@ -12,7 +12,7 @@ construction — not every method body.
 
 ---
 
-## [ ] Step 7.1 — Define the `PlateauTracking` trait
+## [x] Step 7.1 — Define the `PlateauTracking` trait
 
 **Files touched:** `src/traits/mod.rs` (or a new `src/traits/plateau_tracking.rs`).
 

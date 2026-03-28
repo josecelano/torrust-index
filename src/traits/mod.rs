@@ -38,3 +38,8 @@ pub use temporal_decay::TemporalDecay;
 
 mod weighted_sampler;
 pub use weighted_sampler::WeightedSampler;
+
+#[allow(dead_code)]
+pub(crate) mod plateau_tracking;
+#[allow(unused_imports)]
+pub(crate) use plateau_tracking::PlateauTracking;
