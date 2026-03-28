@@ -19,9 +19,11 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
     checkpoint: &str,
     context: Option<&PlateauAuditContext>,
 ) {
-    for &key in graph.plateaus.keys() {
-        for &r in graph.plateau_basis.basis_elements(&key) {
-            let back = graph.plateau_basis.plateau_key(r);
+    let plateaus = graph.plateaus();
+    let pb = graph.plateau_basis();
+    for &key in plateaus.keys() {
+        for &r in pb.basis_elements(&key) {
+            let back = pb.plateau_key(r);
             if back != Some(key) {
                 tracing::error!(
                     checkpoint,
@@ -34,8 +36,8 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
         }
     }
 
-    let map_len = graph.plateaus.len();
-    let basis_len = graph.plateau_basis.plateau_count();
+    let map_len = plateaus.len();
+    let basis_len = pb.plateau_count();
     if map_len != basis_len {
         tracing::error!(
             checkpoint,
@@ -50,9 +52,9 @@ pub fn audit_plateau_consistency<C: Coordinate, V: Accumulator + Inspectable, co
             let g = graph.gtree.nodes.get(ctx.parent_id.index());
             let surviving = g.left().or_else(|| g.right());
             if let Some(surviving_id) = surviving {
-                let parent_plateau = graph.plateau_basis.plateau_key(ctx.parent_id);
+                let parent_plateau = pb.plateau_key(ctx.parent_id);
                 if let Some(pk) = parent_plateau {
-                    if let Some(ck) = graph.plateau_basis.plateau_key(surviving_id) {
+                    if let Some(ck) = pb.plateau_key(surviving_id) {
                         if pk == ck {
                             tracing::debug!(
                                 checkpoint,

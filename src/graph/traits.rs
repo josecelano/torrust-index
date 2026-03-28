@@ -14,7 +14,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::S
 
 #[cfg(feature = "dynamic-contour-tracking")]
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::PlateauRead
-    for GvGraph<C, V, N>
+    for GvGraph<C, V, N, crate::graph::algorithm::plateau::DynamicPlateauTracker<C, V>>
 {
     fn plateaus(
         &self,
@@ -24,7 +24,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> crate::traits::P
             &crate::spatial::plateau::Plateau<C, V>,
         ),
     > {
-        self.plateaus.iter()
+        self.tracker.plateaus.iter()
     }
 }
 

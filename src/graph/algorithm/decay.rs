@@ -1,7 +1,7 @@
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
-use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable};
+use crate::traits::{Accumulator, Attenuatable, Coordinate, Inspectable, PlateauTracking};
 
 #[allow(clippy::float_cmp)]
 /// Compute per-depth attenuation factors for a decay operation over a G-tree
@@ -236,10 +236,7 @@ impl<C: Coordinate, V: Accumulator + Attenuatable + Inspectable, const N: u32> G
 
         self.plateau_recompute_sums(label);
 
-        #[cfg(feature = "dynamic-contour-tracking")]
-        {
-            self.plateaus_dirty = true;
-        }
+        self.tracker.set_dirty();
         self.normalize_plateaus();
 
         self.repair_p_i4();

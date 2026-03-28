@@ -1,7 +1,7 @@
 use crate::graph::GvGraph;
 use crate::graph::algorithm::rebalance;
 use crate::handle::GNodeId;
-use crate::traits::{Accumulator, Coordinate, Inspectable};
+use crate::traits::{Accumulator, Coordinate, Inspectable, PlateauTracking};
 
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N> {
     pub(crate) fn handle_legacy_promotes(&mut self, new_gnodes: &[GNodeId]) {
@@ -148,10 +148,7 @@ impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> GvGraph<C, V, N>
 
             self.repair_p_i4();
 
-            #[cfg(feature = "dynamic-contour-tracking")]
-            {
-                self.plateaus_dirty = true;
-            }
+            self.tracker.set_dirty();
             self.normalize_plateaus();
 
             self.repair_p_i4();

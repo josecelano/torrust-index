@@ -1,123 +1,202 @@
 use crate::arena::Arena;
+use crate::graph::algorithm::plateau::noop_tracker::NoopPlateauTracker;
 use crate::handle::{GNodeId, VNodeId};
 use crate::nodes::gnode::{GNode, GNodeChildren};
 use crate::nodes::vnode::VNode;
 use crate::spatial::node::Node;
-#[cfg(feature = "dynamic-contour-tracking")]
-use crate::spatial::plateau::{BasisEdge, Plateau};
-#[cfg(feature = "dynamic-contour-tracking")]
-use crate::spatial::plateau_basis::PlateauBasis;
-use crate::traits::{Accumulator, Coordinate};
+use crate::traits::{Accumulator, Coordinate, PlateauTracking};
 use crate::tree::gtree::GTree;
 use crate::tree::vtree::VTree;
-#[cfg(feature = "dynamic-contour-tracking")]
-use std::collections::BTreeMap;
 
 use super::config::Config;
 
-#[derive(Debug, Clone)]
-pub struct GvGraph<C: Coordinate, V: Accumulator, const N: u32> {
+/// Feature-conditional default tracker type.
+///
+/// When `dynamic-contour-tracking` is enabled this resolves to
+/// [`DynamicPlateauTracker`]; otherwise it resolves to [`NoopPlateauTracker`].
+#[cfg(feature = "dynamic-contour-tracking")]
+pub(crate) type DefaultTracker<C, V> =
+    crate::graph::algorithm::plateau::DynamicPlateauTracker<C, V>;
+#[cfg(not(feature = "dynamic-contour-tracking"))]
+pub(crate) type DefaultTracker<C, V> = crate::graph::algorithm::plateau::NoopPlateauTracker;
+
+/// Convenience type alias that selects the right tracker automatically.
+///
+/// External code that does not need to name the tracker explicitly should prefer
+/// `DefaultGraph` over `GvGraph<C, V, N, SomeTracker>`.
+#[cfg(feature = "dynamic-contour-tracking")]
+pub type DefaultGraph<C, V, const N: u32> =
+    GvGraph<C, V, N, crate::graph::algorithm::plateau::DynamicPlateauTracker<C, V>>;
+#[cfg(not(feature = "dynamic-contour-tracking"))]
+pub type DefaultGraph<C, V, const N: u32> =
+    GvGraph<C, V, N, crate::graph::algorithm::plateau::NoopPlateauTracker>;
+
+/// The `GvGraph` composite structure.
+///
+/// The fourth type parameter `T` selects the plateau-tracking strategy.
+/// Leaving it unspecified uses `DefaultTracker<C, V>`, which is
+/// `DynamicPlateauTracker<C, V>` when the `dynamic-contour-tracking` Cargo
+/// feature is enabled and `NoopPlateauTracker` otherwise.
+pub struct GvGraph<
+    C: Coordinate,
+    V: Accumulator,
+    const N: u32,
+    T: PlateauTracking<C, V> = DefaultTracker<C, V>,
+> {
     pub(crate) gtree: GTree<C, V, N>,
 
     pub(crate) vtree: VTree<V>,
 
     pub(crate) config: Config<V>,
 
-    #[cfg(feature = "dynamic-contour-tracking")]
-    pub(crate) plateaus: BTreeMap<BasisEdge<C>, Plateau<C, V>>,
-
-    #[cfg(feature = "dynamic-contour-tracking")]
-    pub(crate) pending_p_i4: Vec<(GNodeId, BasisEdge<C>)>,
-
-    #[cfg(feature = "dynamic-contour-tracking")]
-    pub(crate) plateau_basis: PlateauBasis<C>,
-
-    #[cfg(feature = "dynamic-contour-tracking")]
-    pub(crate) plateaus_dirty: bool,
+    /// The plateau-tracking strategy for this graph instance.
+    pub(crate) tracker: T,
 }
 
-impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N> {
-    // ── Construction ─────────────────────────────────────────────────────
+impl<
+    C: Coordinate,
+    V: Accumulator,
+    const N: u32,
+    T: PlateauTracking<C, V> + std::fmt::Debug + Clone,
+> std::fmt::Debug for GvGraph<C, V, N, T>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GvGraph")
+            .field("gtree", &self.gtree)
+            .field("vtree", &self.vtree)
+            .field("config", &self.config)
+            .field("tracker", &self.tracker)
+            .finish()
+    }
+}
+
+impl<C: Coordinate, V: Accumulator, const N: u32, T: PlateauTracking<C, V> + Clone> Clone
+    for GvGraph<C, V, N, T>
+{
+    fn clone(&self) -> Self {
+        Self {
+            gtree: self.gtree.clone(),
+            vtree: self.vtree.clone(),
+            config: self.config.clone(),
+            tracker: self.tracker.clone(),
+        }
+    }
+}
+
+/// Shared constructor helper — builds all tree structures except the tracker.
+///
+/// Returns `(gtree, vtree, config, g_root)`.
+fn build_core<C: Coordinate, V: Accumulator, const N: u32>(
+    config: Config<V>,
+) -> (GTree<C, V, N>, VTree<V>, Config<V>, GNodeId) {
+    const { assert!(N <= C::BITS, "N must be <= C::BITS") };
+    config.validate();
+
+    let depth_buffer = config.structural.depth_evict - config.structural.depth_create;
+    let headroom_fanout = 3usize.pow(depth_buffer + 1);
+    let headroom_convergence = 2 * (config.structural.depth_create as usize).saturating_sub(1);
+    let headroom = headroom_fanout.max(headroom_convergence);
+    let soft_limit = config.structural.budget.map(|b| {
+        let s = b - headroom;
+        assert!(
+            s >= 1,
+            "soft_limit must be >= 1 (budget={b}, headroom={headroom})"
+        );
+        s
+    });
+
+    let mut gnodes = Arena::new();
+    let root_gnode = GNode::new_leaf(C::zero(), C::domain_max(N), V::zero(), None);
+    let g_root = GNodeId::from_index(gnodes.alloc(root_gnode));
+
+    let mut vnodes = Arena::new();
+    let root_entry = VNode::new_entry(V::zero(), None, g_root, true, true);
+    let v_root_id = VNodeId::from_index(vnodes.alloc(root_entry));
+    gnodes.get_mut(g_root.index()).assign_entry(v_root_id);
+
+    let gtree = GTree {
+        nodes: gnodes,
+        root: g_root,
+        node_count: 1,
+        terminal_count: 1,
+        live_depth_evict: config.structural.depth_evict,
+        live_depth_create: config.structural.depth_create,
+        depth_buffer,
+        headroom,
+        soft_limit,
+    };
+
+    let vtree = VTree {
+        nodes: vnodes,
+        root: Some(v_root_id),
+        violations: Vec::new(),
+    };
+
+    (gtree, vtree, config, g_root)
+}
+
+// ── Constructor for NoopPlateauTracker ────────────────────────────────────────
+
+impl<C: Coordinate, V: Accumulator, const N: u32> GvGraph<C, V, N, NoopPlateauTracker> {
+    /// Creates a new graph using the `NoopPlateauTracker` (no plateau mirror).
+    ///
+    /// This is the default constructor when the `dynamic-contour-tracking`
+    /// feature is **disabled**.
+    #[cfg(not(feature = "dynamic-contour-tracking"))]
     #[must_use]
     pub fn new(config: Config<V>) -> Self {
-        const { assert!(N <= C::BITS, "N must be <= C::BITS") };
-        config.validate();
+        let (gtree, vtree, config, _g_root) = build_core::<C, V, N>(config);
+        Self {
+            gtree,
+            vtree,
+            config,
+            tracker: NoopPlateauTracker,
+        }
+    }
+}
 
-        let depth_buffer = config.structural.depth_evict - config.structural.depth_create;
-        let headroom_fanout = 3usize.pow(depth_buffer + 1);
-        let headroom_convergence = 2 * (config.structural.depth_create as usize).saturating_sub(1);
-        let headroom = headroom_fanout.max(headroom_convergence);
-        let soft_limit = config.structural.budget.map(|b| {
-            let s = b - headroom;
-            assert!(
-                s >= 1,
-                "soft_limit must be >= 1 (budget={b}, headroom={headroom})"
-            );
-            s
-        });
+// ── Constructor for DynamicPlateauTracker ─────────────────────────────────────
 
-        let mut gnodes = Arena::new();
-        let root_gnode = GNode::new_leaf(C::zero(), C::domain_max(N), V::zero(), None);
-        let g_root = GNodeId::from_index(gnodes.alloc(root_gnode));
+#[cfg(feature = "dynamic-contour-tracking")]
+impl<C: Coordinate, V: Accumulator, const N: u32>
+    GvGraph<C, V, N, crate::graph::algorithm::plateau::DynamicPlateauTracker<C, V>>
+{
+    /// Creates a new graph using the `DynamicPlateauTracker` (incremental
+    /// plateau mirror).
+    ///
+    /// This is the default constructor when the `dynamic-contour-tracking`
+    /// feature is **enabled**.
+    #[must_use]
+    pub fn new(config: Config<V>) -> Self {
+        use crate::graph::algorithm::plateau::DynamicPlateauTracker;
+        use crate::spatial::plateau::BasisEdge;
+        use crate::tree::gtree::GTree;
 
-        let mut vnodes = Arena::new();
-        let root_entry = VNode::new_entry(V::zero(), None, g_root, true, true);
-        let v_root_id = VNodeId::from_index(vnodes.alloc(root_entry));
-        gnodes.get_mut(g_root.index()).assign_entry(v_root_id);
+        let (gtree, vtree, config, g_root) = build_core::<C, V, N>(config);
 
-        let gtree = GTree {
-            nodes: gnodes,
-            root: g_root,
-            node_count: 1,
-            terminal_count: 1,
-            live_depth_evict: config.structural.depth_evict,
-            live_depth_create: config.structural.depth_create,
-            depth_buffer,
-            headroom,
-            soft_limit,
-        };
-
-        #[cfg(feature = "dynamic-contour-tracking")]
-        let (plateaus, plateau_basis) = {
-            let root_key = BasisEdge(C::zero());
-            let root_depth = GTree::<C, V, N>::depth_of_interval(C::zero(), C::domain_max(N));
-            let mut pb = PlateauBasis::new();
-            pb.insert(root_key, g_root);
-            let mut map = BTreeMap::new();
-            map.insert(
-                root_key,
-                Plateau {
-                    basis_edge: root_key,
-                    start: C::zero(),
-                    end: C::domain_max(N),
-                    depth: root_depth,
-                    sum: V::zero(),
-                },
-            );
-            (map, pb)
-        };
-
-        let vtree = VTree {
-            nodes: vnodes,
-            root: Some(v_root_id),
-            violations: Vec::new(),
-        };
+        let root_key = BasisEdge(C::zero());
+        let root_depth = GTree::<C, V, N>::depth_of_interval(C::zero(), C::domain_max(N));
+        let tracker = DynamicPlateauTracker::with_root(
+            root_key,
+            root_depth,
+            C::zero(),
+            C::domain_max(N),
+            g_root,
+            N,
+        );
 
         Self {
             gtree,
             vtree,
             config,
-            #[cfg(feature = "dynamic-contour-tracking")]
-            plateaus,
-            #[cfg(feature = "dynamic-contour-tracking")]
-            pending_p_i4: Vec::new(),
-            #[cfg(feature = "dynamic-contour-tracking")]
-            plateau_basis,
-            #[cfg(feature = "dynamic-contour-tracking")]
-            plateaus_dirty: false,
+            tracker,
         }
     }
+}
 
+// ── Generic impl for all trackers ─────────────────────────────────────────────
+
+impl<C: Coordinate, V: Accumulator, const N: u32, T: PlateauTracking<C, V>> GvGraph<C, V, N, T> {
     // ── Accessors ──────────────────────────────────────────────────────
     #[must_use]
     #[inline]

@@ -18,7 +18,8 @@ pub fn check_plateau_btreemap_key_consistency<
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    for (&key, plateau) in &graph.plateaus {
+    let p = graph.plateaus();
+    for (&key, plateau) in p.iter() {
         if plateau.basis_edge != key {
             errors.push(format!(
                 "Plateau key consistency: BTreeMap key {key:?} != plateau.basis_edge {:?}",
@@ -73,7 +74,7 @@ pub fn check_plateau_basis_consistency<
         }
     }
 
-    let btree_keys: Vec<_> = graph.plateaus.keys().copied().collect();
+    let btree_keys: Vec<_> = graph.plateaus().keys().copied().collect();
     let basis_keys: Vec<_> = pb.iter().map(|(&k, _)| k).collect();
     if btree_keys != basis_keys {
         errors.push(format!(
@@ -95,7 +96,8 @@ pub fn check_plateau_sum_consistency<
     errors: &mut Vec<String>,
 ) {
     let pb = graph.plateau_basis();
-    for (&key, plateau) in &graph.plateaus {
+    let p = graph.plateaus();
+    for (&key, plateau) in p.iter() {
         let expected: f64 = pb
             .basis_elements(&key)
             .iter()
@@ -121,7 +123,8 @@ pub fn check_plateau_depth_consistency<
     errors: &mut Vec<String>,
 ) {
     let pb = graph.plateau_basis();
-    for (&key, plateau) in &graph.plateaus {
+    let p = graph.plateaus();
+    for (&key, plateau) in p.iter() {
         for &gid in pb.basis_elements(&key) {
             if !graph.gtree.nodes.is_occupied(gid.index()) {
                 continue;
@@ -219,7 +222,7 @@ pub fn check_p_i1_i_keys_are_contour_steps<
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    let plateaus = &graph.plateaus;
+    let plateaus = graph.plateaus();
     if plateaus.is_empty() {
         errors.push("P-I1(i): plateaus BTreeMap is empty (must have at least 1 plateau)".into());
         return;
@@ -278,7 +281,7 @@ pub fn check_p_i1_ii_tile_contiguity<
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    let plateaus = &graph.plateaus;
+    let plateaus = graph.plateaus();
     let pb = graph.plateau_basis();
     let keys: Vec<BasisEdge<C>> = plateaus.keys().copied().collect();
     let domain_max = C::domain_max(N);
@@ -349,7 +352,7 @@ pub fn check_p_i1_iii_run_contains_tile<
     graph: &GvGraph<C, V, N>,
     errors: &mut Vec<String>,
 ) {
-    let plateaus = &graph.plateaus;
+    let plateaus = graph.plateaus();
     let pb = graph.plateau_basis();
     let keys: Vec<BasisEdge<C>> = plateaus.keys().copied().collect();
     let domain_max = C::domain_max(N);
@@ -422,8 +425,9 @@ pub fn check_p_i2_basis_minimality<
     errors: &mut Vec<String>,
 ) {
     let pb = graph.plateau_basis();
+    let p = graph.plateaus();
     for (&key, gnodes_list) in pb.iter() {
-        let Some(plateau) = graph.plateaus.get(&key) else {
+        let Some(plateau) = p.get(&key) else {
             continue;
         };
         let expected_depth = plateau.depth;
@@ -522,8 +526,8 @@ pub fn check_p_i4_thatch_one_hop<
             let child_g = graph.gtree.nodes.get(child_id.index());
             let child_lo = child_g.lo();
 
-            let child_plateau_key = graph
-                .plateaus
+            let p = graph.plateaus();
+            let child_plateau_key = p
                 .range(..=BasisEdge(child_lo))
                 .next_back()
                 .map(|(&k, _)| k);

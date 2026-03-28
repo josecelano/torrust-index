@@ -16,7 +16,7 @@ pub use diagnostics::invariants;
 
 #[doc(hidden)]
 pub use graph::GNodeChildren;
-pub use graph::{Config, GvGraph, StructuralConfig};
+pub use graph::{Config, DefaultGraph, GvGraph, StructuralConfig};
 pub use handle::GNodeId;
 pub use nodes::gnode::GState;
 pub use spatial::contour_range::{BasisElement, ContourRange, ContourRangeEnergy};
@@ -26,6 +26,8 @@ pub use spatial::plateau::{BasisEdge, Plateau};
 pub use spatial::view::{Cell, Span};
 #[cfg(feature = "dynamic-contour-tracking")]
 pub use traits::PlateauRead;
+#[cfg(feature = "dynamic-contour-tracking")]
+pub use traits::PlateauTracking;
 pub use traits::{
     Accumulator, Attenuatable, Coordinate, Inspectable, Observation, Proratable, Rng,
     ScalableObservation, SpatialRead, SpatialWrite, TemporalDecay, Weighable, WeightedSampler,

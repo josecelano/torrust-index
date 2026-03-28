@@ -46,10 +46,11 @@ pub struct Pl<'a, C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
 impl<C: Coordinate, V: Accumulator + Inspectable, const N: u32> fmt::Display for Pl<'_, C, V, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let idx = self.1.index();
-        let key = self.0.plateau_basis.plateau_key(self.1);
+        let key = self.0.plateau_basis().plateau_key(self.1);
         match key {
             Some(k) => {
-                if let Some(plateau) = self.0.plateaus.get(&k) {
+                let p = self.0.plateaus();
+                if let Some(plateau) = p.get(&k) {
                     write!(
                         f,
                         "P([{},{}),d={},sum={})",

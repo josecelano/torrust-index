@@ -2,7 +2,9 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use super::{Accumulator, Coordinate};
+use crate::arena::Arena;
 use crate::handle::GNodeId;
+use crate::nodes::gnode::{GNode, GState};
 use crate::spatial::plateau::{BasisEdge, Plateau};
 
 /// Strategy trait that encapsulates all plateau-state updates.
@@ -17,17 +19,44 @@ use crate::spatial::plateau::{BasisEdge, Plateau};
 ///
 /// This replaces the `#[cfg(feature = "dynamic-contour-tracking")]` guards that
 /// were previously scattered through every algorithm file.
-pub(crate) trait PlateauTracking<C: Coordinate, V: Accumulator> {
-    /// Called after an observation has been routed to `id` and the G-node's
-    /// own value updated.
-    fn on_observe(&mut self, id: GNodeId, coord: C, value: V);
+pub trait PlateauTracking<C: Coordinate, V: Accumulator> {
+    /// Called after an observation has been routed to `g_id` and the G-node's
+    /// own value updated.  `value` is the already-accumulated contribution.
+    fn on_observe(&mut self, gnodes: &Arena<GNode<C, V>>, g_id: GNodeId, value: V);
 
-    /// Called after a G-node has been split into `child_lo` and `child_hi`
-    /// (both bootstrap and catalytic splits).
-    fn on_split(&mut self, parent: GNodeId, child_lo: GNodeId, child_hi: GNodeId);
+    /// Called after a G-node has been split via a bootstrap split.
+    fn on_bootstrap_split(&mut self, gnodes: &Arena<GNode<C, V>>, g_id: GNodeId, left_id: GNodeId);
+
+    /// Called after a G-node has been split via a catalytic split.
+    fn on_catalytic_split(&mut self, gnodes: &Arena<GNode<C, V>>, g_id: GNodeId, left_id: GNodeId);
 
     /// Called after a G-node has been evicted from the tree.
-    fn on_evict(&mut self, id: GNodeId);
+    fn on_evict(
+        &mut self,
+        gnodes: &Arena<GNode<C, V>>,
+        gnode_id: GNodeId,
+        parent_id: GNodeId,
+        parent_state_after: GState,
+        parent_lo: C,
+        parent_hi: C,
+    );
+
+    /// Called after a batch of legacy-promote operations.
+    fn on_legacy_promotes_batched(&mut self, gnodes: &Arena<GNode<C, V>>, new_gnodes: &[GNodeId]);
+
+    /// Runs the full plateau normalisation pass (consolidate + repair).
+    fn normalize(&mut self, gnodes: &Arena<GNode<C, V>>);
+
+    /// Restores the P-I4 invariant for all semi-internal G-nodes.
+    fn repair_p_i4(&mut self, gnodes: &Arena<GNode<C, V>>);
+
+    /// Recomputes the `sum` field for every tracked plateau from the current
+    /// G-tree node sums.  Called after bulk weight mutations (e.g. `decay`).
+    fn recompute_sums(&mut self, gnodes: &Arena<GNode<C, V>>, label: &str);
+
+    /// Marks the tracker dirty so that the next `normalize` call will
+    /// recompute the plateau map from scratch.
+    fn set_dirty(&mut self);
 
     /// Read access to all currently tracked plateaus, keyed by basis edge.
     ///

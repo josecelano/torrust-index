@@ -81,7 +81,7 @@ impl<C: Coordinate, V: Accumulator> PlateauTracking<C, V> for NoopPlateauTracker
 
 ---
 
-## [ ] Step 7.3 — Thread the tracker through `GvGraph`
+## [x] Step 7.3 — Thread the tracker through `GvGraph`
 
 **Design decision — trait object vs type parameter:**
 

@@ -112,7 +112,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     let mut out = String::new();
 
     #[cfg(feature = "dynamic-contour-tracking")]
-    let plateaus = &graph.plateaus;
+    let plateaus = graph.plateaus();
     #[cfg(not(feature = "dynamic-contour-tracking"))]
     let plateaus = graph.build_plateaus();
 
@@ -124,7 +124,7 @@ pub fn dump_plateaus<C: Coordinate, V: Accumulator + Inspectable, const N: u32>(
     )
     .unwrap();
 
-    for (key, plateau) in plateaus {
+    for (key, plateau) in plateaus.iter() {
         let next_key = plateaus
             .range(std::ops::RangeFrom {
                 start: crate::spatial::plateau::BasisEdge(plateau.end),

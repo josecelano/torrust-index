@@ -6,3 +6,4 @@ pub mod traits;
 pub use crate::nodes::gnode::GNodeChildren;
 pub use config::{Config, StructuralConfig};
 pub use gv_graph::GvGraph;
+pub use gv_graph::DefaultGraph;
