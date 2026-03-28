@@ -63,7 +63,7 @@ cargo clippy --all-features -- -D warnings
 | [7.1](phase-7.md#step-71--define-a-plateautracking-trait)                         | ✅     | Define `PlateauTracking` trait       | #5          |
 | [7.2](phase-7.md#step-72--implement-dynamicplateautracker-and-noopplateautracker) | ✅     | Implement tracker types              | #5          |
 | [7.3](phase-7.md#step-73--thread-the-tracker-through-gvgraph)                     | ✅     | Thread tracker through `GvGraph`     | #5          |
-| [7.4](phase-7.md#step-74--remove-cfgfeature--blocks-from-gvgraph-fields)          | ⬜     | Remove `#[cfg]` fields               | #5          |
+| [7.4](phase-7.md#step-74--remove-cfgfeature--blocks-from-gvgraph-fields)          | ✅     | Remove `#[cfg]` fields               | #5          |
 
 **Status key:** ⬜ not started · 🔄 in progress · ✅ done · ⏸ blocked
 
@@ -91,8 +91,9 @@ Phase 7  requires Phase 4 + 5
 
 _Reverse-chronological. Add an entry when a step is marked done._
 
-| Date       | Step | Commit  | Notes                                                                    |
-| ---------- | ---- | ------- | ------------------------------------------------------------------------ |
-| 2026-03-28 | 7.3  | 695de91 | Thread `PlateauTracking` through `GvGraph`; fix diagnostics field access |
-| 2026-03-28 | 7.2  | 2b351b4 | Extract `DynamicPlateauTracker` and `NoopPlateauTracker`                 |
-| 2026-03-28 | 7.1  | bf8ae52 | Define `PlateauTracking` strategy trait                                  |
+| Date       | Step | Commit  | Notes                                                                                       |
+| ---------- | ---- | ------- | ------------------------------------------------------------------------------------------- |
+| 2026-03-28 | 7.4  | 0ef2790 | Remove `#[cfg]` guards from algorithm files; add `debug_assert_mirror_consistency` to trait |
+| 2026-03-28 | 7.3  | 695de91 | Thread `PlateauTracking` through `GvGraph`; fix diagnostics field access                    |
+| 2026-03-28 | 7.2  | 2b351b4 | Extract `DynamicPlateauTracker` and `NoopPlateauTracker`                                    |
+| 2026-03-28 | 7.1  | bf8ae52 | Define `PlateauTracking` strategy trait                                                     |
